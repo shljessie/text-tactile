@@ -307,6 +307,7 @@ export const Main = () => {
     }
   };
 
+  // [TODO] : updating coordinates
   const updateImageDetails = (index, updatedDetails) => {
     setImages(currentImages => {
         const updatedImages = currentImages.map((img, idx) => idx === index ? { ...img, ...updatedDetails } : img);
@@ -367,33 +368,10 @@ export const Main = () => {
     }
   };
 
-  const processPrompt = (promptText) => {
-    const tokens = tokenize(promptText);
-    const taggedTokens = tagger.tag(tokens);
-    const processedSegments = [];
-  
-    taggedTokens.forEach(token => {
-      if (token.pos === 'NN') {
-        // If it's a noun, push it as an object with a flag indicating it's a noun
-        processedSegments.push({ text: token.value, isNoun: true });
-      } else {
-        // If it's not a noun, push the text directly
-        processedSegments.push({ text: token.value, isNoun: false });
-      }
-    });
-  
-    return processedSegments;
-  };
-
-  const onNounClick = (noun) => {
-    console.log(`Noun clicked: ${noun}`);
-    // Implement any logic you want to trigger on clicking a noun
-  };
-
+  // Initial Size Mapping
   const mapSizeToParts = (sizeDescription) => {
     let width, height;
   
-    // Convert sizeDescription to lowercase to make the switch case-insensitive
     const size = sizeDescription.toLowerCase();
   
     switch (size) {
@@ -423,248 +401,222 @@ export const Main = () => {
   };
   
 
-const handleKeyDown = (e, index, editOperation) => {
-  console.log('Selected image index:', index);
-  console.log('Selected Edit :',editOperation);
-  if (selectedImageIndex === null) return; // Early return if no image is selected
+  // Selecting Table Column for Editing
+  const handleKeyDown = (e, index, editOperation) => {
+    console.log('Selected image index:', index);
+    console.log('Selected Edit :',editOperation);
+    if (selectedImageIndex === null) return; 
 
-  const { keyCode } = e;
-  let dx = 0, dy = 0; // For position adjustments
-  let dw = 0, dh = 0; // For size adjustments
-  const moveStep = 10; // Step for moving the image
-  const resizeStep = 10; // Step for resizing the image
+    const { keyCode } = e;
+    let dx = 0, dy = 0;
+    let dw = 0, dh = 0; 
+    const moveStep = 10; 
+    const resizeStep = 10;
 
-  if (editOperation==' position') {
-    console.log('POSITION EDITING')
-    switch (keyCode) {
-      case 37: dx = -moveStep; break; // Left arrow
-      case 38: dy = -moveStep; break; // Up arrow
-      case 39: dx = moveStep;  break; // Right arrow
-      case 40: dy = moveStep;  break; // Down arrow
+    if (editOperation==' position') {
+      console.log('POSITION EDITING')
+      switch (keyCode) {
+        case 37: dx = -moveStep; break; 
+        case 38: dy = -moveStep; break;
+        case 39: dx = moveStep;  break;
+        case 40: dy = moveStep;  break;
+      }
+    } else if(editOperation==' size') {
+      console.log('SIZE EDITING')
+      switch (keyCode) {
+        case 187: dw = resizeStep; dh = resizeStep; break; 
+        case 189: dw = -resizeStep; dh = -resizeStep; break; 
+      }
     }
-  } else if(editOperation==' size') {
-    console.log('SIZE EDITING')
-    // Additional keys for size adjustment, e.g., + and - keys
-    switch (keyCode) {
-      case 187: dw = resizeStep; dh = resizeStep; break; // '+' key
-      case 189: dw = -resizeStep; dh = -resizeStep; break; // '-' key
-    }
-  }
 
-  updateImagePosition(index, dx, dy);
-  
-  // Apply position adjustment
-  setSavedImages((prevImages) => {
-    const newImages = [...prevImages];
-    const imageToEdit = newImages[index];
-    if (editOperation=='position') {
-      imageToEdit.coordinate.x += dx;
-      imageToEdit.coordinate.y += dy;
-    }else if(editOperation=='size')  {
-      // Apply size adjustment, ensuring the size does not become negative
-      imageToEdit.sizeParts.width = Math.max(10, imageToEdit.sizeParts.width + dw);
-      imageToEdit.sizeParts.height = Math.max(10, imageToEdit.sizeParts.height + dh);
-    }
-    return newImages;
-  });
-
-  if (keyCode === 27) { // Escape key to deselect image
-    setSelectedImageIndex(null);
-  }
-};
-
-// Function to set the selected image index
-const selectImageForEditing = (index, editOperation) => {
-  console.log('Selected Edit', index)
-  setSelectedImageIndex(index);
-  setEditOperation(editOperation);
-  console.log('SET EDIT OPERATION:',editOperation)
-  // Ensure the div container is focused to listen for key down events
-  document.getElementById("canvas").focus();
-};
-
-const updateImagePosition = (index, dx, dy) => {
-  setSavedImages((prevImages) => {
-    const newImages = [...prevImages];
-    const imageToUpdate = newImages[index];
-
-    // Update coordinates based on dx and dy
-    const updatedCoordinates = {
-      x: imageToUpdate.coordinate.x + dx,
-      y: imageToUpdate.coordinate.y + dy,
-    };
-
-    // Update the image with new coordinates
-    newImages[index] = { ...imageToUpdate, coordinate: updatedCoordinates };
-
-    // Persist changes to localStorage
-    localStorage.setItem('images', JSON.stringify(newImages));
-
-    return newImages;
-  });
-};
-
-
-  
-  
-
-
-const fetchDescription = async (imageURL, descriptionType, index) => {
-  const apiKey = process.env.REACT_APP_API_KEY;
-  let customPrompt;
-  
-  if (descriptionType === 'general') {
-    customPrompt = `
-      You are describing an image to a Visually Impaired Person.
-      Generate the given image description according to the following criteria:
-      Briefly describe the primary subject or focus of the image in one sentence.
-    `;
-  } else if (descriptionType === 'size') {
-    customPrompt = `
-      Describe the size of the primary subject in the image using only the words small, medium, or large.
-      Only use one word. Choose from [small, medium, large]
-    `;
-  } else if (descriptionType === 'position') {
-    customPrompt = `
-      Describe the position of the primary subject in the image using only the words [bottom, top, center, left, right].
-      Only use one word. Choose from [bottom, top, center, left, right]
-    `;
-  }
-
-  const payload = {
-    "model": "gpt-4-vision-preview",
-    "messages": [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": customPrompt},
-                {"type": "image_url", "image_url": {"url":imageURL }}
-            ]
-        }
-    ],
-    "max_tokens": 300
-  };
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
+    updateImagePosition(index, dx, dy);
+    
+    setSavedImages((prevImages) => {
+      const newImages = [...prevImages];
+      const imageToEdit = newImages[index];
+      if (editOperation=='position') {
+        imageToEdit.coordinate.x += dx;
+        imageToEdit.coordinate.y += dy;
+      }else if(editOperation=='size')  {
+        imageToEdit.sizeParts.width = Math.max(10, imageToEdit.sizeParts.width + dw);
+        imageToEdit.sizeParts.height = Math.max(10, imageToEdit.sizeParts.height + dh);
+      }
+      return newImages;
     });
 
-    const data = await response.json();
-
-    if (data.choices && data.choices.length > 0) {
-      const caption = data.choices[0].message.content;
-
-      // Inside fetchDescription, when setting state after fetching position or size description
-      setImages(currentImages => {
-        // Copy the current images to a new array to avoid mutating the state directly
-        const newImages = [...currentImages];
-        
-        // Find and update only the specific image
-        const updatedImage = { ...newImages[index] }; // Clone to avoid direct mutation
-        if (descriptionType === 'position') {
-          updatedImage.coordinate = mapPositionToCoordinates(caption, updatedImage.sizeParts.width, updatedImage.sizeParts.height);
-          updateImageDetails(index, { coordinate: updatedImage.coordinate });
-        } else if (descriptionType === 'size') {
-          updatedImage.sizeParts = mapSizeToParts(caption.toLowerCase());
-          updateImageDetails(index, { sizeParts: updatedImage.sizeParts });
-        }
-        // Update descriptions as needed
-        updatedImage.descriptions[descriptionType] = caption;
-        
-        newImages[index] = updatedImage; // Update the array with the modified image
-        
-        return newImages; // Return the updated array to set the new state
-      });
-
-
-      setImageURL(imageURL);
-
-      
-
-      // Optionally update other state based on the description type
-      if (descriptionType === 'general') {
-        setDescription(caption);
-      } else if (descriptionType === 'size') {
-        setSizeDescription(caption);
-      } else if (descriptionType === 'position') {
-        setPositionDescription(caption);
-      }
-    } else {
-      console.error('Failed to generate description:', data);
+    if (keyCode === 27) { 
+      setSelectedImageIndex(null);
     }
-  } catch (error) {
-    console.error('Error generating description:', error);
-  }
-};
+  };
 
-const handlePositionEditKeyDown = (e, index) => {
-  let dx = 0, dy = 0;
-  switch (e.key) {
-    case 'ArrowUp': dy = -1; break;
-    case 'ArrowDown': dy = 1; break;
-    case 'ArrowLeft': dx = -1; break;
-    case 'ArrowRight': dx = 1; break;
-    default: return; // Ignore other keys
-  }
+  // Function to set the selected image index
+  const selectImageForEditing = (index, editOperation) => {
+    console.log('Selected Edit', index)
+    setSelectedImageIndex(index);
+    setEditOperation(editOperation);
+    console.log('SET EDIT OPERATION:',editOperation)
+    document.getElementById("canvas").focus();
+  };
 
-  // Update the image position state with the new values
-  updateImagePosition(index, dx, dy);
+  // Updating Coordinates
+  const updateImagePosition = (index, dx, dy) => {
+    setSavedImages((prevImages) => {
+      const newImages = [...prevImages];
+      const imageToUpdate = newImages[index];
 
-  // Prevent the default action to avoid scrolling the page
-  e.preventDefault();
-};
+      const updatedCoordinates = {
+        x: imageToUpdate.coordinate.x + dx,
+        y: imageToUpdate.coordinate.y + dy,
+      };
 
-const handleSizeEditKeyDown = (e, index) => {
-  let dw = 0, dh = 0; // delta width, delta height
-  const resizeStep = 10; // Adjust this value as needed for the size step
+      newImages[index] = { ...imageToUpdate, coordinate: updatedCoordinates };
+      localStorage.setItem('images', JSON.stringify(newImages));
 
-  switch (e.key) {
-    case 'ArrowUp':
-      dw = resizeStep;
-      dh = resizeStep;
-      break;
-    case 'ArrowDown':
-      dw = -resizeStep;
-      dh = -resizeStep;
-      break;
-    default:
-      return; // Ignore other keys
-  }
+      return newImages;
+    });
+  };
 
-  // Update the image size state with the new values
-  updateImageSize(index, dw, dh);
 
-  // Prevent the default action to avoid scrolling the page
-  e.preventDefault();
-};
+  
+  
+  const fetchDescription = async (imageURL, descriptionType, index) => {
+    const apiKey = process.env.REACT_APP_API_KEY;
+    let customPrompt;
+    
+    if (descriptionType === 'general') {
+      customPrompt = `
+        You are describing an image to a Visually Impaired Person.
+        Generate the given image description according to the following criteria:
+        Briefly describe the primary subject or focus of the image in one sentence.
+      `;
+    } else if (descriptionType === 'size') {
+      customPrompt = `
+        Describe the size of the primary subject in the image using only the words small, medium, or large.
+        Only use one word. Choose from [small, medium, large]
+      `;
+    } else if (descriptionType === 'position') {
+      customPrompt = `
+        Describe the position of the primary subject in the image using only the words [bottom, top, center, left, right].
+        Only use one word. Choose from [bottom, top, center, left, right]
+      `;
+    }
 
-const updateImageSize = (index, dw, dh) => {
-  setSavedImages((prevImages) => {
-    const newImages = [...prevImages];
-    const imageToUpdate = newImages[index];
-
-    // Calculate new size, ensuring it doesn't go below a minimum value
-    const newWidth = Math.max(10, imageToUpdate.sizeParts.width + dw);
-    const newHeight = Math.max(10, imageToUpdate.sizeParts.height + dh);
-
-    // Update the image with the new size
-    newImages[index] = {
-      ...imageToUpdate,
-      sizeParts: { width: newWidth, height: newHeight }
+    const payload = {
+      "model": "gpt-4-vision-preview",
+      "messages": [
+          {
+              "role": "user",
+              "content": [
+                  {"type": "text", "text": customPrompt},
+                  {"type": "image_url", "image_url": {"url":imageURL }}
+              ]
+          }
+      ],
+      "max_tokens": 300
     };
 
-    // Persist the updated images array to localStorage
-    localStorage.setItem('images', JSON.stringify(newImages));
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
 
-    return newImages;
-  });
-};
+      const data = await response.json();
+
+      if (data.choices && data.choices.length > 0) {
+        const caption = data.choices[0].message.content;
+
+        setImages(currentImages => {
+          const newImages = [...currentImages];
+          const updatedImage = { ...newImages[index] };
+          if (descriptionType === 'position') {
+            updatedImage.coordinate = mapPositionToCoordinates(caption, updatedImage.sizeParts.width, updatedImage.sizeParts.height);
+            updateImageDetails(index, { coordinate: updatedImage.coordinate });
+          } else if (descriptionType === 'size') {
+            updatedImage.sizeParts = mapSizeToParts(caption.toLowerCase());
+            updateImageDetails(index, { sizeParts: updatedImage.sizeParts });
+          }
+          updatedImage.descriptions[descriptionType] = caption;
+          
+          newImages[index] = updatedImage;
+          
+          return newImages; 
+        });
+
+
+        setImageURL(imageURL);
+
+        if (descriptionType === 'general') {
+          setDescription(caption);
+        } else if (descriptionType === 'size') {
+          setSizeDescription(caption);
+        } else if (descriptionType === 'position') {
+          setPositionDescription(caption);
+        }
+      } else {
+        console.error('Failed to generate description:', data);
+      }
+    } catch (error) {
+      console.error('Error generating description:', error);
+    }
+  };
+
+  const handlePositionEditKeyDown = (e, index) => {
+    let dx = 0, dy = 0;
+    switch (e.key) {
+      case 'ArrowUp': dy = -1; break;
+      case 'ArrowDown': dy = 1; break;
+      case 'ArrowLeft': dx = -1; break;
+      case 'ArrowRight': dx = 1; break;
+      default: return; 
+    }
+    updateImagePosition(index, dx, dy);
+    e.preventDefault();
+  };
+
+  const handleSizeEditKeyDown = (e, index) => {
+    let dw = 0, dh = 0;
+    const resizeStep = 10;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        dw = resizeStep;
+        dh = resizeStep;
+        break;
+      case 'ArrowDown':
+        dw = -resizeStep;
+        dh = -resizeStep;
+        break;
+      default:
+        return;
+    }
+
+    updateImageSize(index, dw, dh);
+    e.preventDefault();
+  };
+
+  const updateImageSize = (index, dw, dh) => {
+    setSavedImages((prevImages) => {
+      const newImages = [...prevImages];
+      const imageToUpdate = newImages[index];
+
+      const newWidth = Math.max(10, imageToUpdate.sizeParts.width + dw);
+      const newHeight = Math.max(10, imageToUpdate.sizeParts.height + dh);
+
+      newImages[index] = {
+        ...imageToUpdate,
+        sizeParts: { width: newWidth, height: newHeight }
+      };
+
+      localStorage.setItem('images', JSON.stringify(newImages));
+
+      return newImages;
+    });
+  };
 
 
 
