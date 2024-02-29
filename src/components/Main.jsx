@@ -313,12 +313,6 @@ export const Main = () => {
         const updatedImages = currentImages.map((img, idx) => idx === index ? { ...img, ...updatedDetails } : img);
         return updatedImages;
     });
-
-    setSavedImages(currentSavedImages => {
-        const updatedSavedImages = currentSavedImages.map((img, idx) => idx === index ? { ...img, ...updatedDetails } : img);
-        localStorage.setItem('images', JSON.stringify(updatedSavedImages));
-        return updatedSavedImages;
-    });
   };
 
   // Generating Images from Prompt
@@ -347,11 +341,10 @@ export const Main = () => {
         sound: ''
       }));
   
-      const updatedSavedImages = [...savedImages, ...imageObjects];
       const updatedImages = [...images, ...imageObjects];
+      const updatedSavedImages = [...savedImages, ...imageObjects];
       localStorage.setItem('images', JSON.stringify(updatedSavedImages));
-  
-      setImages(imageObjects);
+      setImages(updatedImages);
       setSavedImages(updatedSavedImages);
 
       imageObjects.forEach((image, index) => {
@@ -457,27 +450,6 @@ export const Main = () => {
     console.log('SET EDIT OPERATION:',editOperation)
     document.getElementById("canvas").focus();
   };
-
-  // Updating Coordinates
-  const updateImagePosition = (index, dx, dy) => {
-    setSavedImages((prevImages) => {
-      const newImages = [...prevImages];
-      const imageToUpdate = newImages[index];
-
-      const updatedCoordinates = {
-        x: imageToUpdate.coordinate.x + dx,
-        y: imageToUpdate.coordinate.y + dy,
-      };
-
-      newImages[index] = { ...imageToUpdate, coordinate: updatedCoordinates };
-      localStorage.setItem('images', JSON.stringify(newImages));
-
-      return newImages;
-    });
-  };
-
-
-  
   
   const fetchDescription = async (imageURL, descriptionType, index) => {
     const apiKey = process.env.REACT_APP_API_KEY;
@@ -599,6 +571,25 @@ export const Main = () => {
     e.preventDefault();
   };
 
+  // Updating Coordinates
+  const updateImagePosition = (index, dx, dy) => {
+    setSavedImages((prevImages) => {
+      const newImages = [...prevImages];
+      const imageToUpdate = newImages[index];
+
+      const updatedCoordinates = {
+        x: imageToUpdate.coordinate.x + dx,
+        y: imageToUpdate.coordinate.y + dy,
+      };
+
+      newImages[index] = { ...imageToUpdate, coordinate: updatedCoordinates };
+      localStorage.setItem('images', JSON.stringify(newImages));
+
+      return newImages;
+    });
+  };
+
+  // Updating Image Size
   const updateImageSize = (index, dw, dh) => {
     setSavedImages((prevImages) => {
       const newImages = [...prevImages];
@@ -620,7 +611,7 @@ export const Main = () => {
 
 
 
-
+  
 
 
   return (
