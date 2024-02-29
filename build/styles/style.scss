@@ -34,6 +34,7 @@ html, body{
 }
 
 
+
 input, 
 select,  
 textarea{
@@ -61,10 +62,20 @@ textarea{
     }
 }
 
+
+
 button, input[type=submit]{
-    background-color: $primary;
+    font-size: 1rem;
+    color: #1E90FF;
     padding: 1rem;
-    color: $default;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    border: 1px solid #1E90FF;
+    background-color: #fff;
+    text-decoration: none;
+    // background-color: $primary;
+    // padding: 1rem;
+    // color: $default;
     cursor: pointer;
 
     @include mobile(){
@@ -90,13 +101,20 @@ h2{
     }
 }
 
+
 #imageGeneration{
     @include flex-col;
     width: 100%;
     justify-content: flex-start;
+
+    .speaking {
+        background-color: #4CAF50; /* Green background to indicate speaking */
+        color: white; /* White text color */
+      }
+      
     
     form{
-        background-color: $primary;
+        background-color: white;
         width: 100%;
         @include flex-col;
         height: 30vh;

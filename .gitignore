@@ -25,3 +25,5 @@ build/
 *.sw?
 
 .env
+# Local Netlify folder
+.netlify

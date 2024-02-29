@@ -1,9 +1,42 @@
 footer {
-  background-color: #002244;
+  background-color: #1E90FF;
   color: #fff;
   text-align: center;
   padding: 0.5rem;
 }
+
+.pageheader {
+  margin-top: 0.5rem;
+  background-color: aliceblue;
+  width: 100%;
+  text-align: left;
+  padding: 0.9rem;
+}
+
+.pageheader h3{
+  font-size: 1rem;
+}
+
+.pageheader p {
+  font-size: 0.8rem;
+}
+
+.mainContainer{
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 5px 0px;
+  width:80%;
+  padding: 2rem;
+}
+
+.mainContainer h2{
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.genImages{
+  border:#4CAF50;
+  border: 3rem;
+}
+
 @media only screen and (max-width: 800px) {
   footer p {
     font-size: 0.8rem;
@@ -11,7 +44,7 @@ footer {
 }
 
 header {
-  background-color: #002244;
+  background-color: #1E90FF;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -50,12 +83,17 @@ header button, header a {
   background-color: #fff;
   font-size: 1.2rem;
   font-weight: bold;
-  color: #002244;
+  color: #1E90FF;
   padding: 1rem 1.5rem;
   text-decoration: none;
 }
 header button:hover, header a:hover {
-  background-color: #002244;
+  background-color: #1E90FF;
+  border: 1px solid #fff;
+  color: #fff;
+}
+header button:focus, header a:focus {
+  background-color: #1E90FF;
   border: 1px solid #fff;
   color: #fff;
 }
@@ -66,9 +104,39 @@ header button:hover, header a:hover {
   }
 }
 
-nav {
-  padding: 1rem;
+.description--container {
+  background-color: #F5F5F5;
+  padding: 2rem;
+  line-height: 3;
 }
+
+.description--container a {
+  background-color: royalblue; /* Royal blue background for links */
+  color: white; /* White text color */
+  padding: 0.5rem 1rem; /* Add some padding for better visibility */
+  border-radius: 0.25rem; /* Optional: rounded corners for a nicer look */
+  text-decoration: none; /* Remove the underline from links */
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+}
+
+.description--container a:hover {
+  background-color: #1E90FF; /* Lighter blue on hover for a visual effect */
+  color: #fff; /* Keep text color white on hover */
+}
+
+nav {
+  padding: 1.2rem;
+  box-shadow: 0 0 5px lightgray;
+  display: grid; /* Enable Grid */
+  grid-template-columns: repeat(3, 1fr);
+  justify-content: space-evenly;
+}
+
+nav .header h3 {
+  color: #1E90FF;
+  font-size: 1.3rem;
+}
+
 @media only screen and (max-width: 800px) {
   nav {
     padding: 0.5rem;
@@ -78,10 +146,11 @@ nav ul {
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 2rem;
   list-style-type: none;
+  font-size: smaller;
 }
 @media only screen and (max-width: 800px) {
   nav ul {
@@ -90,8 +159,8 @@ nav ul {
   }
 }
 nav ul li, nav ul button, nav ul a {
-  color: #002244;
-  font-size: 1.2rem;
+  color: #1E90FF;
+  font-size: 0.95rem;
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
@@ -120,8 +189,8 @@ nav ul button {
 nav ul button:hover {
   text-decoration: none;
   background-color: #fff;
-  border: 1px solid #002244;
-  color: #002244;
+  border: 1px solid #1E90FF;
+  color: #1E90FF;
 }
 
 * {
@@ -145,20 +214,28 @@ html ::-webkit-scrollbar, body ::-webkit-scrollbar {
 }
 html ::-webkit-scrollbar-thumb, body ::-webkit-scrollbar-thumb {
   border-radius: 0.3rem;
-  background-color: #002244;
+  background-color: #1E90FF;
 }
 html ::-webkit-scrollbar-track, body ::-webkit-scrollbar-track {
   box-shadow: inset 0 0 2px #fff;
 }
 
+select {
+  border: 1px solid #1E90FF;
+  width: fit-content;
+  padding: 0.8rem;
+  border-radius: 0.5rem;
+  color: black;
+  caret-color: #1E90FF;
+}
+
 input,
-select,
 textarea {
-  width: 50%;
+  width: 40%;
   font-family: inherit;
   font-size: 1rem;
-  padding: 1rem;
-  border: 1px solid #002244;
+  padding: 0.8rem;
+  border: 1px solid #1E90FF;
   border-radius: 0.5rem;
   color: #000;
   caret-color: #000;
@@ -167,7 +244,7 @@ textarea {
 input:hover,
 select:hover,
 textarea:hover {
-  border: 1px solid #002244;
+  border: 1px solid #1E90FF;
 }
 @media only screen and (max-width: 800px) {
   input,
@@ -190,11 +267,32 @@ textarea::placeholder {
   }
 }
 
+
+
 button, input[type=submit] {
-  background-color: #002244;
+  font-size: 1rem;
+  color: #1E90FF;
   padding: 1rem;
-  color: #fff;
-  cursor: pointer;
+  margin: 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  border: 1px solid #1E90FF;
+  background-color: #fff;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
+/* Hover effect */
+button:hover, input[type=submit]:hover {
+  background-color: #1E90FF; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
+}
+
+button:focus, input[type=submit]:focus {
+  background-color: #1E90FF; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
 }
 @media only screen and (max-width: 800px) {
   button, input[type=submit] {
@@ -223,6 +321,16 @@ h2 {
   }
 }
 
+.assetGeneration{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+}
+
 #imageGeneration {
   display: flex;
   flex-direction: column;
@@ -233,7 +341,7 @@ h2 {
   justify-content: flex-start;
 }
 #imageGeneration form {
-  background-color: #002244;
+  /* background-color: #1E90FF; */
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -251,13 +359,23 @@ h2 {
 }
 #imageGeneration form button, #imageGeneration form a {
   font-size: 1rem;
-  color: #002244;
-  padding: 1rem;
+  color: #1E90FF;
+  padding: 0.8rem;
   border-radius: 0.5rem;
   font-weight: bold;
-  border: 1px solid #002244;
+  border: 1px solid #1E90FF;
   background-color: #fff;
   text-decoration: none;
+}
+#imageGeneration form button:hover, #imageGeneration form a:hover {
+  background-color: #1E90FF; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
+}
+#imageGeneration form button:focus, #imageGeneration form a:focus {
+  background-color: #1E90FF; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
 }
 @media only screen and (max-width: 800px) {
   #imageGeneration form button, #imageGeneration form a {
@@ -267,13 +385,18 @@ h2 {
     padding: 0.8rem 0.5rem;
   }
 }
-#imageGeneration form .header {
-  background-color: #002244;
+#imageGeneration form .pageheader {
+  /* background-color: #1E90FF; */
   width: 100%;
-  text-align: center;
+  text-align: left;
   padding: 1rem;
-  color: #fff;
 }
+
+.speaking {
+  background-color: #4CAF50; /* Green background to indicate speaking */
+  color: white; /* White text color */
+}
+
 #imageGeneration .image--container {
   width: 100%;
   min-height: 50vh;
@@ -287,5 +410,5 @@ h2 {
 }
 #imageGeneration .image--container img {
   border-radius: 0.5rem;
-  border: 1px solid #002244;
+  border: 1px solid #1E90FF;
 }/*# sourceMappingURL=style.css.map */
