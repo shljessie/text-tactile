@@ -25,9 +25,9 @@ const Nav = () => {
        <h3> <b style={{fontSize: '2rem',  paddingRight: '2px'}}>&#127912; </b>  Tactile Graphics Image Editor</h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {['/', '/assets', '/canvas','/instructions','/demo', '/main'].map((path, index) => {
+        {['/instructions', '/main'].map((path, index) => {
           // Determine the label dynamically
-          const labels = ["Image Generator", "Asset Generator", "Canvas Editor", "Instructions", "Canvas Demo", "Main"];
+          const labels = [ "Instructions", "SoniPrompt Editor"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 

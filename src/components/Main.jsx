@@ -63,18 +63,16 @@ export const Main = () => {
   const [isAdjustingSize, setIsAdjustingSize] = useState(false);
   const [sounds, setSounds] = useState({}); // State t
 
+  // Clear images
   useEffect(() => {
-    // Clear savedImages state
     setSavedImages([]);
-  
-    // Optionally, if you also want to clear saved images from localStorage
     localStorage.removeItem('images');
-  }, []); // Empty dependency array means this runs once on component mount
+  }, []); 
 
-  
+  // Vertical Horizontal Bar Changes
   useEffect(() => {
+    
     const handleKeyDown = (e) => {
-      // Check if the Shift key is pressed
       if (e.shiftKey) {
         switch (e.key) {
           case 'V':
@@ -82,7 +80,6 @@ export const Main = () => {
             startCollisionCheckLoop();
             break;
           case 'H':
-            // Focus on horizontal bar
             document.getElementById('horizontalBar').focus();
             startCollisionCheckLoop();
             break;
@@ -93,68 +90,61 @@ export const Main = () => {
     };
 
     const handleKeyUp = (e) => {
-      // Stop the collision check loop when any key is released
       stopCollisionCheckLoop();
     };
-    
-    
-  
     window.addEventListener('keydown', handleKeyDown);
   
-    // Cleanup event listener
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
   
+  // Position Edits
   useEffect(() => {
     const handleKeyDown = (e) => {
       let shiftBPressed = false; 
-      const step = 10; // Step size for movement
-
-      // Check if the pressed key is 'ArrowUp', 'ArrowDown', 'ArrowLeft', or 'ArrowRight'
+      const step = 10; 
+      
       switch (e.key) {
         case 'ArrowUp':
-          if (e.shiftKey) { // Shift key pressed
+          if (e.shiftKey) {
             setHorizontalBarY((prevY) => Math.max(prevY - step, 0));
           }
           break;
         case 'ArrowDown':
-          if (e.shiftKey) { // Shift key pressed
+          if (e.shiftKey) {
             setHorizontalBarY((prevY) => Math.min(prevY + step, canvasHeight - barWidth));
           }
           break;
         case 'ArrowLeft':
-          if (e.shiftKey) { // Shift key pressed
+          if (e.shiftKey) { 
             setVerticalBarX((prevX) => Math.max(prevX - step, 0));
           }
           break;
         case 'ArrowRight':
-          if (e.shiftKey) { // Shift key pressed
+          if (e.shiftKey) {
             setVerticalBarX((prevX) => Math.min(prevX + step, canvasWidth - barWidth));
           }
           break;
       }
 
-    
     };
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Cleanup event listener
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [canvasWidth, canvasHeight, barWidth, barHeight]);
 
+  
+  // Function to generate a unique sound for each image
   useEffect(() => {
-    // Function to generate a unique sound for each image
     const generateSound = async (imageUrl) => {
-      const synth = new Tone.Synth().toDestination(); // Create a simple synth
-      const note = generateRandomNote(); // Generate a random note for the image
-      const duration = '8n'; // Duration of the note
+      const synth = new Tone.Synth().toDestination();
+      const note = generateRandomNote();
+      const duration = '8n';
 
-      // Trigger the note and store it in the sounds state
       synth.triggerAttackRelease(note, duration);
 
       const updatedImages = savedImages.map(image => {
@@ -171,36 +161,30 @@ export const Main = () => {
 
     // Function to generate a random note
     const generateRandomNote = () => {
-      const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']; // List of notes
-      const randomIndex = Math.floor(Math.random() * notes.length); // Generate a random index
+      const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']; 
+      const randomIndex = Math.floor(Math.random() * notes.length);
 
-      return notes[randomIndex]; // Return the note at the random index
+      return notes[randomIndex]; 
     };
 
+     // Check if sound for this image has already been generated
     images.forEach(image => {
-      if (!sounds[image.url]) { // Check if sound for this image has already been generated
-        generateSound(image.url); // Generate sound for the image
+      if (!sounds[image.url]) {
+        generateSound(image.url); 
       }
     });
   }, [images, sounds]);
-  
 
-    // Function to generate a new image
-    const handleGenerateImage = async () => {
-      const newImage = await generateImage(); // Generate a new image
-      setImages(prevImages => [...prevImages, newImage]); // Add the new image to the images state
-    };
-
-      // Function to play the sound associated with an image
+  //  When Table Interaction: Function to play the sound associated with an image
   const playSoundForImage = (imageUrl) => {
-    const note = sounds[imageUrl]; // Get the note associated with the image URL
+    const note = sounds[imageUrl];
     if (note) {
-      const synth = new Tone.Synth().toDestination(); // Create a synth
-      synth.triggerAttackRelease(note, '8n'); // Trigger the note
+      const synth = new Tone.Synth().toDestination();
+      synth.triggerAttackRelease(note, '8n');
     }
   };
   
-
+  // Bar Collision [TODO] Function to play the sound associated with an image
   const checkCollisionAndPlaySound = () => {
     savedImages.forEach((image) => {
       console.log('verticalBarX',verticalBarX)
@@ -221,6 +205,7 @@ export const Main = () => {
     });
   };
 
+  // Bar Collision [TOOD]
   let isCheckingCollisions = false;
 
   const startCollisionCheckLoop = () => {
@@ -235,16 +220,15 @@ export const Main = () => {
       loop();
     }
   };
-
+  // Bar Collision [TOOD]
   const stopCollisionCheckLoop = () => {
     isCheckingCollisions = false;
   };
 
-  
-
+  // Map Position to Coordinate
   const mapPositionToCoordinates = (positionDescription, imageWidth, imageHeight) => {
-    const canvasWidth = 500; // Width of your canvas
-    const canvasHeight = 500; // Height of your canvas
+    const canvasWidth = 500; 
+    const canvasHeight = 500;
     let x, y;
 
     console.log('positionDescription',positionDescription)
@@ -253,57 +237,37 @@ export const Main = () => {
   
     switch (position) {
       case 'bottom':
-        x = (canvasWidth - imageWidth) / 2; // Center horizontally
-        y = canvasHeight - imageHeight; // Align bottom edge
+        x = (canvasWidth - imageWidth) / 2;
+        y = canvasHeight - imageHeight;
         break;
       case 'top':
-        x = (canvasWidth - imageWidth) / 2; // Center horizontally
-        y = 0; // Align top edge
+        x = (canvasWidth - imageWidth) / 2;
+        y = 0;
         break;
       case 'center':
         console.log('CENTER POSITION')
-        x = (canvasWidth - imageWidth) / 2; // Center horizontally
-        y = (canvasHeight - imageHeight) / 2; // Center vertically
+        x = (canvasWidth - imageWidth) / 2;
+        y = (canvasHeight - imageHeight) / 2;
         break;
       case 'left':
-        x = 0; // Align left edge
-        y = (canvasHeight - imageHeight) / 2; // Center vertically
+        x = 0;
+        y = (canvasHeight - imageHeight) / 2;
         break;
       case 'right':
-        x = canvasWidth - imageWidth; // Align right edge
-        y = (canvasHeight - imageHeight) / 2; // Center vertically
+        x = canvasWidth - imageWidth;
+        y = (canvasHeight - imageHeight) / 2;
         break;
       default:
         console.log('DEFAULT POSITION')
-        // Default to center if no valid position description is provided
-        x = (canvasWidth - imageWidth) / 2; // Center horizontally
-        y = (canvasHeight - imageHeight) / 2; // Center vertically
+        x = (canvasWidth - imageWidth) / 2;
+        y = (canvasHeight - imageHeight) / 2;
         break;
     }
   
     return { x, y };
   };
-  
 
-
-
-  const highlightDetectedNoun = (prompt, noun) => {
-    if (!noun) return prompt; // If no noun detected, return original prompt
-    // Use a regular expression to replace the detected noun with HTML span for highlighting
-    const highlightedPrompt = prompt.replace(new RegExp(noun, 'gi'), `<span style="background-color: yellow">${noun}</span>`);
-    return highlightedPrompt;
-  };
-
-  const handlePromptSelection = (index) => {
-    console.log('Selected ', index)
-    if (selectedPromptIndex === index) {
-      setSelectedPromptIndex(null);
-    } else {
-      setSelectedPromptIndex(index);
-    }
-  };
-  
-
+  // For Prompt Inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'prompt') {
@@ -312,6 +276,7 @@ export const Main = () => {
     }
   };
 
+  // For Recording Prompt
   const startListening = () => {
     const speakButton = document.getElementById('speakButton');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -343,7 +308,6 @@ export const Main = () => {
   };
 
   const updateImageDetails = (index, updatedDetails) => {
-    // Update the details for a specific image in both images and savedImages
     setImages(currentImages => {
         const updatedImages = currentImages.map((img, idx) => idx === index ? { ...img, ...updatedDetails } : img);
         return updatedImages;
@@ -351,13 +315,12 @@ export const Main = () => {
 
     setSavedImages(currentSavedImages => {
         const updatedSavedImages = currentSavedImages.map((img, idx) => idx === index ? { ...img, ...updatedDetails } : img);
-        // Also update localStorage with the new savedImages data
         localStorage.setItem('images', JSON.stringify(updatedSavedImages));
         return updatedSavedImages;
     });
-};
+  };
 
-
+  // Generating Images from Prompt
   const generateImage = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -383,13 +346,12 @@ export const Main = () => {
         sound: ''
       }));
   
-      // Save images to localStorage
       const updatedSavedImages = [...savedImages, ...imageObjects];
       const updatedImages = [...images, ...imageObjects];
       localStorage.setItem('images', JSON.stringify(updatedSavedImages));
   
       setImages(imageObjects);
-      setSavedImages(updatedSavedImages); // Update savedImages state
+      setSavedImages(updatedSavedImages);
 
       imageObjects.forEach((image, index) => {
         fetchDescription(image.url, 'general', index);
@@ -397,7 +359,6 @@ export const Main = () => {
         fetchDescription(image.url, 'position', index);
       });
 
-      // Update allPrompts state to include the current prompt text
       setAllPrompts(prevPrompts => [...prevPrompts, promptText]);
     } catch (err) {
       console.error(err);
@@ -713,11 +674,13 @@ const updateImageSize = (index, dw, dh) => {
   return (
     <div id='imageGeneration'>
       <div className='mainContainer'>
-        <div>
+
+      <div className="leftContainer">
+        <div className='inputContainer'>
           <form id='controllers' onSubmit={generateImage}>
-            <div className='input-row' style={{display: 'flex', alignItems: 'center', gap: '10px', width:'90%',marginLeft:'32%'}}>
+            <div className='input-row' style={{display: 'flex', alignItems: 'center', gap: '10px',justifyContent: 'space-between'}}>
               <div style={{ marginBottom: '20px', width: '40%' }}>
-                <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', fontWeight: '600', fontSize: '1rem', color:'#1E90FF' }}>
+                <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', color:'#1E90FF', fontSize: '0.8rem' }}>
                   Prompt:
                 </label>
                 <input
@@ -727,58 +690,91 @@ const updateImageSize = (index, dw, dh) => {
                   value={promptText} 
                   onChange={handleChange}
                   required
-                  style={{ width: '100%' }}
+                  style={{ width: '300px', alignItems:'start' }}
                 />
               </div>
-              <button type='button' id='speakButton' onClick={startListening}>Record</button>
-              <button type='submit'>Generate Image</button>
+              <div>
+                <button type='button' id='speakButton' onClick={startListening}>Record</button>
+                <button type='submit'>Generate</button>
+              </div>
             </div>
           </form>
         </div>
 
-        {loading ? (
-          <div>Loading...</div>
+
+        <div className='pixeltableContainer'>
+        <h4>Pixel Table</h4>
+        {savedImages.length > 0 ? (
+          <table style={{ width: "98%", borderCollapse: "collapse", fontSize:'0.8rem',paddingBottom:'1rem' }}>
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Name</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Image</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Prompt</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Description</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Size</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Position</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Sound</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }} >Edit Position</th>
+                <th style={{ border: "1px solid #ddd", padding: "8px" }}>Edit Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              {savedImages.map((image, index) => (
+                <tr key={index}>
+                <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.name}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    <img src={image.url} alt={`Saved Image ${index}`} width="50" height="50" />
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.prompt}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px", maxWidth:"14px" }} tabIndex="0">
+                    {image.descriptions.general.split(" ").slice(0, 10).join(" ")}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.size}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.position}</td>
+                  <td
+                  style={{ border: "1px solid #ddd", padding: "8px" }}
+                  tabIndex="0"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      playSoundForImage(image.url);
+                    }
+                  }}
+                >
+                  {image.sound}
+                </td>
+                
+                  <td
+                    style={{ border: "1px solid #ddd", padding: "8px" }}
+                    tabIndex="0"
+                    onKeyDown={(e) => handlePositionEditKeyDown(e, index)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {image.coordinate.x},{image.coordinate.y}
+                  </td>
+                  <td
+                    style={{ border: "1px solid #ddd", padding: "8px" }}
+                    tabIndex="0"
+                    onKeyDown={(e) => handleSizeEditKeyDown(e, index)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {image.sizeParts.width} x {image.sizeParts.height}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          images.map((image, index) => (
-            <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-              <img src={image.url} alt={`Generated Content ${index}`} width="250" height="250" />
-              <div>
-                <p>Description: {image.descriptions.general}</p>
-                <p>Size: {image.descriptions.size}</p>
-                <p>Position: {image.descriptions.position}</p>
-              </div>
-            </div>
-          ))
+          <p></p>
         )}
-
-        <div>
-          <h1>Assets Raw Data</h1>
-          {savedImages.length > 0 ? (
-            savedImages.map((image, index) => (
-              <div key={index}>
-                <img src={image.url} alt={`Saved Image ${index}`} width="250" height="250" />
-                <p>Prompt: {image.prompt}</p>
-                <p>Description: {image.descriptions.general}</p>
-                <p>Size: {image.descriptions.size}</p>
-                <p>Position: {image.descriptions.position}</p>
-                <p>Coordinate:<div>
-                X: {image.coordinate.x}, Y: {image.coordinate.y}
-              </div>
-               </p>
-               <p>Size WH:<div>
-                Width: {image.sizeParts.width}, Y: {image.sizeParts.height}
-              </div>
-               </p>
-              </div>
-            ))
-          ) : (
-            <p>No past saved images found.</p>
-          )}
-        </div>
+      </div>
 
 
-        <div id="canvas" style={{ position: 'relative', width: '500px', height: '500px', border: '1px solid black' }} tabIndex={0}>
-        <h2>Canvas</h2>
+      </div>
+
+      <div className='rightContainer'>
+
+      <div id="canvas" style={{ position: 'relative', width: '500px', height: '500px', border: '1px solid black' }} tabIndex={0}>
         {/* Render vertical bar */}
         <div id="verticalBar" style={{ position: 'absolute', left: `${verticalBarX}px`, top: `${verticalBarY}px`, width: '3px', height: '500px', backgroundColor: 'red' }}></div>
 
@@ -808,114 +804,39 @@ const updateImageSize = (index, dw, dh) => {
           </div>
         ))}
         
-        </div>
-
-       {/* Displaying all past prompts */}
-        <div>
-        <h2>Prompts Logged</h2>
-        {allPrompts.length > 0 ? (
-          <ul>
-            {savedImages.map((image, index) => (
-              
-              <li key={index} onClick={() => handlePromptSelection(index)} >
-              <p>Seleted index: {index}</p>
-                {processPrompt(image.prompt).map((segment, segmentIndex) =>
-                  segment.isNoun ? (
-                    <React.Fragment key={segmentIndex}>
-                    <button
-                      onClick={() => onNounClick(segment.text)}
-                      
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        color: 'blue',
-                        cursor: 'pointer',
-                        display: 'inline',
-                      }}
-                    >
-                    {segment.text}
-                    </button>
-                   
-                  </React.Fragment>
-                  ) : (
-                    <span key={segmentIndex}>{segment.text}</span>
-                  )
-                ).reduce((prev, curr) => [prev, ' ', curr]) /* Add spaces between segments */}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No past prompts found.</p>
-        )}
-</div>
-
-<h2>Pixel Table</h2>
-{savedImages.length > 0 ? (
-  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-    <thead>
-      <tr>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Name</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Image</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Prompt</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Description</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Size</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Position</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Sound</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }} >Edit Position</th>
-        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Edit Size</th>
-      </tr>
-    </thead>
-    <tbody>
-      {savedImages.map((image, index) => (
-        <tr key={index}>
-        <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.name}</td>
-          <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-            <img src={image.url} alt={`Saved Image ${index}`} width="100" height="100" />
-          </td>
-          <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.prompt}</td>
-          <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.general}</td>
-          <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.size}</td>
-          <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.position}</td>
-          <td
-          style={{ border: "1px solid #ddd", padding: "8px" }}
-          tabIndex="0"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              playSoundForImage(image.url);
-            }
-          }}
-        >
-          {image.sound}
-        </td>
-        
-          <td
-            style={{ border: "1px solid #ddd", padding: "8px" }}
-            tabIndex="0"
-            onKeyDown={(e) => handlePositionEditKeyDown(e, index)}
-            style={{ cursor: "pointer" }}
-          >
-            {image.coordinate.x},{image.coordinate.y}
-          </td>
-          <td
-            style={{ border: "1px solid #ddd", padding: "8px" }}
-            tabIndex="0"
-            onKeyDown={(e) => handleSizeEditKeyDown(e, index)}
-            style={{ cursor: "pointer" }}
-          >
-            {image.sizeParts.width} x {image.sizeParts.height}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-) : (
-  <p>No past saved images found.</p>
-)}
-
-
-        
       </div>
+
+      </div>
+
+
+      </div>
+
+      <div>
+          <h3>Assets Raw Data (DEBUGGING)</h3>
+          {savedImages.length > 0 ? (
+            savedImages.map((image, index) => (
+              <div key={index}>
+                <img src={image.url} alt={`Saved Image ${index}`} width="100" height="100" />
+                <p>Prompt: {image.prompt}</p>
+                <p>Description: {image.descriptions.general}</p>
+                <p>Size: {image.descriptions.size}</p>
+                <p>Position: {image.descriptions.position}</p>
+                <p>Coordinate:<div>
+                X: {image.coordinate.x}, Y: {image.coordinate.y}
+              </div>
+              </p>
+              <p>Size WH:<div>
+                Width: {image.sizeParts.width}, Y: {image.sizeParts.height}
+              </div>
+              </p>
+              </div>
+            ))
+          ) : (
+            <p>No past saved images found.</p>
+          )}
+      </div>
+
+      
     </div>
   );
 };

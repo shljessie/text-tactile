@@ -17,11 +17,7 @@ function App() {
     <SelectedAssetsProvider>
     <Nav /> {/* Include the Nav component here */}
       <Routes>
-        <Route path="/" element={<ImageGenerator />} />
-        <Route path="/assets" element={<AssetGenerator />} />
-        <Route path="/canvas" element={<Canvas />} /> {/* New route for Canvas */}
         <Route path="/instructions" element={<Instructions />} />
-        <Route path="/demo" element={<CanvasDemo />} />
         <Route path="/main" element={<Main />} />
       </Routes>
      </SelectedAssetsProvider>
