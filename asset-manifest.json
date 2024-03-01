@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.js": "/textTactile/static/js/main.0650fef9.js",
-    "static/media/water.mp3": "/textTactile/static/media/water.c88559fce340ecd2b1e1.mp3",
-    "static/media/dog2.png": "/textTactile/static/media/dog2.c2b42c21d1f157631790.png",
-    "static/media/cat.mp3": "/textTactile/static/media/cat.a0ff551b6be600440f07.mp3",
-    "static/media/water.png": "/textTactile/static/media/water.cb01072e4324b875532f.png",
-    "static/media/dog2.mp3": "/textTactile/static/media/dog2.25d4bcb1e09749d71133.mp3",
-    "static/media/splash.mp3": "/textTactile/static/media/splash.de67f6401b67e5c5c2d5.mp3",
-    "index.html": "/textTactile/index.html",
-    "main.0650fef9.js.map": "/textTactile/static/js/main.0650fef9.js.map"
+    "main.js": "/text-tactile/static/js/main.4f70cee8.js",
+    "static/media/water.mp3": "/text-tactile/static/media/water.c88559fce340ecd2b1e1.mp3",
+    "static/media/dog2.png": "/text-tactile/static/media/dog2.c2b42c21d1f157631790.png",
+    "static/media/cat.mp3": "/text-tactile/static/media/cat.a0ff551b6be600440f07.mp3",
+    "static/media/water.png": "/text-tactile/static/media/water.cb01072e4324b875532f.png",
+    "static/media/dog2.mp3": "/text-tactile/static/media/dog2.25d4bcb1e09749d71133.mp3",
+    "static/media/splash.mp3": "/text-tactile/static/media/splash.de67f6401b67e5c5c2d5.mp3",
+    "index.html": "/text-tactile/index.html",
+    "main.4f70cee8.js.map": "/text-tactile/static/js/main.4f70cee8.js.map"
   },
   "entrypoints": [
-    "static/js/main.0650fef9.js"
+    "static/js/main.4f70cee8.js"
   ]
 }
