@@ -1,6 +1,10 @@
 import * as Tone from 'tone';
 
 import { Configuration, OpenAIApi } from 'openai';
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from "@aws-sdk/client-secrets-manager";
 import React, { useEffect, useState } from 'react';
 
 import Asset from './Asset'
@@ -13,9 +17,33 @@ import TestSoundButtons from './TestSoundButtons';
 import nlp from 'compromise'
 import { useNavigate } from 'react-router-dom';
 
+const secret_name = "REACT_APP_API_KEY";
+
+const client = new SecretsManagerClient({
+  region: "us-east-1",
+});
+
+let response;
+
+try {
+  response = await client.send(
+    new GetSecretValueCommand({
+      SecretId: secret_name,
+      VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
+    })
+  );
+} catch (error) {
+  // For a list of exceptions thrown, see
+  // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+  throw error;
+}
+
+const secret = response.SecretString;
+console.log('secret',secret)
+
 export const Main = () => {
   const configuration = new Configuration({
-    apiKey: process.env.REACT_APP_API_KEY,
+    apiKey: secret,
   });
 
   const openai = new OpenAIApi(configuration);
