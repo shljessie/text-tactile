@@ -61,50 +61,75 @@ export const Main = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [selectedPromptIndex, setSelectedPromptIndex] = useState(null);
   const [isAdjustingSize, setIsAdjustingSize] = useState(false);
-  const [sounds, setSounds] = useState({}); 
-
-  // calculating disatance moved
-  const [keyPressCount, setKeyPressCount] = useState(0);
-  const [originalCoordinates, setOriginalCoordinates] = useState({ x: 0, y: 0 });
-  const [originalSize, setOriginalSize] = useState({ width: 0, height: 0 });
-  const [movementTimeout, setMovementTimeout] = useState(null);
-
-
-  const [currentMovingBar, setCurrentMovingBar] = useState(null); // 'vertical' or 'horizontal'
-
-  
-
+  const [sounds, setSounds] = useState({}); // State t
 
   // Clear images
   useEffect(() => {
     setSavedImages([]);
     localStorage.removeItem('images');
   }, []); 
-  
-  //Vertical horizontal Edits
-  useEffect(() => {
 
-    const handleKeyDown = (e) => {
-      const step = 10; 
+  // Vertical Horizontal Bar Changes
+  useEffect(() => {
     
+    const handleKeyDown = (e) => {
+      if (e.shiftKey) {
+        switch (e.key) {
+          case 'V':
+            document.getElementById('verticalBar').focus();
+            startCollisionCheckLoop();
+            break;
+          case 'H':
+            document.getElementById('horizontalBar').focus();
+            startCollisionCheckLoop();
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      stopCollisionCheckLoop();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+  
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+  
+  // Position Edits
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      let shiftBPressed = false; 
+      const step = 10; 
+      
       switch (e.key) {
         case 'ArrowUp':
+          if (e.shiftKey) {
+            setHorizontalBarY((prevY) => Math.max(prevY - step, 0));
+          }
+          break;
         case 'ArrowDown':
           if (e.shiftKey) {
-            setCurrentMovingBar('horizontal');
-            setHorizontalBarY((prevY) => e.key === 'ArrowUp' ? Math.max(prevY - step, 0) : Math.min(prevY + step, canvasHeight - barWidth));
+            setHorizontalBarY((prevY) => Math.min(prevY + step, canvasHeight - barWidth));
           }
           break;
         case 'ArrowLeft':
+          if (e.shiftKey) { 
+            setVerticalBarX((prevX) => Math.max(prevX - step, 0));
+          }
+          break;
         case 'ArrowRight':
           if (e.shiftKey) {
-            setCurrentMovingBar('vertical');
-            setVerticalBarX((prevX) => e.key === 'ArrowLeft' ? Math.max(prevX - step, 0) : Math.min(prevX + step, canvasWidth - barWidth));
+            setVerticalBarX((prevX) => Math.min(prevX + step, canvasWidth - barWidth));
           }
           break;
       }
+
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -150,37 +175,6 @@ export const Main = () => {
     });
   }, [images, sounds]);
 
-  
-  useEffect(() => {
-    checkForCollisionsAndPlaySound();
-  }, [verticalBarX, verticalBarY, horizontalBarX, horizontalBarY, savedImages]);
-  
-
-// Checking vertical bar collision
-  const checkForCollisionsAndPlaySound = () => {
-    savedImages.forEach((image, index) => {
-      // Calculate if the vertical bar intersects with the image
-      const verticalCollision =
-        verticalBarX < image.coordinate.x + image.sizeParts.width &&
-        verticalBarX + barWidth > image.coordinate.x &&
-        verticalBarY < image.coordinate.y + image.sizeParts.height &&
-        barHeight + verticalBarY > image.coordinate.y;
-  
-      // Calculate if the horizontal bar intersects with the image
-      const horizontalCollision =
-        horizontalBarX < image.coordinate.x + image.sizeParts.width &&
-        horizontalBarX + barWidth > image.coordinate.x &&
-        horizontalBarY < image.coordinate.y + image.sizeParts.height &&
-        barHeight + horizontalBarY > image.coordinate.y;
-  
-      // If either bar intersects with the image, play the sound
-      if (verticalCollision || horizontalCollision) {
-        playSoundForImage(image.url);
-      }
-    });
-  };
-  
-
   //  When Table Interaction: Function to play the sound associated with an image
   const playSoundForImage = (imageUrl) => {
     const note = sounds[imageUrl];
@@ -190,6 +184,46 @@ export const Main = () => {
     }
   };
   
+  // Bar Collision [TODO] Function to play the sound associated with an image
+  const checkCollisionAndPlaySound = () => {
+    savedImages.forEach((image) => {
+      console.log('verticalBarX',verticalBarX)
+      console.log('verticalBarX',verticalBarX)
+
+      const verticalBarCollision =
+        verticalBarX < image.coordinate.x + image.sizeParts.width ||
+        verticalBarX + 3 > image.coordinate.x ||
+        verticalBarY < image.coordinate.y + image.sizeParts.height ||
+        verticalBarY + 500 > image.coordinate.y; 
+  
+      // Similar calculation for horizontal bar...
+      
+      if (verticalBarCollision /* || horizontalBarCollision */) {
+        console.log('FOUND VERTICAL COLLISION')
+        playSoundForImage(image.url); // Play sound if collision is detected
+      }
+    });
+  };
+
+  // Bar Collision [TOOD]
+  let isCheckingCollisions = false;
+
+  const startCollisionCheckLoop = () => {
+    checkCollisionAndPlaySound();
+    if (!isCheckingCollisions) {
+      isCheckingCollisions = true;
+      const loop = () => {
+        if (!isCheckingCollisions) return;
+        checkCollisionAndPlaySound();
+        requestAnimationFrame(loop);
+      };
+      loop();
+    }
+  };
+  // Bar Collision [TOOD]
+  const stopCollisionCheckLoop = () => {
+    isCheckingCollisions = false;
+  };
 
   // Map Position to Coordinate
   const mapPositionToCoordinates = (positionDescription, imageWidth, imageHeight) => {
@@ -505,137 +539,20 @@ export const Main = () => {
 
   const handlePositionEditKeyDown = (e, index) => {
     let dx = 0, dy = 0;
-    let soundPlayed = false; // Flag to check if a sound should be played
-    let direction ='center';
-  
     switch (e.key) {
-      case 'ArrowUp':
-        dy = -1;
-        soundPlayed = true;
-        direction ='top';
-        break;
-      case 'ArrowDown':
-        dy = 1;
-        soundPlayed = true;
-        direction ='bottom';
-        break;
-      case 'ArrowLeft':
-        dx = -1;
-        soundPlayed = true;
-        direction ='left';
-        break;
-      case 'ArrowRight':
-        dx = 1;
-        soundPlayed = true;
-        direction ='right';
-        break;
-      default:
-        return; // No movement key pressed, exit the function
+      case 'ArrowUp': dy = -1; break;
+      case 'ArrowDown': dy = 1; break;
+      case 'ArrowLeft': dx = -1; break;
+      case 'ArrowRight': dx = 1; break;
+      default: return; 
     }
-
-    // If first movement, set original coordinates
-    if (keyPressCount === 0) {
-      setOriginalCoordinates({ x: savedImages[index].coordinate.x, y: savedImages[index].coordinate.y });
-    }
-    setKeyPressCount(keyPressCount + 1);
-
-    // Reset count after 2 seconds of no key presses
-    clearTimeout(movementTimeout);
-    setMovementTimeout(setTimeout(() => {
-        // Play sound based on total movement
-        playPositionSound(index, direction, originalCoordinates, savedImages[index].coordinate.x, savedImages[index].coordinate.y);
-        // Reset count and original coordinates
-        setKeyPressCount(0);
-        setOriginalCoordinates({ x: 0, y: 0 });
-    }, 2000));
-  
     updateImagePosition(index, dx, dy);
-    e.preventDefault(); // Prevent the default action of arrow keys
-  
-    // // If an arrow key was pressed, play the sound
-    // if (soundPlayed) {
-    //   playSound(index ,direction);
-    // }
+    e.preventDefault();
   };
-
-  const playPositionSound = (index, direction, originalCoordinates,  finalx, finaly) => {
-    // Create a synthesizer and connect it to the master output
-    const synth = new Tone.Synth().toDestination();
-    const panner = new Tone.Panner3D().toDestination();
-    synth.chain(panner);
-    const note = savedImages[index].sound;
-    console.log('NOTE', note)
-    console.log('Direction ', direction)
-
-
-    // Calculate total movement
-    const totalMovementX = finalx - originalCoordinates.x;
-    const totalMovementY = finaly - originalCoordinates.y;
-
-    console.log('total X: ', totalMovementX)
-    console.log('total Y: ', totalMovementY)
-
-    panner.positionX.value = 0;
-    panner.positionY.value = 0;
-
-    if (totalMovementX !== 0 && totalMovementY !== 0) {
-      if (totalMovementX >0){
-        // right movement
-        console.log('right')
-        panner.positionX.value = 1;
-      }
-      if(totalMovementX <0){
-        // left movement
-        console.log('left')
-        panner.positionX.value = -1;
-      }
-      if(totalMovementY >0){
-        // moved down
-        console.log('top')
-        panner.positionY.value = -1;
-      }
-      if(totalMovementY <0){
-        // moved up
-        console.log('bottom')
-        panner.positionY.value = 1;
-      }
-  } 
-
-
-    // switch (direction) {
-    //   case 'right':
-    //     console.log('right')
-    //     panner.positionX.value = 1;
-    //     break;
-    //   case 'left':
-    //     console.log('left')
-    //     panner.positionX.value = -1;
-    //     break;
-    //   case 'top':
-    //     console.log('top')
-    //     panner.positionY.value = 1;
-    //     break;
-    //   case 'bottom':
-    //     console.log('bottom')
-    //     panner.positionY.value = -1;
-    //     break;
-    //   case 'center':
-    //     console.log('center')
-    //     panner.positionX.value = 0;
-    //     panner.positionY.value = 0;
-    //     break;
-    //   default:
-    // }
-  
-    synth.triggerAttackRelease(note, "8n");
-  };
-  
-  
 
   const handleSizeEditKeyDown = (e, index) => {
     let dw = 0, dh = 0;
     const resizeStep = 10;
-    let soundPlayed = false;
 
     switch (e.key) {
       case 'ArrowUp':
@@ -650,58 +567,12 @@ export const Main = () => {
         return;
     }
 
-    if (keyPressCount === 0) {
-      setOriginalSize({ width: savedImages[index].sizeParts.width, height: savedImages[index].sizeParts.height });
-    }
-    setKeyPressCount(keyPressCount + 1);
-
-    // Reset count after 2 seconds of no key presses
-    clearTimeout(movementTimeout);
-    setMovementTimeout(setTimeout(() => {
-
-        playSizeSound(index, originalSize, savedImages[index].sizeParts.width, savedImages[index].sizeParts.height);
-
-        setKeyPressCount(0);
-        setOriginalSize({ width: 0, height: 0 });
-    }, 2000));
-
     updateImageSize(index, dw, dh);
     e.preventDefault();
   };
 
-
-  const playSizeSound = (index, originalSize,  finalw, finalh) => {
-    // Create a synthesizer and connect it to the master output
-    const synth = new Tone.Synth().toDestination();
-    const panner = new Tone.Panner3D().toDestination();
-    synth.chain(panner);
-    const note = savedImages[index].sound;
-    console.log('NOTE', note)
-
-
-    // Calculate total size change
-    const totalMovementW = finalw - originalSize.width;
-
-    console.log('total W Size: ', totalMovementW)
-
-    if (totalMovementW >0){
-      console.log('Size Increase')
-      synth.oscillator.type = 'sine1';
-    }else if (totalMovementW <0){
-      console.log('Size Decrease')
-      synth.oscillator.type = 'sine18';
-    }else{
-      console.log('Size NoChange')
-      synth.oscillator.type = 'sine4';
-    }
-  
-    synth.triggerAttackRelease(note, "8n");
-  };
-  
-
   // Updating Coordinates
   const updateImagePosition = (index, dx, dy) => {
-
     setSavedImages((prevImages) => {
       const newImages = [...prevImages];
       const imageToUpdate = newImages[index];
