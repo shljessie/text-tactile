@@ -1,0 +1,16 @@
+footer{
+    background-color: $primary;
+    color: $default;
+    text-align: center;
+    padding: 0.5rem;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+
+    p{
+        @include mobile{
+            font-size: 0.8rem;
+        }
+    }
+}

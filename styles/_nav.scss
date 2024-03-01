@@ -1,0 +1,55 @@
+nav{
+    padding: 1rem;
+
+    @include mobile{
+        padding: 0.5rem;
+    }
+
+    ul{
+        @include flex-row;
+        gap: 2rem;
+        list-style-type: none;
+
+        @include mobile{
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        li,a{
+            color: $primary;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 300ms;
+
+            &:hover{
+                text-decoration: underline;
+            }
+
+            @include mobile{
+                font-size: 0.9rem;
+                font-weight: normal;
+            }
+        }
+
+        button{
+            @extend li;
+            font-size: 1rem;
+            border-radius: 0.5rem;
+            padding-block: 0.5rem;
+            color: $default;
+
+            @include mobile{
+                font-size: 0.9rem;
+            }
+
+            &:hover{
+                text-decoration: none;
+                background-color: $default;
+                border: 1px solid $primary;
+                color: $primary;
+            }
+        }
+    }
+}
