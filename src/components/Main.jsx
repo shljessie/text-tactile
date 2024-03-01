@@ -36,6 +36,9 @@ export const Main = () => {
     setApiKey(e.target.value);
   };
 
+  // Start
+  const [welcomeMessageSpoken, setWelcomeMessageSpoken] = useState(false);
+
   
   const [verticalBarX, setVerticalBarX] = useState(0); 
   const [verticalBarY, setVerticalBarY] = useState(0); 
@@ -82,7 +85,29 @@ export const Main = () => {
 
   const [currentMovingBar, setCurrentMovingBar] = useState(null); // 'vertical' or 'horizontal'
 
-  
+  useEffect(() => {
+    const handleEnterPress = (event) => {
+      if (event.key === "Enter") {
+        // Ensure the speech synthesis doesn't interfere with other interactions
+        if (!window.speechSynthesis.speaking) {
+          const message = "Welcome to Soniprompt. Press the R key to speak a Prompt to Generate an Image and press Enter.";
+          const speech = new SpeechSynthesisUtterance(message);
+          speech.lang = "en-US";
+          window.speechSynthesis.speak(speech);
+          // Optional: Remove the event listener if you only want it to run once
+          window.removeEventListener('keydown', handleEnterPress);
+        }
+      }
+    };
+
+    // Add event listener for the Enter key
+    window.addEventListener('keydown', handleEnterPress);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener('keydown', handleEnterPress);
+    };
+  }, []); // Empty dependency array means this effect runs once on mount
 
 
   // Clear images
@@ -274,11 +299,43 @@ export const Main = () => {
         setData({ ...data, prompt: voiceText });
       };
       recognition.onerror = (event) => console.error('Speech recognition error', event.error);
-      recognition.onend = () => console.log('Speech recognition ended');
+
+      recognition.onend = () => {
+        const promptInput = document.querySelector('input[name="prompt"]');
+        promptInput.focus();
+  
+        const handleEnterPressForSubmission = (event) => {
+          if (event.key === "Enter") {
+            console.log('Enter key detected')
+            event.preventDefault();
+            generateImage(event); 
+            document.removeEventListener('keydown', handleEnterPressForSubmission);
+          }
+        };
+
+        document.addEventListener('keydown', handleEnterPressForSubmission);
+      };
+
     } else {
       console.error('Speech recognition not supported');
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "R" || event.key === "r") {
+        startListening(); // Call the function to start listening
+      }
+    };
+  
+    // Add the keydown event listener to the window
+    window.addEventListener('keydown', handleKeyDown);
+  
+    // Cleanup to remove the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [startListening]);
   
 
   // // For Recording Prompt
@@ -785,7 +842,6 @@ export const Main = () => {
   return (
     <div id='imageGeneration'>
       <div className='mainContainer'>
-
       <div className="leftContainer">
         <div className='inputContainer'>
           <form id='controllers' onSubmit={generateImage}>
