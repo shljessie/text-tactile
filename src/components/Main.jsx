@@ -14,19 +14,29 @@ import nlp from 'compromise'
 import { useNavigate } from 'react-router-dom';
 
 export const Main = () => {
-  const configuration = new Configuration({
-    apiKey: process.env.REACT_APP_API_KEY,
-  });
+  // const configuration = new Configuration({
+  //   apiKey: process.env.REACT_APP_API_KEY,
+  // });
 
-  const openai = new OpenAIApi(configuration);
+  // const openai = new OpenAIApi(configuration);
 
-  var ner = require( 'wink-ner' );
-  var myNER = ner();
-  var winkTokenizer = require( 'wink-tokenizer' );
-  var tokenize = winkTokenizer().tokenize;
-  var posTagger = require( 'wink-pos-tagger' );
-  var tagger = posTagger();
+  const [apiKey, setApiKey] = useState('');
+  const [openai, setOpenai] = useState();
 
+  useEffect(() => {
+    if (apiKey) {
+      const configuration = new Configuration({
+        apiKey: apiKey,
+      });
+      setOpenai(new OpenAIApi(configuration));
+    }
+  }, [apiKey]); // Re-initialize the OpenAI API instance whenever apiKey changes
+
+  const handleApiKeyChange = (e) => {
+    setApiKey(e.target.value);
+  };
+
+  
   const [verticalBarX, setVerticalBarX] = useState(0); 
   const [verticalBarY, setVerticalBarY] = useState(0); 
   const [horizontalBarX, setHorizontalBarX] = useState(0);
@@ -781,6 +791,18 @@ export const Main = () => {
           <form id='controllers' onSubmit={generateImage}>
             <div className='input-row' style={{display: 'flex', alignItems: 'center', gap: '10px',justifyContent: 'space-between'}}>
               <div style={{ marginBottom: '20px', width: '40%' }}>
+
+                  <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', color:'#1E90FF', fontSize: '0.8rem' }}>
+                    API KEY:
+                  </label>
+                  <input
+                  type="text"
+                  value={apiKey}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your OpenAI API key here"
+                  style={{ marginBottom: '20px' }}
+                />
+    
                 <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', color:'#1E90FF', fontSize: '0.8rem' }}>
                   Prompt:
                 </label>
