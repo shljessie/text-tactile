@@ -249,36 +249,58 @@ export const Main = () => {
     }
   };
 
-  // For Recording Prompt
   const startListening = () => {
-    const speakButton = document.getElementById('speakButton');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.lang = 'en-US';
       recognition.start();
-
-      speakButton.classList.add('speaking');
   
+      recognition.onstart = () => console.log('Speech recognition started');
       recognition.onresult = (event) => {
         const voiceText = event.results[0][0].transcript;
+        setPromptText(voiceText); 
+        console.log('Detected speech:', voiceText);
         setData({ ...data, prompt: voiceText });
-  
-        speakButton.classList.remove('speaking');
       };
-  
-      recognition.onerror = (event) => {
-        speakButton.classList.remove('speaking');
-        console.error('Speech recognition error', event.error);
-      };
-  
-      recognition.onend = () => {
-        speakButton.classList.remove('speaking');
-      };
+      recognition.onerror = (event) => console.error('Speech recognition error', event.error);
+      recognition.onend = () => console.log('Speech recognition ended');
     } else {
-      alert('Speech recognition not available. Please use a supported browser or enter the prompt manually.');
+      console.error('Speech recognition not supported');
     }
   };
+  
+
+  // // For Recording Prompt
+  // const startListening = () => {
+  //   const speakButton = document.getElementById('speakButton');
+  //   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  //   if (SpeechRecognition) {
+  //     const recognition = new SpeechRecognition();
+  //     recognition.lang = 'en-US';
+  //     recognition.start();
+
+  //     speakButton.classList.add('speaking');
+  
+  //     recognition.onresult = (event) => {
+  //       const voiceText = event.results[0][0].transcript;
+  //       setData({ ...data, prompt: voiceText });
+  
+  //       speakButton.classList.remove('speaking');
+  //     };
+  
+  //     recognition.onerror = (event) => {
+  //       speakButton.classList.remove('speaking');
+  //       console.error('Speech recognition error', event.error);
+  //     };
+  
+  //     recognition.onend = () => {
+  //       speakButton.classList.remove('speaking');
+  //     };
+  //   } else {
+  //     alert('Speech recognition not available. Please use a supported browser or enter the prompt manually.');
+  //   }
+  // };
 
   // [TODO] : updating coordinates
   const updateImageDetails = (index, updatedDetails) => {
