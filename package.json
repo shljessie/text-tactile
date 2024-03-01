@@ -1,5 +1,4 @@
 {
-  "homepage": "http://shljessie.github.io/text-tactile/",
   "name": "text-tactile",
   "version": "0.1.0",
   "private": true,
@@ -31,8 +30,6 @@
     "wink-pos-tagger": "^2.2.2"
   },
   "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -56,9 +53,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000",
-  "devDependencies": {
-    "gh-pages": "^6.1.1",
-    "webpack": "^5.90.3"
-  }
+  "proxy": "http://localhost:5000"
 }
