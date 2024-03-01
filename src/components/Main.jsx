@@ -19,13 +19,7 @@ export const Main = () => {
   });
 
   const openai = new OpenAIApi(configuration);
-
-  var ner = require( 'wink-ner' );
-  var myNER = ner();
-  var winkTokenizer = require( 'wink-tokenizer' );
-  var tokenize = winkTokenizer().tokenize;
-  var posTagger = require( 'wink-pos-tagger' );
-  var tagger = posTagger();
+  console.log(openai)
 
   const [verticalBarX, setVerticalBarX] = useState(0); 
   const [verticalBarY, setVerticalBarY] = useState(0); 
