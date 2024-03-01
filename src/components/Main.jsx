@@ -835,7 +835,14 @@ export const Main = () => {
   };
 
 
+  const handleFocus = (text) => {
+    speak(text);
+  };
 
+  const speak = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+  };
   
 
 
@@ -901,16 +908,32 @@ export const Main = () => {
             <tbody>
               {savedImages.map((image, index) => (
                 <tr key={index}>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.name}</td>
+                <td style={{ border: "1px solid #ddd", padding: "8px" }} 
+                    tabIndex="0"
+                    onFocus={() => handleFocus(`${image.name}`)}>{image.name}</td>
                   <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                     <img src={image.url} alt={`Saved Image ${index}`} width="50" height="50" />
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.prompt}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px", maxWidth:"14px" }} tabIndex="0">
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }} 
+                      tabIndex="0"
+                      onFocus={() => handleFocus(`${image.name} Prompt ${image.prompt}`)}>
+                      {image.prompt}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px", maxWidth:"14px" }} 
+                      tabIndex="0"
+                      onFocus={() => handleFocus(`${image.name} Description ${image.descriptions.general}`)}
+                      >
                     {image.descriptions.general.split(" ").slice(0, 10).join(" ")}
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.size}</td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }} tabIndex="0">{image.descriptions.position}</td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }} 
+                      tabIndex="0"
+                      onFocus={() => handleFocus(`${image.name} Size ${image.descriptions.size}`)}
+                    >
+                      {image.descriptions.size}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}
+                      tabIndex="0"
+                      onFocus={() => handleFocus(`${image.name} Position ${image.descriptions.position}`)}>
+                  {image.descriptions.position}</td>
                   <td
                   style={{ border: "1px solid #ddd", padding: "8px" }}
                   tabIndex="0"
@@ -919,6 +942,7 @@ export const Main = () => {
                       playSoundForImage(image.url);
                     }
                   }}
+                  onFocus={() => handleFocus(`${image.name} Sound ${image.sound}`)}
                 >
                   {image.sound}
                 </td>
@@ -928,6 +952,7 @@ export const Main = () => {
                     tabIndex="0"
                     onKeyDown={(e) => handlePositionEditKeyDown(e, index)}
                     style={{ cursor: "pointer" }}
+                    onFocus={() => handleFocus(`${image.name} Edit Position ${image.coordinate.x},  ${image.coordinate.y}`)}
                   >
                     {image.coordinate.x},{image.coordinate.y}
                   </td>
@@ -936,6 +961,7 @@ export const Main = () => {
                     tabIndex="0"
                     onKeyDown={(e) => handleSizeEditKeyDown(e, index)}
                     style={{ cursor: "pointer" }}
+                    onFocus={() => handleFocus(`${image.name} Edit Size ${image.sizeParts.width}`)}
                   >
                     {image.sizeParts.width} x {image.sizeParts.height}
                   </td>
