@@ -43,6 +43,7 @@ console.log('secret',secret)
 
 export const Main = () => {
   const configuration = new Configuration({
+    // apiKey:process.env.REACT_APP_API_KEY,
     apiKey: secret,
   });
 

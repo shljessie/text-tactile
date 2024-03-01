@@ -12,7 +12,6 @@ import React from "react";
 import { SelectedAssetsProvider } from './components/SelectedAssetContext';
 
 function App() {
-  console.log(`Environment is: ${buildEnv}`);
   return (
     <Router>
     <SelectedAssetsProvider>
