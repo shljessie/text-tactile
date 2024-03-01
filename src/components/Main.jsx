@@ -457,7 +457,7 @@ export const Main = () => {
   };
   
   const fetchDescription = async (imageURL, descriptionType, index) => {
-    const apiKey = process.env.REACT_APP_API_KEY;
+    
     let customPrompt;
     
     if (descriptionType === 'general') {
