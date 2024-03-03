@@ -36,9 +36,6 @@ export const Main = () => {
     setApiKey(e.target.value);
   };
 
-  // Start
-  const [welcomeMessageSpoken, setWelcomeMessageSpoken] = useState(false);
-
   
   const [verticalBarX, setVerticalBarX] = useState(0); 
   const [verticalBarY, setVerticalBarY] = useState(0); 
@@ -83,31 +80,8 @@ export const Main = () => {
   const [movementTimeout, setMovementTimeout] = useState(null);
 
 
-  const [currentMovingBar, setCurrentMovingBar] = useState(null); // 'vertical' or 'horizontal'
+  const [currentMovingBar, setCurrentMovingBar] = useState(null);
 
-  useEffect(() => {
-    const handleEnterPress = (event) => {
-      if (event.key === "Enter") {
-        // Ensure the speech synthesis doesn't interfere with other interactions
-        if (!window.speechSynthesis.speaking) {
-          const message = "Welcome to Soniprompt. Press the R key to speak a Prompt to Generate an Image and press Enter.";
-          const speech = new SpeechSynthesisUtterance(message);
-          speech.lang = "en-US";
-          window.speechSynthesis.speak(speech);
-          // Optional: Remove the event listener if you only want it to run once
-          window.removeEventListener('keydown', handleEnterPress);
-        }
-      }
-    };
-
-    // Add event listener for the Enter key
-    window.addEventListener('keydown', handleEnterPress);
-
-    // Cleanup the event listener on component unmount
-    return () => {
-      window.removeEventListener('keydown', handleEnterPress);
-    };
-  }, []); // Empty dependency array means this effect runs once on mount
 
 
   // Clear images
