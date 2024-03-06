@@ -10,6 +10,7 @@ const Nav = () => {
   // Adjust getNavLinkStyle to check if the current link is the one being hovered or focused
   const getNavLinkStyle = (path) => ({ isActive }) => ({
     textDecoration: 'none',
+    fontSize: '0.8rem',
     color: isActive ? 'blue' : hoveredOrFocusedLink === path ? 'green' : 'black',
   });
 
@@ -22,15 +23,16 @@ const Nav = () => {
   return (
     <nav>
     <div className='header'>
-       <h3> <b style={{fontSize: '2rem',  paddingRight: '2px'}}>&#127912; </b>  Tactile Graphics Image Editor</h3>
+       <h3 id="mainHeader" style={{fontSize: '1.5rem',  marginTop: '1rem',   marginLeft: '1rem'}}> <b> </b> SONI PROMPT </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {['/instructions', '/main'].map((path, index) => {
+        {['/instructions', '/table', '/tiles'].map((path, index) => {
           // Determine the label dynamically
-          const labels = [ "Instructions", "SoniPrompt Editor"];
+          const labels = [ "Instructions", "PixelTable Editor", "PixelTile Editor"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 
+                id="pixelFont"
                 to={path}
                 className={getNavLinkClass} 
                 style={getNavLinkStyle(path)}

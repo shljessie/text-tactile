@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 import { Configuration, OpenAIApi } from 'openai';
 import React, { useEffect, useState } from 'react';
 
+import AddIcon from '@mui/icons-material/Add';
 import Asset from './Asset'
 import Canvas from './CanvasEditor'
 import ClickableNounsCaption from './ClickableNouns';
@@ -13,7 +14,7 @@ import TestSoundButtons from './TestSoundButtons';
 import nlp from 'compromise'
 import { useNavigate } from 'react-router-dom';
 
-export const Main = () => {
+export const PixelTable = () => {
   // const configuration = new Configuration({
   //   apiKey: process.env.REACT_APP_API_KEY,
   // });
@@ -30,7 +31,7 @@ export const Main = () => {
       });
       setOpenai(new OpenAIApi(configuration));
     }
-  }, [apiKey]); // Re-initialize the OpenAI API instance whenever apiKey changes
+  }, [apiKey]);
 
   const handleApiKeyChange = (e) => {
     setApiKey(e.target.value);
@@ -275,8 +276,8 @@ export const Main = () => {
       recognition.onerror = (event) => console.error('Speech recognition error', event.error);
 
       recognition.onend = () => {
-        const promptInput = document.querySelector('input[name="prompt"]');
-        promptInput.focus();
+        // const promptInput = document.querySelector('input[name="prompt"]');
+        // promptInput.focus();
   
         const handleEnterPressForSubmission = (event) => {
           if (event.key === "Enter") {
@@ -829,7 +830,7 @@ export const Main = () => {
             <div className='input-row' style={{display: 'flex', alignItems: 'center', gap: '10px',justifyContent: 'space-between'}}>
               <div style={{ marginBottom: '20px', width: '40%' }}>
 
-                  <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', color:'#1E90FF', fontSize: '0.8rem' }}>
+                  <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', fontSize: '1rem', fontWeight:'800' }}>
                     API KEY:
                   </label>
                   <input
@@ -840,8 +841,8 @@ export const Main = () => {
                   style={{ marginBottom: '20px' }}
                 />
     
-                <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', color:'#1E90FF', fontSize: '0.8rem' }}>
-                  Prompt:
+                <label htmlFor="imageDescription" style={{ display: 'block', marginBottom: '5px', fontSize: '1rem', fontWeight:'800' }}>
+                  PROMPT:
                 </label>
                 <input
                   type="text"
@@ -863,7 +864,7 @@ export const Main = () => {
 
 
         <div className='pixeltableContainer'>
-        <h4>Pixel Table</h4>
+        <h2 id="pixelFont" style={{paddingTop: '2rem', fontSize:'1.2rem'}}> PIXEL TABLE</h2>
         {savedImages.length > 0 ? (
           <table style={{ width: "98%", borderCollapse: "collapse", fontSize:'0.8rem',paddingBottom:'1rem' }}>
             <thead>
@@ -978,31 +979,6 @@ export const Main = () => {
       </div>
 
 
-      </div>
-
-      <div>
-          <h3>Assets Raw Data (DEBUGGING)</h3>
-          {savedImages.length > 0 ? (
-            savedImages.map((image, index) => (
-              <div key={index}>
-                <img src={image.url} alt={`Saved Image ${index}`} width="100" height="100" />
-                <p>Prompt: {image.prompt}</p>
-                <p>Description: {image.descriptions.general}</p>
-                <p>Size: {image.descriptions.size}</p>
-                <p>Position: {image.descriptions.position}</p>
-                <p>Coordinate:<div>
-                X: {image.coordinate.x}, Y: {image.coordinate.y}
-              </div>
-              </p>
-              <p>Size WH:<div>
-                Width: {image.sizeParts.width}, Y: {image.sizeParts.height}
-              </div>
-              </p>
-              </div>
-            ))
-          ) : (
-            <p>No past saved images found.</p>
-          )}
       </div>
 
       
