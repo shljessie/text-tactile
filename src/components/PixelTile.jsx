@@ -445,9 +445,15 @@ export const PixelTile = () => {
   };
 
   const startListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
+    return new Promise((resolve, reject) => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        console.error('Speech recognition not supported');
+        reject('Speech recognition not supported');
+        return;
+      }
+  
       const recognition = new SpeechRecognition();
       recognition.lang = 'en-US';
       recognition.start();
@@ -455,25 +461,27 @@ export const PixelTile = () => {
       recognition.onstart = () => {
         console.log('Speech recognition started');
         setIsListening(true);
-      }
+      };
+  
       recognition.onresult = (event) => {
         const voiceText = event.results[0][0].transcript;
-        setPromptText(voiceText); 
+        setPromptText(voiceText); // This will still update the state asynchronously
         console.log('Detected speech:', voiceText);
-
-        return voiceText;
-        
+        resolve(voiceText); // Resolve the promise with the voiceText
       };
-      recognition.onerror = (event) => console.error('Speech recognition error', event.error);
-
-      recognition.onend = (event) => {
+  
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        reject(event.error);
+      };
+  
+      recognition.onend = () => {
         setIsListening(false);
       };
-
-    } else {
-      console.error('Speech recognition not supported');
-    }
+    });
   };
+  
+
 
   const fetchImageDescription = async (imageURL) => {
 
@@ -544,12 +552,13 @@ export const PixelTile = () => {
       // Assuming startListening is an async function, await its result.
       const voiceText = await startListening();
       setPromptText(voiceText);
+      console.log('voceText:' , voiceText)
       console.log('Prompt Text:', promptText);
   
-      if (promptText) {
+      if (voiceText) {
         console.log('OpenAI', openai);
         const response = await openai.createImage({
-          prompt: `${promptText} The background should be white. Only draw outlines. No color`,
+          prompt: `${voiceText} The background should be white. Only draw outlines. No color`,
           n: 1,
         });
   
