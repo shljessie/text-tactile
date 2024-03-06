@@ -418,15 +418,30 @@ export const PixelTile = () => {
         return;
     }
     
+    setFocusedIndex(newIndex);
     setHoveredIndex(newIndex);
     tileRefs.current[newIndex].current.focus();
-    
-    const row = Math.floor(newIndex / columns);
-    const col = newIndex % columns;
-    const centerX = (col + 0.5) * 100;
-    const centerY = (row + 0.5) * 100;
 
-    const imageObject = savedImages.find(img => img.coordinate.x === centerX && img.coordinate.y === centerY);
+    console.log('newIndex', newIndex)
+
+    console.log('focused',tileRefs.current[newIndex])
+    // const row = Math.floor(newIndex / columns);
+    // const col = newIndex % columns;
+    // const centerX = (col + 0.5) * 100;
+    // const centerY = (row + 0.5) * 100;
+
+    // const imageObject = savedImages.find(img => img.coordinate.x === centerX && img.coordinate.y === centerY);
+
+    const col = newIndex % columns;
+    const row = Math.floor(newIndex / columns) ;
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+  
+    const imageObject = savedImages.find(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+              Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+          
 
     if (imageObject) {
       const sound = imageObject.sound;
@@ -747,7 +762,12 @@ export const PixelTile = () => {
               }} 
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
-              onFocus={() => setFocusedIndex(index)}
+              onFocus={() => {
+                setFocusedIndex(index);
+                if (hasImage && playerRef.current) {
+                  playerRef.current.start();  
+                }
+              }}
               onBlur={() => setFocusedIndex(null)}
               onKeyDown={(event) => tileNavigation(event, index)}
             >
