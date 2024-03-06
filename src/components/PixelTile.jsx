@@ -540,11 +540,13 @@ export const PixelTile = () => {
 
     startListening();
 
+    console.log('promptText',promptText)
+
     try {
       console.log('promptText', promptText)
       console.log('openai', openai)
       const response = await openai.createImage({
-        prompt: `Create an image in a minimalistic noun project like style. Only draw the outlines. Do not use color. Always use black or white. The background should be white. : ${promptText}`,
+        prompt: ` ${promptText} The background should be white. Only draw outlines. No color`,
         n: 1,
       });
 
