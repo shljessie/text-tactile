@@ -460,11 +460,13 @@ export const PixelTile = () => {
         const voiceText = event.results[0][0].transcript;
         setPromptText(voiceText); 
         console.log('Detected speech:', voiceText);
+
+        return voiceText;
         
       };
       recognition.onerror = (event) => console.error('Speech recognition error', event.error);
 
-      recognition.onend = () => {
+      recognition.onend = (event) => {
         setIsListening(false);
       };
 
@@ -521,7 +523,7 @@ export const PixelTile = () => {
   const generateImage = async (index) => {
     setLoading(true);
     setActiveIndex(index);
-
+  
     const notes = [
       'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
       'C#4', 'D#4', 'F#4', 'G#4', 'A#4',
@@ -529,68 +531,66 @@ export const PixelTile = () => {
       'C#5', 'D#5', 'F#5', 'G#5', 'A#5',
       'C6'
     ];
-
+  
     const row = Math.floor(index / columns);
     const col = index % columns;
-
+  
     const centerX = (col + 0.5) * 100;
     const centerY = (row + 0.5) * 100;
-
+  
     console.log('Generating image...');
-
-    startListening();
-
-    console.log('promptText',promptText)
-
+  
     try {
-      console.log('promptText', promptText)
-      console.log('openai', openai)
-      const response = await openai.createImage({
-        prompt: ` ${promptText} The background should be white. Only draw outlines. No color`,
-        n: 1,
-      });
-
-      console.log('Response', response)
-
-      const lengthImages = savedImages.length
-
-      const noteIndex = savedImages.length % notes.length;
-      const note = notes[noteIndex];
-
-      const customPrompt = `
-      You are describing an image to a Visually Impaired Person.
-      Generate the given image description according to the following criteria:
-      Briefly describe the primary subject or focus of the image in one sentence.
-      `;      
-
-      const imageObjects = response.data.data.map( img => ({
-        prompt: promptText, 
-        name: `Image_${lengthImages}`,
-        url: img.url,
-        descriptions: '',
-        coordinate:{ x: centerX, y: centerY },
-        sizeParts: {width:150, height:150},
-        sound: note
-      }));
-
-    for (let imageObject of imageObjects) {
-      const imageURL = imageObject.url;
-      const description = await fetchImageDescription(imageURL);
-      imageObject.descriptions = description;
-    }
-
-      console.log('Image Objects', imageObjects);
-
-      const updatedSavedImages = [...savedImages, ...imageObjects];
-      setSavedImages(updatedSavedImages);
-
+      // Assuming startListening is an async function, await its result.
+      const voiceText = await startListening();
+      setPromptText(voiceText);
+      console.log('Prompt Text:', promptText);
+  
+      if (promptText) {
+        console.log('OpenAI', openai);
+        const response = await openai.createImage({
+          prompt: `${promptText} The background should be white. Only draw outlines. No color`,
+          n: 1,
+        });
+  
+        console.log('Response', response);
+  
+        const lengthImages = savedImages.length;
+        const noteIndex = lengthImages % notes.length;
+        const note = notes[noteIndex];
+  
+        const imageObjects = response.data.data.map(img => ({
+          prompt: voiceText,
+          name: `Image_${lengthImages}`,
+          url: img.url,
+          descriptions: '',
+          coordinate: { x: centerX, y: centerY },
+          sizeParts: { width: 150, height: 150 },
+          sound: note
+        }));
+  
+        for (let imageObject of imageObjects) {
+          const imageURL = imageObject.url;
+          const description = await fetchImageDescription(imageURL);
+          imageObject.descriptions = description;
+        }
+  
+        console.log('Image Objects', imageObjects);
+  
+        const updatedSavedImages = [...savedImages, ...imageObjects];
+        setSavedImages(updatedSavedImages);
+      } else {
+        console.log("Voice text is empty.");
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Error generating image:', err);
     } finally {
       setLoading(false);
     }
   };
+  
 
+ 
   return (
     <div id='imageGeneration'>
         <div className='pageheader'>
