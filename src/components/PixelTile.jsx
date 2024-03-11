@@ -537,9 +537,60 @@ export const PixelTile = () => {
     }
   };
 
-  const generateImage = async (index) => {
+  const removeImageAtIndex = (gridIndex) => {
+
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    console.log('imageObjectIndex', imageObjectIndex);
+    // Assuming savedImages is stored in your component's state
+    let updatedSavedImages = [...savedImages];
+    
+    // Remove the image at the specified index
+    updatedSavedImages.splice(imageObjectIndex, 1);
+    
+    // Update the state with the new array of images
+    setSavedImages(updatedSavedImages);
+  };
+
+  const updateImageAtIndex = (gridIndex, newImageObject) => {
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    // Create a copy of the current savedImages array to avoid direct state mutation
+    let updatedSavedImages = [...savedImages];
+    
+    // Replace the image at the specified index with the new image object
+    updatedSavedImages[imageObjectIndex] = newImageObject;
+    
+    // Update the state with the modified array
+    setSavedImages(updatedSavedImages);
+  };
+  
+  const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
+
+    if (isRegeneration) {
+      // Assuming there's a method to remove the old image by index
+      removeImageAtIndex(index);
+      // Assuming there's a mechanism to regenerate the image
+      console.log('Regenerating image at index:', index);
+    }
   
     const notes = [
       'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
@@ -595,8 +646,14 @@ export const PixelTile = () => {
   
         console.log('Image Objects', imageObjects);
   
-        const updatedSavedImages = [...savedImages, ...imageObjects];
-        setSavedImages(updatedSavedImages);
+        if (isRegeneration) {
+          // Update the specific image instead of appending a new one
+          updateImageAtIndex(index, imageObjects[0]);
+        } else {
+          // Append new images as before
+          const updatedSavedImages = [...savedImages, ...imageObjects];
+          setSavedImages(updatedSavedImages);
+        }
       } else {
         console.log("Voice text is empty.");
       }
@@ -932,9 +989,9 @@ export const PixelTile = () => {
 
                     <button 
                       tabIndex= "0" 
-                      aria-label="Image Description" 
+                      aria-label="RegenerateImage" 
                       style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '2 / 1 / 3 / 2' }} 
-                      onClick={() => playDescription(index)}> 
+                      onClick={() => generateImage(index, true)}> 
                       <InfoIcon />
                     </button>
 
