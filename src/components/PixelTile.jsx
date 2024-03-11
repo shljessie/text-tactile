@@ -489,6 +489,47 @@ export const PixelTile = () => {
       };
     });
   };
+
+  const readInfo = (gridIndex) => {
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    const image = savedImages[imageObjectIndex];
+
+    console.log("Reading ...",image)
+
+    const script = `
+      The image is called ${image.name}
+      The image is a ${image.descriptions}
+      It is located ${image.coordinate.x} and ${image.coordinate.y} 
+      The size of the image is ${image.sizeParts.width}
+    `
+    speakDescription(script);
+
+  };
+
+  const speakDescription = (description) => {
+    // Create a new instance of SpeechSynthesisUtterance
+    var speech = new SpeechSynthesisUtterance(description);
+  
+    // Optionally, set some parameters
+    speech.rate = 1; // Speed of speech
+    speech.pitch = 1; // Pitch of speech
+    speech.volume = 1; // Volume
+  
+    // Use the speech synthesis interface to speak the description
+    window.speechSynthesis.speak(speech);
+  };
+
+
   
   const imageChat = async (gridIndex) => {
     
@@ -532,19 +573,7 @@ export const PixelTile = () => {
     "max_tokens": 300
   };
 
-  const speakDescription = (description) => {
-    // Create a new instance of SpeechSynthesisUtterance
-    var speech = new SpeechSynthesisUtterance(description);
   
-    // Optionally, set some parameters
-    speech.rate = 1; // Speed of speech
-    speech.pitch = 1; // Pitch of speech
-    speech.volume = 1; // Volume
-  
-    // Use the speech synthesis interface to speak the description
-    window.speechSynthesis.speak(speech);
-  };
-
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -1061,6 +1090,23 @@ export const PixelTile = () => {
                     aria-label="Image Chat" 
                     style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
                     onClick={() => imageChat(index)} >
+                    <ZoomOutMapIcon />
+                    </button>
+
+                    <button 
+                    tabIndex= "0"
+                    aria-label="Edit Location" 
+                    style={{pointerEvents: 'auto' , zIndex:'400', gridArea: '1 / 1 / 2 / 3' }} 
+                    onClick={() => readInfo(index)} >
+                    <ZoomOutMapIcon /> Info
+                    </button>
+
+
+                    <button 
+                    tabIndex= "0"
+                    aria-label="Edit Location" 
+                    style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
+                    onClick={() => enterLocationEditMode(index)} >
                     <ZoomOutMapIcon />
                     </button>
 
