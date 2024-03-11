@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import InfoIcon from '@mui/icons-material/Info';
 import { MoonLoader } from 'react-spinners';
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RadarIcon from '@mui/icons-material/Radar';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
@@ -63,11 +64,21 @@ export const PixelTile = () => {
   const [changeIndex, setChangeIndex] = useState(null);
   const [changePrompt, setChangePrompt] = useState('');
 
+  const [radarActive, setRadarActive] = useState(false); 
+  const [locationEditActive, setlocationEditActive] = useState(false);
+  const [sizeEditActive, setsizeEditActive] = useState(false);
+  const [chatActive, setchatActive] = useState(false);
+  const [infoActive, setinfoActive] = useState(false); 
+
+
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  
+  const toggleShortcuts = () => setShowShortcuts(!showShortcuts);
 
   const toggleInstructions = () => {
     setShowInstructions(!showInstructions);
   };
-
+  
   useEffect(() => {
     if (apiKey) {
       const configuration = new Configuration({
@@ -104,10 +115,6 @@ export const PixelTile = () => {
     });
     setOpenai(new OpenAIApi(configuration));
   };
-
-  
-
-
 
   useEffect(() => {
       console.log('Saved Images Updated', savedImages);
@@ -153,6 +160,7 @@ export const PixelTile = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      console.log('canvas Focused for location edit')
       
       if (isEditingLocation && editingImageIndex !== null) {
         console.log('editing Imag Index', editingImageIndex)
@@ -170,7 +178,7 @@ export const PixelTile = () => {
             return;
           default: return; // Ignore other keys
         }
-        // Update location of the current editing image
+
         setSavedImages((prevImages) => prevImages.map((img, index) => {
           if (index === editingImageIndex) {
             return { ...img, coordinate: { x: img.coordinate.x + dx, y: img.coordinate.y + dy } };
@@ -187,7 +195,7 @@ export const PixelTile = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isEditingLocation, editingImageIndex, savedImages]);
+  }, [isEditingLocation]);
 
   useEffect(() => {
     const attachSizeEditKeyListener = () => {
@@ -272,53 +280,6 @@ export const PixelTile = () => {
       // If in editing location mode, ignore
     }
   };
-
-  const enterLocationEditMode = (gridIndex) => (e) => {
-    e.stopPropagation(); // Prevent other click events
-  
-    // Calculate the expected center coordinates for the grid item
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100; // Adjust these based on your grid setup
-    const expectedCenterY = (row + 0.5) * 100;
-  
-    // Find the image object that matches these coordinates (or close enough)
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 && // Adjust tolerance as needed
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-  
-    if(imageObjectIndex !== -1) { // Make sure an image was found
-      setIsEditingLocation(true);
-      setEditingImageIndex(imageObjectIndex);
-      canvasRef.current.focus(); // Ensure the canvas or relevant container can receive keyboard events
-    }
-  };
-
-  const enterSizeEditMode = (gridIndex) => (e) => {
-    // Prevents the default action of the event and stops it from bubbling up the event chain
-    e.stopPropagation();
-
-    console.log('Size Edit grid index', gridIndex);
-
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
-
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    console.log('Size Edit Index', imageObjectIndex);
-
-    if(imageObjectIndex !== -1) {
-      setIsEditingSize(true);
-      setEditingSizeImageIndex(imageObjectIndex);
-      canvasRef.current.focus(); // This line ensures the canvas gets focus for key events
-    }
-};
 
   const playDescription = (index) => {
 
@@ -446,6 +407,159 @@ export const PixelTile = () => {
     }
 
   };
+
+  const enterLocationEditMode = (gridIndex) => {
+
+    console.log('enter Locaiton Edit MODEEE')
+  
+    // Calculate the expected center coordinates for the grid item
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100; // Adjust these based on your grid setup
+    const expectedCenterY = (row + 0.5) * 100;
+  
+    // Find the image object that matches these coordinates (or close enough)
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 && // Adjust tolerance as needed
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+  
+    if(imageObjectIndex !== -1) { // Make sure an image was found
+      setIsEditingLocation(true);
+      setEditingImageIndex(imageObjectIndex);
+      canvasRef.current.focus(); // Ensure the canvas or relevant container can receive keyboard events
+    }
+  };
+
+  const enterSizeEditMode = (gridIndex) => {
+
+    console.log('Size Edit grid index', gridIndex);
+
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    console.log('Size Edit Index', imageObjectIndex);
+
+    if(imageObjectIndex !== -1) {
+      setIsEditingSize(true);
+      setEditingSizeImageIndex(imageObjectIndex);
+      canvasRef.current.focus(); // This line ensures the canvas gets focus for key events
+    }
+};
+
+const speakNoTileFocusedMessage = () => {
+  const message = "No tile is focused.";
+
+  // Check if the browser supports speech synthesis
+  if ('speechSynthesis' in window) {
+    // Create a new instance of SpeechSynthesisUtterance
+    const utterance = new SpeechSynthesisUtterance(message);
+
+    // Optional: Configure the utterance properties
+    utterance.lang = 'en-US'; // Set the language
+    utterance.rate = 1; // Set the speed, can be from 0.1 to 10
+    utterance.pitch = 1; // Set the pitch, can be from 0 to 2
+
+    // Speak the utterance
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.log("Speech synthesis not supported in this browser.");
+  }
+};
+
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.shiftKey && e.key === 'R') {
+        if (focusedIndex !== null) {
+          console.log('Radar Scan Activated');
+          console.log('Focused Index', focusedIndex);
+          setRadarActive(true); // Step 2: Activate radar
+          
+          radarScan(focusedIndex);
+
+          setTimeout(() => {
+            setRadarActive(false);
+        }, 3000); 
+        } else {
+          speakNoTileFocusedMessage();
+          console.log("No tile is focused.");
+        }
+      } else if (e.shiftKey && e.key === 'L') {
+          if (focusedIndex !== null) {
+            console.log('Location Edit Activated');
+            console.log('Focused Index', focusedIndex);
+            setlocationEditActive(true); 
+
+            console.log('enter Locaiton Edit MODEEE    -1')
+            enterLocationEditMode(focusedIndex);
+
+            setTimeout(() => {
+              setlocationEditActive(false);
+            }, 3000); 
+          } else {
+            speakNoTileFocusedMessage();
+            console.log("No tile is focused.");
+          }
+      } else if (e.shiftKey && e.key === 'S') {
+        if (focusedIndex !== null) {
+          console.log('Size Edit Activated');
+          console.log('Focused Index', focusedIndex);
+          setsizeEditActive(true); 
+
+          enterSizeEditMode(focusedIndex);
+
+          setTimeout(() => {
+            setsizeEditActive(false);
+          }, 3000); 
+        } else {
+          speakNoTileFocusedMessage();
+          console.log("No tile is focused.");
+        }
+      } else if (e.shiftKey && e.key === 'I') {
+        if (focusedIndex !== null) {
+          console.log('Info Activated');
+          console.log('Focused Index', focusedIndex);
+          setinfoActive(true); 
+
+          readInfo(focusedIndex);
+
+          setTimeout(() => {
+            setinfoActive(false);
+          }, 3000); 
+        } else {
+          speakNoTileFocusedMessage();
+          console.log("No tile is focused.");
+        }
+      }  else if (e.shiftKey && e.key === 'C') {
+        if (focusedIndex !== null) {
+          console.log('Chat Activated');
+          console.log('Focused Index', focusedIndex);
+          setchatActive(true); 
+
+          imageChat(focusedIndex);
+
+          setTimeout(() => {
+            setchatActive(false);
+          }, 3000); 
+        } else {
+          speakNoTileFocusedMessage();
+          console.log("No tile is focused.");
+        }
+      } 
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedIndex]); // Include radarActive if you use it in radarScan or elsewhere
+
 
   const handleApiKeySubmit = () => {
     sessionStorage.setItem('apiKey', apiKey);
@@ -940,6 +1054,29 @@ export const PixelTile = () => {
         </button>
         {showInstructions && (
         <div className="instructions" style={{fontSize: '0.8rem'}}>
+
+        <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
+        <h2>Keyboard Shortcuts</h2>
+        <ul>
+          <li>
+            <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
+          </li>
+          <li>
+            <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
+          </li>
+          <li>
+            <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
+          </li>
+          <li>
+            <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Displays detailed information about the currently selected item.
+          </li>
+          <li>
+            <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+          </li>
+        </ul>
+        <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
+      </div>
+      
         <h3>Instructions</h3>
             <h4><strong>Creating and Editing Images:</strong></h4>
             <br/>
@@ -985,6 +1122,7 @@ export const PixelTile = () => {
                 <li><strong>Changing the Image:</strong> To replace the image on a selected tile, press the <strong>Enter</strong> key again.</li>
             </ul>
             <p>Remember to exit editing modes (location or size) by pressing the <strong>Escape</strong> key when you're done with adjustments.</p>
+
         </div>
         )}
     </div>
@@ -1083,58 +1221,78 @@ export const PixelTile = () => {
                     placeItems: 'center',
                     pointerEvents: 'none',
                   }}>
-            
 
-                    <button 
-                    tabIndex= "0"
-                    aria-label="Image Chat" 
-                    style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
-                    onClick={() => imageChat(index)} >
-                    <ZoomOutMapIcon />
-                    </button>
+                  {radarActive && isFocused && (
+                    <div>
+                      <RadarIcon  
+                      style ={{
+                        width: '50%', // Adjust the size as needed
+                        height: '50%',            
+                        position: 'absolute',
+                        top: '25%',
+                        left: '25%',
+                        color:'royalblue'}}
+                        /> 
+                    </div>
+                  )}
 
-                    <button 
-                    tabIndex= "0"
-                    aria-label="Edit Location" 
-                    style={{pointerEvents: 'auto' , zIndex:'400', gridArea: '1 / 1 / 2 / 3' }} 
-                    onClick={() => readInfo(index)} >
-                    <ZoomOutMapIcon /> Info
-                    </button>
+                  {chatActive && isFocused && (
+                    <div>
+                      <QuestionAnswerIcon  
+                      style ={{
+                        width: '50%', // Adjust the size as needed
+                        height: '50%',            
+                        position: 'absolute',
+                        top: '25%',
+                        left: '25%',
+                        color:'royalblue'}}
+                        /> 
+                    </div>
+                  )}
 
+                  {locationEditActive && isFocused && (
+                    <div>
+                      <ZoomOutMapIcon  
+                      style ={{
+                        width: '50%', // Adjust the size as needed
+                        height: '50%',            
+                        position: 'absolute',
+                        top: '25%',
+                        left: '25%',
+                        color:'royalblue'}}
+                        /> 
+                    </div>
+                  )}
 
-                    <button 
-                    tabIndex= "0"
-                    aria-label="Edit Location" 
-                    style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
-                    onClick={() => enterLocationEditMode(index)} >
-                    <ZoomOutMapIcon />
-                    </button>
+                  {sizeEditActive && isFocused && (
+                    <div>
+                      <PhotoSizeSelectLargeIcon  
+                      style ={{
+                        width: '50%', // Adjust the size as needed
+                        height: '50%',            
+                        position: 'absolute',
+                        top: '25%',
+                        left: '25%',
+                        color:'royalblue'}}
+                        /> 
+                    </div>
+                  )}
 
-                    <button 
-                      tabIndex= "0" 
-                      aria-label="Edit Size"
-                      style={{ pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 2 / 2 / 3' }} 
-                      onClick={enterSizeEditMode(index)}>
-                      <PhotoSizeSelectLargeIcon />
-                    </button>
-
-                    <button 
-                      tabIndex= "0" 
-                      aria-label="RegenerateImage" 
-                      style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '2 / 1 / 3 / 2' }} 
-                      onClick={() => generateImage(index, true)}> 
-                      <InfoIcon />
-                    </button>
-
-                    <button 
-                      tabIndex= "0" 
-                      aria-label="Radar Scan" 
-                      style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '2 / 2 / 3 / 3' }}
-                      onClick={() => radarScan(index)} ><RadarIcon />
-                    </button>
-                    
+                  {infoActive && isFocused && (
+                    <div>
+                      <InfoIcon  
+                      style ={{
+                      width: '50%', // Adjust the size as needed
+                      height: '50%',            
+                      position: 'absolute',
+                      top: '25%',
+                      left: '25%',
+                      color:'royalblue'}}
+                      /> 
+                    </div>
+                  )}
                   </div>
-                  
+            
                 </div>
               )}
 
@@ -1172,6 +1330,40 @@ export const PixelTile = () => {
                 ))}
             
             </div>
+        </div>
+
+        <div>
+          <button 
+            className="floating-button"
+            onClick={toggleShortcuts}>
+            Keyboard Shortcuts
+          </button>
+
+          {showShortcuts && (
+            <div className="shortcuts-list">
+              {/* Your shortcuts list here, as previously described */}
+              <h2>Keyboard Shortcuts</h2>
+              <ul>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan to learn about the position of the other elements around the image.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Hear detailed information about the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat and ask questions about the current image in the tab
+                </li>
+              </ul>
+              <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
+            </div>
+          
+          )}
         </div>
 
 

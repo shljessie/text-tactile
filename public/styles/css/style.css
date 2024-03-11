@@ -404,6 +404,39 @@ h2 {
     padding-block: 2rem;
   }
 }
+
+.floating-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+  padding: 1%;
+}
+
+kbd {
+  font-size: 1.2em; /* Adjust the font size as needed */
+  padding: 0.2em 0.4em;
+  background-color: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  margin: 0 2px;
+}
+
+.shortcuts-list {
+  position: absolute;
+  left: 50%; /* Centered horizontally */
+  top: 10%; /* Slightly from the top, as you specified */
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: white;
+  border: 0px solid black;
+  border-radius: 5px;
+  padding: 2vw;
+  background-color: aliceblue;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
 #imageGeneration form button, #imageGeneration form a {
   font-size: 1rem;
   color: #1E90FF;
