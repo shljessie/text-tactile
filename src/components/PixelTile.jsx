@@ -490,6 +490,89 @@ export const PixelTile = () => {
     });
   };
   
+  const imageChat = async (gridIndex) => {
+    
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    console.log('check of chat image matches',savedImages[imageObjectIndex] )
+
+    const imageURL = savedImages[imageObjectIndex].url;
+
+    console.log('imageURL',imageURL)
+
+    const voiceText = await startListening();
+    setPromptText(voiceText);
+    console.log('voceText:' , voiceText)
+
+    let customPrompt = `
+    You are describing an image to a Visually Impaired Person.
+    Generate the given image description according to the following criteria:
+    Briefly describe the primary subject or focus of the image in one sentence. ${voiceText}
+  `;
+
+  const payload = {
+    "model": "gpt-4-vision-preview",
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": customPrompt},
+                {"type": "image_url", "image_url": imageURL}
+            ]
+        }
+    ],
+    "max_tokens": 300
+  };
+
+  const speakDescription = (description) => {
+    // Create a new instance of SpeechSynthesisUtterance
+    var speech = new SpeechSynthesisUtterance(description);
+  
+    // Optionally, set some parameters
+    speech.rate = 1; // Speed of speech
+    speech.pitch = 1; // Pitch of speech
+    speech.volume = 1; // Volume
+  
+    // Use the speech synthesis interface to speak the description
+    window.speechSynthesis.speak(speech);
+  };
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    console.log('fetched',data);
+
+    if (data.choices && data.choices.length > 0) {
+      console.log(data.choices[0].message.content );
+      const description = data.choices[0].message.content;
+      speakDescription(description);
+      return data.choices[0].message.content;
+    } else {
+      return 'No description available';
+    }
+  } catch (error) {
+    console.error('Error fetching image description:', error);
+    return 'Error fetching description';
+  }
+
+
+  }
 
 
   const fetchImageDescription = async (imageURL) => {
@@ -971,12 +1054,14 @@ export const PixelTile = () => {
                     placeItems: 'center',
                     pointerEvents: 'none',
                   }}>
+            
+
                     <button 
-                      tabIndex= "0"
-                      aria-label="Edit Location" 
-                      style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
-                      onClick={enterLocationEditMode(index)} >
-                      <ZoomOutMapIcon />
+                    tabIndex= "0"
+                    aria-label="Image Chat" 
+                    style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '1 / 1 / 2 / 2' }} 
+                    onClick={() => imageChat(index)} >
+                    <ZoomOutMapIcon />
                     </button>
 
                     <button 
