@@ -11,10 +11,10 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import EditIcon from '@mui/icons-material/Edit';
 import InfoIcon from '@mui/icons-material/Info';
 import { MoonLoader } from 'react-spinners';
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
+import RadarIcon from '@mui/icons-material/Radar';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
@@ -425,12 +425,6 @@ export const PixelTile = () => {
     console.log('newIndex', newIndex)
 
     console.log('focused',tileRefs.current[newIndex])
-    // const row = Math.floor(newIndex / columns);
-    // const col = newIndex % columns;
-    // const centerX = (col + 0.5) * 100;
-    // const centerY = (row + 0.5) * 100;
-
-    // const imageObject = savedImages.find(img => img.coordinate.x === centerX && img.coordinate.y === centerY);
 
     const col = newIndex % columns;
     const row = Math.floor(newIndex / columns) ;
@@ -612,7 +606,131 @@ export const PixelTile = () => {
       setLoading(false);
     }
   };
+
+
+   const radarScan = (gridIndex) => {
+
+    console.log('Size Edit grid index', gridIndex);
+
+    const col = gridIndex % columns;
+    const row = Math.floor(gridIndex / columns);
+    const expectedCenterX = (col + 0.5) * 100;
+    const expectedCenterY = (row + 0.5) * 100;
+
+    const imageObjectIndex = savedImages.findIndex(img => {
+      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
+             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
+    });
+
+    console.log('Image',savedImages[imageObjectIndex]);
+
+    const centerX = savedImages[imageObjectIndex].coordinate.x;
+    const centerY = savedImages[imageObjectIndex].coordinate.y;
+
+    const otherImages = savedImages.filter((_, index) => index !== imageObjectIndex);
+
+    // Calculate distances from the radar center for each image
+    const distances = otherImages.map((image, index) => {
+    const distance = Math.sqrt(Math.pow(image.coordinate.x - expectedCenterX, 2) + Math.pow(image.coordinate.y - expectedCenterY, 2));
+        return {index, distance};
+    });
+
+    distances.sort((a, b) => a.distance - b.distance);
+
+    const playSoundAfterSpeech = (image, index) => {
+      speakImageName(image.name, () => {
+          console.log('Playing', image.name);
+          playRadarSound(image.sound, image.coordinate.x, image.coordinate.y);
+      });
+    };
+
+    distances.forEach((item, index) => {
+      // Introduce delay to ensure sequential playback
+      setTimeout(() => {
+          const image = otherImages[item.index];
+          playSoundAfterSpeech(image, index);
+      }, index * 2000); // Adjust delay to account for speech duration
+    });
+    
+   }
+
+   const speakImageName = (text, callback) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onend = function(event) {
+        console.log('Speech synthesis finished speaking');
+        callback();
+    };
+    window.speechSynthesis.speak(utterance);
+}
+
+   const playRadarSound = (note, x ,y ) =>{
+
+    const mappedX = (x - 400) / 400; // Maps 0-800 to -1 to 1
+    const mappedY = (y - 400) / 400; // Maps 0-800 to -1 to 1
+    const z = 0; // Fixed z-coordinate, assuming a 2D plane for simplicity
+
+    console.log('mapped X', mappedX);
+    console.log('mapped Y', mappedY);
   
+    // Create a synthesizer and connect it to a Panner3D
+    const synth = new Tone.Synth().toDestination();
+    const panner = new Tone.Panner3D(mappedX, mappedY, z).connect(Tone.Master);
+  
+    // Connect the synth to the panner
+    synth.connect(panner);
+  
+    // Play a note
+    synth.triggerAttackRelease(note, '8n');
+    
+   }
+
+// For the Radar Sound
+// const radarScan = (index) => {
+  
+//   const panner3D = new Tone.Panner3D({
+//     positionX: 0,
+//     positionY: 0,
+//     positionZ: -1
+//   }).toDestination();
+  
+//   playerRef.current.disconnect();
+//   playerRef.current.chain(panner3D, Tone.Destination);
+
+//   let angleDegrees = 95;
+
+//   const updateScan = () => {
+//     // Convert angle from degrees to radians
+//     const angleRadians = angleDegrees * (Math.PI / 180);
+
+//     const xRadius = 30;
+//     const yRadius = 30;
+
+//     const x = xRadius * Math.cos(angleRadians);
+//     const y = yRadius * Math.sin(angleRadians);
+//     // const z = zRadius * Math.sin(angleRadians);
+
+//     console.log('x',x)
+//     console.log('y',y)
+
+//     // Update the panner's position to simulate the circular motion
+//     panner3D.positionX.value = x;
+//     panner3D.positionY.value = y;
+//     // panner3D.positionZ.value = z;
+
+//     // Increment the angle for continuous movement
+//     angleDegrees = (angleDegrees - 1 + 360) % 360;
+//     playerRef.current.start();
+//   };
+  
+//   const intervalId = setInterval(updateScan, 50); 
+
+
+//   setTimeout(() => {
+//     clearInterval(intervalId); 
+//     playerRef.current.stop();
+//   }, (360* 50)+ 500);
+// };
+
 
  
   return (
@@ -822,8 +940,9 @@ export const PixelTile = () => {
 
                     <button 
                       tabIndex= "0" 
-                      aria-label="Change Image" 
-                      style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '2 / 2 / 3 / 3' }} ><EditIcon />
+                      aria-label="Radar Scan" 
+                      style={{pointerEvents: 'auto' , zIndex:'100', gridArea: '2 / 2 / 3 / 3' }}
+                      onClick={() => radarScan(index)} ><RadarIcon />
                     </button>
                     
                   </div>
@@ -866,6 +985,7 @@ export const PixelTile = () => {
             
             </div>
         </div>
+
 
         
       </div>    
