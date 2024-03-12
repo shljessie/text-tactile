@@ -78,6 +78,14 @@ export const PixelTile = () => {
   const toggleInstructions = () => {
     setShowInstructions(!showInstructions);
   };
+
+  useEffect(() => {
+    // This assumes your grid items are set and thus, the refs should be attached.
+    if (tileRefs.current[0]) {
+      tileRefs.current[0].current?.focus();
+    }
+  }, [gridItems]); // Depend on gridItems to ensure refs are assigned
+  
   
   useEffect(() => {
     if (apiKey) {
@@ -1185,6 +1193,7 @@ const speakNoTileFocusedMessage = () => {
                 alignItems: 'center', 
                 position: 'relative',
               }} 
+              
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
               onFocus={() => {
@@ -1192,6 +1201,7 @@ const speakNoTileFocusedMessage = () => {
                 if (hasImage && playerRef.current) {
                   playerRef.current.start();  
                 }
+                document.querySelector('[aria-live="polite"]').textContent = `Pixel ${index + 1} focused.`;
               }}
               onBlur={() => setFocusedIndex(null)}
               onKeyDown={(event) => tileNavigation(event, index)}
