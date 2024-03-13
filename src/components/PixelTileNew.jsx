@@ -30,12 +30,36 @@ export const PixelTileNew = () => {
 
   // Generating first image on tile
   const firstTileRef = useRef(null);
-  const [tiles, setTiles] = useState([{ id: 0, image: {} }]);
+  const [tiles, setTiles] = useState([
+    { 
+      id: 0, 
+      image: {}, 
+      x: 0,
+      y: 0
+    }
+  ]);
+
+  useEffect(() => {
+    const centerX = (parseInt(canvasSize['width']) / 2) - ((parseInt(canvasSize['width']) / 10) / 2);
+    const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
+
+    console.log('Updated centerX', centerX);
+    console.log('Updated centerY', centerY);
+
+    setTiles([
+      { id: 0, image: {}, x: centerX, y: centerY }
+    ]);
+  }, [canvasSize]); 
+
+  console.log('TILES', tiles)
 
   // loading and generation feedback 
   // const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   let loadingSoundSource = null;
   const [loading, setLoading] = useState(false);
+
+
+  // for adding images 
 
 //  ==========================
 
@@ -83,6 +107,39 @@ export const PixelTileNew = () => {
     window.speechSynthesis.speak(utterance);
   };
 
+  const tileSize = parseInt(canvasSize['width']) / 10; 
+
+  useEffect(() => {
+
+    if (savedImages.length > 0) {
+      const latestImage = savedImages[savedImages.length - 1];
+      setFocusedIndex(savedImages.length - 1);
+  
+      // Find if there's an existing tile for this image
+      const existingTileIndex = focusedIndex;
+
+      console.log('existingTileInex', existingTileIndex)
+      if (existingTileIndex == -1) {
+        // An existing tile for this image is found
+        // Update this tile or do any other necessary logic
+      } else {
+        const lastTile = tiles[tiles.length - 1];
+        // console.log('center tile', lastTile)
+        // const newTile = {
+        //   id: tiles.length, // Ensure this is a unique ID
+        //   image: latestImage,
+        //   x: lastTile.x +  tileSize,
+        //   y: lastTile.y
+        // };
+        
+        // // Update tiles to include this new central tile
+        // setTiles([...tiles, newTile]);
+  
+        // Now add surrounding tiles around this new tile
+        addSurroundingTiles(lastTile);
+      }
+    }
+  }, [savedImages]); // Depend on savedImages to trigger this effect
   
   
   useEffect(() => {
@@ -118,23 +175,6 @@ export const PixelTileNew = () => {
     localStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
     setOpenDialog(false);
   };
-
-  useEffect(() => {
-    if (savedImages.length === 1) {
-      const updatedTiles = tiles.map((tile, index) => ({
-        ...tile,
-        image: savedImages[0],
-      }));
-      setTiles(updatedTiles);
-    } else if (savedImages.length > 1) {
-      const additionalImages = savedImages.slice(tiles.length);
-      const newTiles = additionalImages.map((img, index) => ({
-        id: tiles.length + index,
-        image: img,
-      }));
-      setTiles(tiles => [...tiles, ...newTiles]);
-    }
-  }, [savedImages]);
 
   // ====================================
 
@@ -372,23 +412,35 @@ export const PixelTileNew = () => {
     }
   };
 
-  const playDescription = (index) => {
+  function addSurroundingTiles(centralTile) {
 
-    const col = index % columns;
-    const row = Math.floor(index / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
+    if (!centralTile) return; 
 
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-    console.log('Image',savedImages[imageObjectIndex])
-    const utterance = new SpeechSynthesisUtterance(savedImages[imageObjectIndex].descriptions);
+    console.log('Central Tile', centralTile)
+    const positions = [
+      { dx: -tileSize, dy: - tileSize }, // Top-left
+      { dx: 0, dy: -tileSize }, // Top
+      { dx: tileSize, dy: - tileSize }, // Top-right
+      { dx: tileSize, dy: 0 }, // Right
+      { dx: tileSize , dy: tileSize }, // Bottom-right
+      { dx: 0, dy: tileSize}, // Bottom
+      { dx: -tileSize, dy: tileSize }, // Bottom-left
+      { dx: - tileSize, dy: 0 }, // Left
+    ];
+  
+    const newTiles = positions.map((pos, index) => ({
+      id: tiles.length + index,
+      image: {},
+      x: centralTile.x + pos.dx,
+      y: centralTile.y + pos.dy,
+    }));
 
-    console.log('Description grid index', utterance);
-    speechSynthesis.speak(utterance);
-  };
+    console.log('newTiles', newTiles)
+  
+    // Update state with new tiles
+    setTiles(tiles => [...tiles, ...newTiles]);
+  }
+  
 
 
   const handleMouseMoveOnCanvas = (e) => {
@@ -416,6 +468,10 @@ export const PixelTileNew = () => {
     setDraggedImageIndex(null);
   };
   
+
+  const getSurroundingPositions = (index) => {
+    console.log('tiles', tiles[index])
+  }
 
   const playSpatialSound = (direction) => {
     if (!playerRef.current) return;
@@ -1103,46 +1159,51 @@ const speakNoTileFocusedMessage = () => {
           className="leftContainer">
 
           <div id="tileContainer" ref={canvasRef} style={{ 
-            display: 'flex', // Use Flexbox
-            justifyContent: 'center', // Center horizontally
-            alignItems: 'center', // Center vertically
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             position: 'relative', 
             ...canvasSize, 
             border: '1px solid black' }} tabIndex={0}>
 
             
-
-              {tiles.map((tile, index) => (
-                <div
-                  key={tile.id}
-                  onKeyDown={(event) => {
-                    setFocusedIndex(index)
-                    if (savedImages[index]) {
-                      tileNavigation(event, index, true);
-                    }else{
-                      tileNavigation(event, index, false);
-                    }
-                  }}
-                  tabIndex={0}
-                  style={{
-                    border: '1px solid black', 
-                    width: '10%', 
-                    height: "10%",
-                    margin: '5px',
-                    display: 'flex', // Use Flexbox
-                    justifyContent: 'center', // Center horizontally
-                    alignItems: 'center', // Center vertically 
-                    
-                  }}
-                  ref={index === 0 ? firstTileRef : null} 
-                >
-                  {loading && activeIndex === index ? (
+            {tiles.map((tile, index) => (
+              <div
+                key={tile.id}
+                onKeyDown={(event) => {
+                  setFocusedIndex(index)
+                  if (savedImages[index]) {
+                    tileNavigation(event, index, true);
+                  } else {
+                    tileNavigation(event, index, false);
+                  }
+                }}
+                tabIndex={0}
+                style={{
+                  border: '1px solid black', 
+                  width: '10%', 
+                  height: "10%",
+                  margin: '5px',
+                  position: 'absolute',
+                  left: tile.x,
+                  top: tile.y, 
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  alignItems: 'center',
+                }}
+                ref={index === 0 ? firstTileRef : null} 
+              >
+                {loading && activeIndex === index ? (
+                  <>
                     <MoonLoader size={50}/>
-                  ) : (
-                    <img src={savedImages[index]?.url} alt="" style={{ width: '100%', height: '100%', border:'0px' }} />
-                  )}
-                </div>
-              ))}
+                  </>
+                ) : (
+                  <img src={savedImages[index]?.url} alt="" style={{ width: '100%', height: '100%', border:'0px' }} />
+                )}
+              </div>
+            ))}
+            
               
           </div>
 
