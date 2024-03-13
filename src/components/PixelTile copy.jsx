@@ -39,11 +39,6 @@ export const PixelTile = () => {
   const [savedImages, setSavedImages] = useState([]);
   const [promptText, setPromptText] = useState('');
 
-  const [verticalBarX, setVerticalBarX] = useState(0); 
-  const [verticalBarY, setVerticalBarY] = useState(0); 
-  const [horizontalBarX, setHorizontalBarX] = useState(0);
-  const [horizontalBarY, setHorizontalBarY] = useState(0);
-
   const tileRefs = useRef([]);
   const playerRef = useRef(null);
 
@@ -87,11 +82,41 @@ export const PixelTile = () => {
   
   
   useEffect(() => {
+    if (apiKey) {
       const configuration = new Configuration({
-        apiKey:  process.env.REACT_APP_API_KEY,
+        apiKey: apiKey,
       });
       setOpenai(new OpenAIApi(configuration));
+    }
   }, []);
+
+  // useEffect(() => {
+  //   const storedApiKey = sessionStorage.getItem('apiKey');
+  //   if (storedApiKey) {
+  //     // setApiKey(storedApiKey);
+  //     initializeOpenAI(storedApiKey); 
+  //     setApiKeyLoaded(true);
+  //   } else {
+  //     setApiKeyLoaded(false);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   if (apiKey) {
+  //     sessionStorage.setItem('apiKey', apiKey);
+  //     initializeOpenAI(apiKey);
+  //     setApiKeyLoaded(true);
+  //   } else {
+  //     setApiKeyLoaded(false);
+  //   }
+  // }, [apiKey]);
+  
+  const initializeOpenAI = (key) => {
+    const configuration = new Configuration({
+      apiKey: key,
+    });
+    setOpenai(new OpenAIApi(configuration));
+  };
 
   useEffect(() => {
       console.log('Saved Images Updated', savedImages);
@@ -536,6 +561,13 @@ const speakNoTileFocusedMessage = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusedIndex]); // Include radarActive if you use it in radarScan or elsewhere
+
+
+  // const handleApiKeySubmit = () => {
+  //   sessionStorage.setItem('apiKey', apiKey);
+  //   setApiKey(apiKey);
+  //   setOpenApiKeyDialog(false);
+  // };
 
   const startListening = () => {
     return new Promise((resolve, reject) => {
@@ -989,6 +1021,10 @@ const speakNoTileFocusedMessage = () => {
   return (
     <div id='imageGeneration'>
         <div className='pageheader'>
+
+         {/* API Key Status Indicator */}
+        <div style={{ margin: '10px 10px' }}>
+
         
         {isListening && (
           <div>
