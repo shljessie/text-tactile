@@ -253,7 +253,7 @@ export const PixelTileNew = () => {
 
         setSavedImages((prevImages) => prevImages.map((img, index) => {
           if (index === editingImageIndex) {
-            return { ...img, coordinate: { x: img.coordinate.x + dx, y: img.coordinate.y + dy } };
+            return { ...img, canvas: { x: img.canvas.x + dx, y: img.canvas.y + dy } };
           }
           return img;
         }));
@@ -682,12 +682,14 @@ const speakNoTileFocusedMessage = () => {
           setinfoActive(true); 
 
           playModeNotification("Read Info Mode Activated.", () => {
+            setFocusedIndex(focusedIndex)
             readInfo(focusedIndex);
+            setFocusedIndex(focusedIndex)
           });
+          setFocusedIndex(focusedIndex)
 
           setTimeout(() => {
             setinfoActive(false);
-            setFocusedIndex(focusedIndex)
           }, 3000); 
         } else {
           speakNoTileFocusedMessage();
@@ -1011,7 +1013,8 @@ const speakNoTileFocusedMessage = () => {
           name: `Image_${lengthImages}`,
           url: img.url,
           descriptions: '',
-          coordinate: { x: centerX, y: centerY },
+          coordinate: { x: centerX, y: centerY },   //for matching with grid
+          canvas: {x: centerX, y: centerY},  //for matching 
           sizeParts: { width: 150, height: 150 },
           sound: note
         }));
@@ -1072,26 +1075,16 @@ const speakNoTileFocusedMessage = () => {
 
     console.log('Size Edit grid index', gridIndex);
 
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
+    console.log('Image',savedImages[gridIndex]);
 
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
+    const centerX = savedImages[gridIndex].coordinate.x;
+    const centerY = savedImages[gridIndex].coordinate.y;
 
-    console.log('Image',savedImages[imageObjectIndex]);
-
-    const centerX = savedImages[imageObjectIndex].coordinate.x;
-    const centerY = savedImages[imageObjectIndex].coordinate.y;
-
-    const otherImages = savedImages.filter((_, index) => index !== imageObjectIndex);
+    const otherImages = savedImages.filter((_, index) => index !== gridIndex);
 
     // Calculate distances from the radar center for each image
     const distances = otherImages.map((image, index) => {
-    const distance = Math.sqrt(Math.pow(image.coordinate.x - expectedCenterX, 2) + Math.pow(image.coordinate.y - expectedCenterY, 2));
+    const distance = Math.sqrt(Math.pow(image.canvas.x - centerX, 2) + Math.pow(image.canvas.y - centerY, 2));
         return {index, distance};
     });
 
@@ -1100,7 +1093,7 @@ const speakNoTileFocusedMessage = () => {
     const playSoundAfterSpeech = (image, index) => {
       speakImageName(image.name, () => {
           console.log('Playing', image.name);
-          playRadarSound(image.sound, image.coordinate.x, image.coordinate.y);
+          playRadarSound(image.sound, image.canvas.x, image.canvas.y);
       });
     };
 
@@ -1223,7 +1216,7 @@ const speakNoTileFocusedMessage = () => {
                 }}
               >
                 {loading && activeIndex === index ? (
-                  <MoonLoader size={50}/>
+                  <MoonLoader size={10}/>
                 ) : (
                   savedImages.filter(savedImage => 
                     savedImage.coordinate.x == tile.x && savedImage.coordinate.y == tile.y
@@ -1244,8 +1237,8 @@ const speakNoTileFocusedMessage = () => {
         <div className="rightContainer">
               <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
                   {savedImages.map((image, index) => (
-                    <div key={index} style={{ position: 'absolute', left: `${image.coordinate.x}px`, top: `${image.coordinate.y}px` }}
-                    tabIndex={0} onMouseDown={handleMouseDownOnImage(index)}>
+                    <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
+                    tabIndex={0}>
                       <img
                         src={image.url}
                         alt={`Generated Content ${index}`}
