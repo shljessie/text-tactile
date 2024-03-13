@@ -194,10 +194,10 @@ export const PixelTileNew = () => {
         console.log(`Key pressed: ${e.key}`);
         let dx = 0, dy = 0;
         switch(e.key) {
-          case 'ArrowLeft': dx = -10; break;
-          case 'ArrowRight': dx = 10; break;
-          case 'ArrowUp': dy = -10; break;
-          case 'ArrowDown': dy = 10; break;
+          case 'ArrowLeft': dx = -10; playSpatialSound('left'); break;
+          case 'ArrowRight': dx = 10; playSpatialSound('right'); break;
+          case 'ArrowUp': dy = -10; playSpatialSound('up'); break;
+          case 'ArrowDown': dy = 10;playSpatialSound('down'); break;
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
@@ -283,37 +283,54 @@ export const PixelTileNew = () => {
   }
 
   //  ==============================
+
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const playTone = (frequency) => {
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = 'sine'; // Use a sine wave
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // Frequency in Hz
   
+    oscillator.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1); // Play the tone for 0.1 seconds
+  };
+  
+
+  let changedFrequency = 340
   
   const handleKeyDownForSizeEdit = (e) => {
     if (!isEditingSize || editingSizeImageIndex === null) {
-      // If not in size editing mode, don't process the key events here.
       return;
     }
   
-    // Prevent the default action (e.g., scrolling) and stop the event from propagating.
     e.preventDefault();
     e.stopPropagation();
-  
+
     let scaleFactor = 1;
+
     switch (e.key) {
       case 'ArrowUp':
-        scaleFactor = 1.1; // Slightly increase size
+        scaleFactor = 1.1;
+        changedFrequency = changedFrequency - 100
         break;
       case 'ArrowDown':
-        scaleFactor = 0.9; // Slightly decrease size
+        scaleFactor = 0.9;
+        changedFrequency = changedFrequency + 100
         break;
       case 'Escape':
-        // Exit size editing mode
         setIsEditingSize(false);
         setEditingSizeImageIndex(null);
         speakMessage("Size Edit mode exited");
         return;
       default:
         speakMessage("You are still on Size Edit mode. Press ESC to exit the size edit mode first.");
-        // If another key is pressed, return early without processing.
         return;
     }
+
+    console.log(changedFrequency);
+
+    playTone(changedFrequency);
   
     // Adjust size with aspect ratio maintenance
     setSavedImages((prevImages) => prevImages.map((img, index) => {
