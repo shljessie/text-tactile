@@ -77,6 +77,12 @@ export const PixelTileNew = () => {
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
 
+
+  const speakMessage = (message) => {
+    const utterance = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(utterance);
+  };
+
   
   
   useEffect(() => {
@@ -176,6 +182,8 @@ export const PixelTileNew = () => {
     };
   }, [isDragging, draggedImageIndex]);
 
+
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       console.log('canvas Focused for location edit')
@@ -190,11 +198,14 @@ export const PixelTileNew = () => {
           case 'ArrowRight': dx = 10; break;
           case 'ArrowUp': dy = -10; break;
           case 'ArrowDown': dy = 10; break;
-          case 'Escape': // Exit editing mode
+          case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
+            speakMessage("Location mode exited");
             return;
-          default: return; // Ignore other keys
+          default: 
+            speakMessage("You are still on Location Edit mode. Press ESC to exit the Location Edit mode first.");
+            return; // Ignore other keys
         }
 
         setSavedImages((prevImages) => prevImages.map((img, index) => {
@@ -239,14 +250,14 @@ export const PixelTileNew = () => {
   // For Loading and Image Gneration feedback
   let isGeneratingImage = false; 
   
-  const startLoadingSound = async() => {
+  const startLoadingSound = async(voiceText) => {
     await Tone.start();
     isGeneratingImage = true;
 
     const speak = () => {
         if (!isGeneratingImage) return;
 
-        const utterance = new SpeechSynthesisUtterance("Generating image. Please wait a moment");
+        const utterance = new SpeechSynthesisUtterance(` Please wait a moment. Generating image based on prompt : ${voiceText}.`);
         utterance.pitch = 1;
         utterance.rate = 0.8;
         utterance.volume = 0.5; 
@@ -296,8 +307,10 @@ export const PixelTileNew = () => {
         // Exit size editing mode
         setIsEditingSize(false);
         setEditingSizeImageIndex(null);
+        speakMessage("Size Edit mode exited");
         return;
       default:
+        speakMessage("You are still on Size Edit mode. Press ESC to exit the size edit mode first.");
         // If another key is pressed, return early without processing.
         return;
     }
@@ -356,17 +369,6 @@ export const PixelTileNew = () => {
     speechSynthesis.speak(utterance);
   };
 
-  
-  
-
-  // const enterLocationEditMode = (index) => (e) => {
-  //   e.stopPropagation(); // Prevent triggering other click events
-  //   setIsEditingLocation(true);
-  //   setEditingImageIndex(index);
-    
-  //   // Focus on the canvas to listen for keyboard events
-  //   canvasRef.current.focus();
-  // };
 
   const handleMouseMoveOnCanvas = (e) => {
     if (!isDragging || draggedImageIndex === null) return;
@@ -409,7 +411,9 @@ export const PixelTileNew = () => {
     playerRef.current.start();
   };
 
-  const tileNavigation = (event, index) => {
+  const tileNavigation = (event, index, isRegeneration=false) => {
+
+    console.log('isRegeneration' , isRegeneration)
 
     let newIndex, direction;
     
@@ -431,7 +435,7 @@ export const PixelTileNew = () => {
         direction = 'right';
         break;
       case 'Enter': 
-        generateImage(index);
+        generateImage(index, isRegeneration);
       default:
         return;
     }
@@ -689,26 +693,18 @@ const speakNoTileFocusedMessage = () => {
 
   
   const imageChat = async (gridIndex) => {
-    
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
+  
+    console.log('check of chat image matches',savedImages[gridIndex] )
 
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    console.log('check of chat image matches',savedImages[imageObjectIndex] )
-
-    const imageURL = savedImages[imageObjectIndex].url;
+    const imageURL = savedImages[gridIndex].url;
 
     console.log('imageURL',imageURL)
 
     const voiceText = await startListening();
     setPromptText(voiceText);
     console.log('voceText:' , voiceText)
+
+    speakMessage(`You have asked: ${voiceText}.`)
 
     let customPrompt = `
     You are describing an image to a Visually Impaired Person.
@@ -894,7 +890,7 @@ const speakNoTileFocusedMessage = () => {
       if (voiceText) {
         console.log('OpenAI', openai);
         
-        startLoadingSound();
+        startLoadingSound(voiceText);
         
         const response = await openai.createImage({
           prompt: `${voiceText} The background should be white. Only draw thick outlines. No color`,
@@ -924,7 +920,6 @@ const speakNoTileFocusedMessage = () => {
         }
   
         isGeneratingImage = false;
-        window.speechSynthesis.cancel();
         stopLoadingSound();
 
         let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The sound of ${imageObjects[0].name} is `;
@@ -1096,7 +1091,14 @@ const speakNoTileFocusedMessage = () => {
               {tiles.map((tile, index) => (
                 <div
                   key={tile.id}
-                  onKeyDown={(event) => tileNavigation(event, index)}
+                  onKeyDown={(event) => {
+                    setFocusedIndex(index)
+                    if (savedImages[index]) {
+                      tileNavigation(event, index, true);
+                    }else{
+                      tileNavigation(event, index, false);
+                    }
+                  }}
                   tabIndex={0}
                   style={{
                     border: '1px solid black', 
