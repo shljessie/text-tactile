@@ -482,22 +482,12 @@ export const PixelTileNew = () => {
 
     console.log('Size Edit grid index', gridIndex);
 
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
+    console.log('Size Edit Index', gridIndex);
 
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    console.log('Size Edit Index', imageObjectIndex);
-
-    if(imageObjectIndex !== -1) {
+    if(gridIndex !== -1) {
       setIsEditingSize(true);
-      setEditingSizeImageIndex(imageObjectIndex);
-      canvasRef.current.focus(); // This line ensures the canvas gets focus for key events
+      setEditingSizeImageIndex(gridIndex);
+      canvasRef.current.focus();
     }
 };
 
@@ -871,6 +861,15 @@ const speakNoTileFocusedMessage = () => {
     ];
 
     // TOODO
+
+    if (index == 0) {
+      const centerX = canvasSize.width / 2;
+      const centerY = canvasSize.height / 2;
+    } else {
+      // the direction it moved in 
+      // calculate center coordinate of that 
+      // 
+    }
   
     const row = Math.floor(index / columns);
     const col = index % columns;
