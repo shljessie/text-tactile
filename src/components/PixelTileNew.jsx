@@ -201,11 +201,12 @@ export const PixelTileNew = () => {
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
+            setFocusedIndex(focusedIndex)
             speakMessage("Location mode exited");
             return;
           default: 
             speakMessage("You are still on Location Edit mode. Press ESC to exit the Location Edit mode first.");
-            return; // Ignore other keys
+            return;
         }
 
         setSavedImages((prevImages) => prevImages.map((img, index) => {
@@ -312,16 +313,18 @@ export const PixelTileNew = () => {
     switch (e.key) {
       case 'ArrowUp':
         scaleFactor = 1.1;
-        changedFrequency = changedFrequency - 100
+        changedFrequency = changedFrequency - 30
         break;
       case 'ArrowDown':
         scaleFactor = 0.9;
-        changedFrequency = changedFrequency + 100
+        changedFrequency = changedFrequency + 30
         break;
       case 'Escape':
         setIsEditingSize(false);
         setEditingSizeImageIndex(null);
+        setFocusedIndex(focusedIndex)
         speakMessage("Size Edit mode exited");
+        changedFrequency = 340
         return;
       default:
         speakMessage("You are still on Size Edit mode. Press ESC to exit the size edit mode first.");
@@ -329,16 +332,17 @@ export const PixelTileNew = () => {
     }
 
     console.log(changedFrequency);
-
     playTone(changedFrequency);
   
     // Adjust size with aspect ratio maintenance
     setSavedImages((prevImages) => prevImages.map((img, index) => {
+      
       if (index === editingSizeImageIndex) {
         const originalWidth = img.sizeParts.width;
         const originalHeight = img.sizeParts.height;
-        const newWidth = originalWidth * scaleFactor;
-        const newHeight = originalHeight * scaleFactor;
+
+        const newWidth = Math.round(originalWidth * scaleFactor);
+        const newHeight = Math.round(originalHeight * scaleFactor);
   
         // Update the image object with the new size
         return {
@@ -537,8 +541,9 @@ const speakNoTileFocusedMessage = () => {
     };
     window.speechSynthesis.speak(utterance);
   };
-  
+
   useEffect(() => {
+
     const handleKeyDown = (e) => {
       console.log('focused Index', focusedIndex)
       if (e.shiftKey && e.key === 'R') {
@@ -602,6 +607,7 @@ const speakNoTileFocusedMessage = () => {
 
           setTimeout(() => {
             setinfoActive(false);
+            setFocusedIndex(focusedIndex)
           }, 3000); 
         } else {
           speakNoTileFocusedMessage();
@@ -614,6 +620,7 @@ const speakNoTileFocusedMessage = () => {
           setchatActive(true); 
 
           playModeNotification("Chat Activated. Ask a question about the image", () => {
+            setFocusedIndex(focusedIndex);
             imageChat(focusedIndex);
           });
 
@@ -703,7 +710,7 @@ const speakNoTileFocusedMessage = () => {
   
     console.log('check of chat image matches',savedImages[gridIndex] )
 
-    const imageURL = savedImages[gridIndex].url;
+    const imageURL = savedImages[focusedIndex].url;
 
     console.log('imageURL',imageURL)
 
@@ -751,6 +758,7 @@ const speakNoTileFocusedMessage = () => {
       console.log(data.choices[0].message.content );
       const description = data.choices[0].message.content;
       speakDescription(description);
+      setFocusedIndex(gridIndex);
       return data.choices[0].message.content;
     } else {
       return 'No description available';
