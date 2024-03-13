@@ -7,17 +7,14 @@ const Nav = () => {
 
   const getNavLinkClass = ({ isActive }) => isActive ? 'nav-link active' : 'nav-link';
 
-  // Adjust getNavLinkStyle to check if the current link is the one being hovered or focused
   const getNavLinkStyle = (path) => ({ isActive }) => ({
     textDecoration: 'none',
     fontSize: '0.8rem',
     color: isActive ? 'blue' : hoveredOrFocusedLink === path ? 'green' : 'black',
   });
 
-  // Handle mouse enter and focus events similarly
   const handleMouseEnterOrFocus = (path) => setHoveredOrFocusedLink(path);
 
-  // Handle mouse leave and blur events to remove styles
   const handleMouseLeaveOrBlur = () => setHoveredOrFocusedLink(null);
 
   return (
@@ -26,9 +23,8 @@ const Nav = () => {
        <h3 id="mainHeader" style={{fontSize: '1.5rem',  marginTop: '1rem',   marginLeft: '1rem'}}> <b> </b> SONI PROMPT </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {['/instructions', '/table', '/tiles'].map((path, index) => {
-          // Determine the label dynamically
-          const labels = [ "Instructions", "PixelTable Editor", "PixelTile Editor"];
+        {['/instructions', '/table', '/tiles', '/tilesnew'].map((path, index) => {
+          const labels = [ "Instructions", "PixelTable Editor", "PixelTile Editor", "PixelTile Editor New"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 

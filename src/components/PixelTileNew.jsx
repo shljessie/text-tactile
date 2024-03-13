@@ -19,8 +19,16 @@ import RadarIcon from '@mui/icons-material/Radar';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
-export const PixelTile = () => {
-  // const [apiKey, setApiKey] = useState('');
+export const PixelTileNew = () => {
+  const apiKey = process.env.REACT_APP_API_KEY;
+
+  // Canvas Width & Height Setting
+  const [canvasSize, setCanvasSize] = useState({ width: '0%', height: '0%' }); 
+  const [openDialog, setOpenDialog] = useState(false);
+  const [savedImages, setSavedImages] = useState([]);
+  const canvasRef = useRef(null);
+
+//  ==========================
 
   const [showInstructions, setShowInstructions] = useState(true);
 
@@ -36,7 +44,6 @@ export const PixelTile = () => {
   const [activeIndex, setActiveIndex] = useState(null);
 
   const [openai, setOpenai] = useState();
-  const [savedImages, setSavedImages] = useState([]);
   const [promptText, setPromptText] = useState('');
 
   const tileRefs = useRef([]);
@@ -44,7 +51,6 @@ export const PixelTile = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
-  const canvasRef = useRef(null);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [editingImageIndex, setEditingImageIndex] = useState(null);
   const [editingImageIndexKeyboard, setEditingImageIndexKeyboard] = useState(null);
@@ -62,23 +68,7 @@ export const PixelTile = () => {
   const [sizeEditActive, setsizeEditActive] = useState(false);
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
-  
-  const apiKey = process.env.REACT_APP_API_KEY;
 
-  const [showShortcuts, setShowShortcuts] = useState(false);
-  
-  const toggleShortcuts = () => setShowShortcuts(!showShortcuts);
-
-  const toggleInstructions = () => {
-    setShowInstructions(!showInstructions);
-  };
-
-  useEffect(() => {
-    // This assumes your grid items are set and thus, the refs should be attached.
-    if (tileRefs.current[0]) {
-      tileRefs.current[0].current?.focus();
-    }
-  }, [gridItems]); // Depend on gridItems to ensure refs are assigned
   
   
   useEffect(() => {
@@ -90,33 +80,28 @@ export const PixelTile = () => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const storedApiKey = sessionStorage.getItem('apiKey');
-  //   if (storedApiKey) {
-  //     // setApiKey(storedApiKey);
-  //     initializeOpenAI(storedApiKey); 
-  //     setApiKeyLoaded(true);
-  //   } else {
-  //     setApiKeyLoaded(false);
-  //   }
-  // }, []);
+  useEffect(() => {
+    const savedCanvasSize = JSON.parse(sessionStorage.getItem('canvasSize'));
+    if (savedCanvasSize) {
+      setCanvasSize(savedCanvasSize);
+    } else {
+      setOpenDialog(true);
+    }
+  }, []);
 
-  // useEffect(() => {
-  //   if (apiKey) {
-  //     sessionStorage.setItem('apiKey', apiKey);
-  //     initializeOpenAI(apiKey);
-  //     setApiKeyLoaded(true);
-  //   } else {
-  //     setApiKeyLoaded(false);
-  //   }
-  // }, [apiKey]);
-  
-  const initializeOpenAI = (key) => {
-    const configuration = new Configuration({
-      apiKey: key,
-    });
-    setOpenai(new OpenAIApi(configuration));
+  const handleClose = () => {
+    setOpenDialog(false);
   };
+
+  const handleSave = (width, height) => {
+    setCanvasSize({ width: `${width}px`, height: `${height}px` });
+    localStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
+    setOpenDialog(false);
+  };
+
+  // ====================================
+
+
 
   useEffect(() => {
       console.log('Saved Images Updated', savedImages);
@@ -969,374 +954,81 @@ const speakNoTileFocusedMessage = () => {
     
    }
 
-// For the Radar Sound
-// const radarScan = (index) => {
-  
-//   const panner3D = new Tone.Panner3D({
-//     positionX: 0,
-//     positionY: 0,
-//     positionZ: -1
-//   }).toDestination();
-  
-//   playerRef.current.disconnect();
-//   playerRef.current.chain(panner3D, Tone.Destination);
-
-//   let angleDegrees = 95;
-
-//   const updateScan = () => {
-//     // Convert angle from degrees to radians
-//     const angleRadians = angleDegrees * (Math.PI / 180);
-
-//     const xRadius = 30;
-//     const yRadius = 30;
-
-//     const x = xRadius * Math.cos(angleRadians);
-//     const y = yRadius * Math.sin(angleRadians);
-//     // const z = zRadius * Math.sin(angleRadians);
-
-//     console.log('x',x)
-//     console.log('y',y)
-
-//     // Update the panner's position to simulate the circular motion
-//     panner3D.positionX.value = x;
-//     panner3D.positionY.value = y;
-//     // panner3D.positionZ.value = z;
-
-//     // Increment the angle for continuous movement
-//     angleDegrees = (angleDegrees - 1 + 360) % 360;
-//     playerRef.current.start();
-//   };
-  
-//   const intervalId = setInterval(updateScan, 50); 
-
-
-//   setTimeout(() => {
-//     clearInterval(intervalId); 
-//     playerRef.current.stop();
-//   }, (360* 50)+ 500);
-// };
-
-
  
   return (
     <div id='imageGeneration'>
-        <div className='pageheader'>
 
-         {/* API Key Status Indicator */}
-        <div style={{ margin: '10px 10px' }}>
+      <Dialog open={openDialog} onClose={handleClose}>
+        <DialogTitle>Set Canvas Size</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter the width and height for the canvas.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="width"
+            label="Canvas Width (px)"
+            type="number"
+            fullWidth
+            variant="standard"
+          />
+          <TextField
+            margin="dense"
+            id="height"
+            label="Canvas Height (px)"
+            type="number"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            handleSave(width, height);
+          }}>Save</Button>
+          <Button onClick={handleClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
 
-        
-        {isListening && (
-          <div>
-          <div style={{ color: 'green', fontWeight: 'bold' }}>Record the Prompt to Create the Image..</div>
-          <div style={{ color: 'green', fontWeight: 'bold' }}>Listening...</div>
-          </div>
-        )}
-        {promptText && (
-          <div style={{ marginTop: '10px' }}>
-            <strong>Recent Pixel Prompt:</strong> {promptText}
-          </div>
-        )} 
-   
-        <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
-          {showInstructions ? 'Hide Instructions' : 'Show Instructions'}
-        </button>
-        {showInstructions && (
-        <div className="instructions" style={{fontSize: '0.8rem'}}>
-
-        <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
-        <h2>Keyboard Shortcuts</h2>
-        <ul>
-          <li>
-            <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Displays detailed information about the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
-          </li>
-        </ul>
-        <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
-      </div>
-      
-        <h3>Instructions</h3>
-            <h4><strong>Creating and Editing Images:</strong></h4>
-            <br/>
-            <ol>
-                <li><strong>Selecting a Tile:</strong>
-                    <ul>
-                        <li>Browse through the Pixel Tiles on the screen.</li>
-                        <li>Choose a tile where you wish to create your image.</li>
-                        <li>Press the <strong>Enter</strong> key to initiate the image creation process by recording a prompt.</li>
-                        <li>On tiles with an image, you can hear the unique sound associated with it as you navigate.</li>
-                        <li>Use the <strong>arrow keys</strong> to navigate through the image.</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Listening to Image Sounds:</strong>
-                    <ul>
-                        <li>Once an image is created in a tile, you can hear a unique sound associated with that image as you navigate through the tiles</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Editing Image Location:</strong>
-                    <ul>
-                        <li>To adjust an image's position on the canvas, click the <strong>Edit Location</strong> button.</li>
-                        <li>Use the <strong>arrow keys</strong> to move the object to a new location.</li>
-                        <li>The object's new position will be updated on the grid.</li>
-                        <li>To exit location editing mode, press the <strong>Escape</strong> key.</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Editing Image Size:</strong>
-                    <ul>
-                        <li>To change the size of an image on the canvas, click the <strong>Edit Size</strong> button.</li>
-                        <li>Use the <strong>up and down arrow keys</strong> to adjust the image's size.</li>
-                        <li>Press the <strong>Escape</strong> key to exit size editing mode.</li>
-                    </ul>
-                </li>
-            </ol>
-            <br/>
-            <h4><strong>Additional Features:</strong></h4>
-            <br/>
-            <ul>
-                <li><strong>Hearing Image Descriptions:</strong> Press the <strong>Image Description</strong> button to hear a spoken description of the image.</li>
-                <li><strong>Changing the Image:</strong> To replace the image on a selected tile, press the <strong>Enter</strong> key again.</li>
-            </ul>
-            <p>Remember to exit editing modes (location or size) by pressing the <strong>Escape</strong> key when you're done with adjustments.</p>
-
-        </div>
-        )}
-    </div>
       <div className='mainContainer'>
-        <div className="leftContainer" style={{
+        <div 
+          className="leftContainer" 
+          style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${columns}, minmax(30px, 8vw))`,
           gridTemplateRows: `repeat(${rows}, minmax(30px, 8vw))`, 
           gap: '7px', 
-        }}>
-        {gridItems.map((item, index) => {
-          const isFocused = focusedIndex === index;
+          }}>
 
-          const col = index % columns;
-          const row = Math.floor(index / columns);
-          const expectedCenterX = (col + 0.5) * 100;
-          const expectedCenterY = (row + 0.5) * 100;
-        
-          const imageObject = savedImages.find(img => {
-            return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-                   Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-          });
-          
-          const hasImage = Boolean(imageObject);
-        
-          
-          return (
-            <div 
-              className="pixel" 
-              tabIndex="0"
-              key={index}
-              ref={tileRefs.current[index]}
-              style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                position: 'relative',
-              }} 
-              
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onFocus={() => {
-                setFocusedIndex(index);
-                if (hasImage && playerRef.current) {
-                  playerRef.current.start();  
-                }
-                document.querySelector('[aria-live="polite"]').textContent = `Pixel ${index + 1} focused.`;
-              }}
-              onBlur={() => setFocusedIndex(null)}
-              onKeyDown={(event) => tileNavigation(event, index)}
-            >
-              {hasImage && (
-                <img src={imageObject.url} alt="Generated" style={{ 
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }} />
-              )}
-              
-              {hasImage && (
-                <div>
-                  <div style={{
-                    position: 'absolute',
-                    width: '100%',
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'grid',
-                    backgroundColor: 'rgba(30, 144, 255, 0.3)',
-                    gridTemplateColumns: '50% 50%',
-                    gridTemplateRows: '50% 50%',
-                    placeItems: 'center',
-                    pointerEvents: 'none',
-                  }}>
+              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
+              </div>
 
-                  {radarActive && isFocused && (
-                    <div>
-                      <RadarIcon  
-                      style ={{
-                        width: '50%', // Adjust the size as needed
-                        height: '50%',            
-                        position: 'absolute',
-                        top: '25%',
-                        left: '25%',
-                        color:'royalblue'}}
-                        /> 
-                    </div>
-                  )}
-
-                  {chatActive && isFocused && (
-                    <div>
-                      <QuestionAnswerIcon  
-                      style ={{
-                        width: '50%', // Adjust the size as needed
-                        height: '50%',            
-                        position: 'absolute',
-                        top: '25%',
-                        left: '25%',
-                        color:'royalblue'}}
-                        /> 
-                    </div>
-                  )}
-
-                  {locationEditActive && isFocused && (
-                    <div>
-                      <ZoomOutMapIcon  
-                      style ={{
-                        width: '50%', // Adjust the size as needed
-                        height: '50%',            
-                        position: 'absolute',
-                        top: '25%',
-                        left: '25%',
-                        color:'royalblue'}}
-                        /> 
-                    </div>
-                  )}
-
-                  {sizeEditActive && isFocused && (
-                    <div>
-                      <PhotoSizeSelectLargeIcon  
-                      style ={{
-                        width: '50%', // Adjust the size as needed
-                        height: '50%',            
-                        position: 'absolute',
-                        top: '25%',
-                        left: '25%',
-                        color:'royalblue'}}
-                        /> 
-                    </div>
-                  )}
-
-                  {infoActive && isFocused && (
-                    <div>
-                      <InfoIcon  
-                      style ={{
-                      width: '50%', // Adjust the size as needed
-                      height: '50%',            
-                      position: 'absolute',
-                      top: '25%',
-                      left: '25%',
-                      color:'royalblue'}}
-                      /> 
-                    </div>
-                  )}
-                  </div>
-            
-                </div>
-              )}
-
-              {hoveredIndex === index && !imageObject && (!loading || activeIndex !== index) && (
-                <AddCircleIcon style={{ color: '#1E90FF', fontSize: '3vw' }} />
-              )}
-              {loading && activeIndex === index && <MoonLoader />}
-            </div>
-          );
-        })}
         
         </div>
       
         <div className="rightContainer">
-            <div id="canvas" ref={canvasRef} style={{ position: 'relative', width: '88%', height: '88%', border: '1px solid black' }} tabIndex={0}>
-
-                <div id="verticalBar" style={{ position: 'absolute', left: `${verticalBarX}px`, top: `${verticalBarY}px`, width: '10px', height: '100%', backgroundColor: 'red' }}></div>
-
-                <div id="horizontalBar" style={{ position: 'absolute', left: `${horizontalBarX}px`, top: `${horizontalBarY}px`,   width: '100%', height: '10px', backgroundColor: 'blue' }}></div>
-
-
-                {savedImages.map((image, index) => (
-                  <div key={index} style={{ position: 'absolute', left: `${image.coordinate.x}px`, top: `${image.coordinate.y}px` }}
-                  tabIndex={0} onMouseDown={handleMouseDownOnImage(index)}  >
-                    <img
-                      src={image.url}
-                      alt={`Generated Content ${index}`}
-                      style={{
-                        width: image.sizeParts.width + 'px',
-                        height: image.sizeParts.height + 'px',
-                        cursor: 'move', 
-                      }}
-                    />
-                  </div>
-                ))}
-            
-            </div>
-        </div>
-
-        <div>
-          <button 
-            className="floating-button"
-            onClick={toggleShortcuts}>
-            Keyboard Shortcuts
-          </button>
-
-          {showShortcuts && (
-            <div className="shortcuts-list">
-              {/* Your shortcuts list here, as previously described */}
-              <h2>Keyboard Shortcuts</h2>
-              <ul>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan to learn about the position of the other elements around the image.
-                </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
-                </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
-                </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Hear detailed information about the currently selected item.
-                </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat and ask questions about the current image in the tab
-                </li>
-              </ul>
-              <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
-            </div>
-          
-          )}
+              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
+                  {savedImages.map((image, index) => (
+                    <div key={index} style={{ position: 'absolute', left: `${image.coordinate.x}px`, top: `${image.coordinate.y}px` }}
+                    tabIndex={0} onMouseDown={handleMouseDownOnImage(index)}>
+                      <img
+                        src={image.url}
+                        alt={`Generated Content ${index}`}
+                        style={{
+                          width: image.sizeParts.width + 'px',
+                          height: image.sizeParts.height + 'px',
+                          cursor: 'move', 
+                        }}
+                      />
+                    </div>
+                  ))}
+              </div>
         </div>
 
 
-        
       </div>    
-
-    </div>
+    </div> 
   );
 };

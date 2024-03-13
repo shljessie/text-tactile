@@ -20,7 +20,7 @@ import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 export const PixelTile = () => {
-  // const [apiKey, setApiKey] = useState('');
+
 
   const [showInstructions, setShowInstructions] = useState(true);
 

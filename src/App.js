@@ -9,6 +9,7 @@ import Nav from './components/Nav';
 import { Navigate } from "react-router-dom";
 import { PixelTable } from './components/PixelTable';
 import { PixelTile } from './components/PixelTile';
+import { PixelTileNew } from './components/PixelTileNew';
 import React from "react";
 import { SelectedAssetsProvider } from './components/SelectedAssetContext';
 
@@ -21,6 +22,7 @@ function App() {
         <Route path="/instructions" element={<Instructions />} />
         <Route path="/table" element={<PixelTable />} />
         <Route path="/tiles" element={<PixelTile />} />
+        <Route path="/tilesnew" element={<PixelTileNew />} />
       </Routes>
      </SelectedAssetsProvider>
     </Router>
