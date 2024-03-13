@@ -69,7 +69,7 @@ export const PixelTile = () => {
   const [sizeEditActive, setsizeEditActive] = useState(false);
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
-
+  const apiKey = process.env.REACT_APP_API_KEY;
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   

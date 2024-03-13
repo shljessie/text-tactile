@@ -13,6 +13,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "aws-sdk": "^2.1576.0",
     "compromise": "^14.12.0",
     "html2canvas": "^1.4.1",
     "js-pixel-fonts": "^1.6.0",
