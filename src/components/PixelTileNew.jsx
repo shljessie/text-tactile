@@ -79,6 +79,10 @@ export const PixelTileNew = () => {
   const [promptText, setPromptText] = useState('');
 
   const tileRefs = useRef([]);
+  if (tileRefs.current.length !== tiles.length) {
+    // Initialize or update the refs array to match the tiles array length
+    tileRefs.current = Array(tiles.length).fill().map((_, i) => tileRefs.current[i] || React.createRef());
+  }
   const playerRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -120,23 +124,11 @@ export const PixelTileNew = () => {
 
       console.log('existingTileInex', existingTileIndex)
       if (existingTileIndex == -1) {
-        // An existing tile for this image is found
-        // Update this tile or do any other necessary logic
+        return
       } else {
-        const lastTile = tiles[tiles.length - 1];
-        // console.log('center tile', lastTile)
-        // const newTile = {
-        //   id: tiles.length, // Ensure this is a unique ID
-        //   image: latestImage,
-        //   x: lastTile.x +  tileSize,
-        //   y: lastTile.y
-        // };
-        
-        // // Update tiles to include this new central tile
-        // setTiles([...tiles, newTile]);
-  
-        // Now add surrounding tiles around this new tile
-        addSurroundingTiles(lastTile);
+        const centralTile = tiles[focusedIndex];
+        console.log('centralTile', centralTile);
+        addSurroundingTiles(centralTile);
       }
     }
   }, [savedImages]); // Depend on savedImages to trigger this effect
@@ -413,33 +405,36 @@ export const PixelTileNew = () => {
   };
 
   function addSurroundingTiles(centralTile) {
-
     if (!centralTile) return; 
-
+  
     console.log('Central Tile', centralTile)
     const positions = [
-      { dx: -tileSize, dy: - tileSize }, // Top-left
+      { dx: -tileSize, dy: -tileSize }, // Top-left
       { dx: 0, dy: -tileSize }, // Top
-      { dx: tileSize, dy: - tileSize }, // Top-right
+      { dx: tileSize, dy: -tileSize }, // Top-right
+      { dx: -tileSize, dy: 0 }, // Left
       { dx: tileSize, dy: 0 }, // Right
-      { dx: tileSize , dy: tileSize }, // Bottom-right
-      { dx: 0, dy: tileSize}, // Bottom
       { dx: -tileSize, dy: tileSize }, // Bottom-left
-      { dx: - tileSize, dy: 0 }, // Left
+      { dx: tileSize, dy: tileSize }, // Bottom-right
+      { dx: 0, dy: tileSize}, // Bottom
     ];
   
     const newTiles = positions.map((pos, index) => ({
-      id: tiles.length + index,
+      id: tiles.length + index, // This might need adjustment if you're filtering out tiles
       image: {},
       x: centralTile.x + pos.dx,
       y: centralTile.y + pos.dy,
-    }));
-
-    console.log('newTiles', newTiles)
+    })).filter(newTile => 
+      // Check if a tile with the same x and y already exists
+      !tiles.some(tile => tile.x === newTile.x && tile.y === newTile.y)
+    );
   
-    // Update state with new tiles
+    console.log('newTiles', newTiles);
+  
+    // Update state with new tiles, if any
     setTiles(tiles => [...tiles, ...newTiles]);
   }
+  
   
 
 
@@ -490,54 +485,62 @@ export const PixelTileNew = () => {
 
   const tileNavigation = (event, index, isRegeneration=false) => {
 
-    console.log('isRegeneration' , isRegeneration)
+    console.log('isRegeneration' , isRegeneration);
+    console.log('index', index);
+    console.log('tiles', tiles[index]);
+    console.log('tile X', tiles[index].x);
+    console.log('tile Y', tiles[index].y);
 
     let newIndex, direction;
+    let newX = tiles[index].x;
+    let newY = tiles[index].y;
     
     switch (event.key) {
       case 'ArrowUp':
-        newIndex = index - columns < 0 ? index : index - columns;
+        newY =  tiles[index].y - tileSize;
+        console.log('newY', newY)
         direction = 'up';
         break;
       case 'ArrowDown':
-        newIndex = index + columns >= rows * columns ? index : index + columns;
+        newY =  tiles[index].y + tileSize;
+        console.log('newY', newY)
         direction = 'down';
         break;
       case 'ArrowLeft':
-        newIndex = index % columns === 0 ? index : index - 1;
+        newX =  tiles[index].x - tileSize;
+        console.log('newX', newX)
         direction = 'left';
         break;
       case 'ArrowRight':
-        newIndex = (index + 1) % columns === 0 ? index : index + 1;
+        newX =  tiles[index].x + tileSize;
+        console.log('newX', newX)
         direction = 'right';
         break;
       case 'Enter': 
-        generateImage(index, isRegeneration);
+        newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+        setFocusedIndex(newIndex);
+        generateImage(newIndex, isRegeneration);
       default:
         return;
+    }
+
+    newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+    console.log('newTile', newIndex);
+
+    if (newIndex !== -1 && tileRefs.current[newIndex]) {
+      tileRefs.current[newIndex].focus();
     }
     
     setFocusedIndex(newIndex);
     setHoveredIndex(newIndex);
-    tileRefs.current[newIndex].current.focus();
 
     console.log('newIndex', newIndex)
 
-    console.log('focused',tileRefs.current[newIndex])
-
-    const col = newIndex % columns;
-    const row = Math.floor(newIndex / columns) ;
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
-  
-    const imageObject = savedImages.find(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-              Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
+    const imageObject = savedImages.findIndex(image => image.coordinate.x == newX && image.coordinate.y == newY);
           
 
-    if (imageObject) {
-      const sound = imageObject.sound;
+    if (imageObject !== -1) {
+      const sound = savedImages[imageObject].sound;
       const synth = new Tone.Synth().toDestination();
       synth.triggerAttackRelease(sound, '8n');
     }else{
@@ -943,20 +946,21 @@ const speakNoTileFocusedMessage = () => {
 
     // TOODO
 
-    if (index == 0) {
-      const centerX = canvasSize.width / 2;
-      const centerY = canvasSize.height / 2;
-    } else {
-      // the direction it moved in 
-      // calculate center coordinate of that 
-      // 
-    }
-  
-    const row = Math.floor(index / columns);
-    const col = index % columns;
-  
-    const centerX = (col + 0.5) * 100;
-    const centerY = (row + 0.5) * 100;
+    let centerX, centerY;
+
+    // if (index == 0) {
+    //   centerX = canvasSize.width / 2;
+    //   centerY = canvasSize.height / 2;
+    // } else {
+    //   // the direction it moved in 
+    //   // calculate center coordinate of that
+    console.log('Index',index);
+    console.log(tiles[index]); 
+    centerX = tiles[index].x;
+    centerY = tiles[index].y;
+    console.log('centerX', centerX);
+    console.log('centerY', centerY)
+    // }
   
     console.log('Generating image...');
   
@@ -1169,14 +1173,11 @@ const speakNoTileFocusedMessage = () => {
             
             {tiles.map((tile, index) => (
               <div
+                ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
                 onKeyDown={(event) => {
-                  setFocusedIndex(index)
-                  if (savedImages[index]) {
-                    tileNavigation(event, index, true);
-                  } else {
-                    tileNavigation(event, index, false);
-                  }
+                  setFocusedIndex(index);
+                  tileNavigation(event, index, savedImages.some(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y));
                 }}
                 tabIndex={0}
                 style={{
@@ -1188,21 +1189,23 @@ const speakNoTileFocusedMessage = () => {
                   left: tile.x,
                   top: tile.y, 
                   display: 'flex',
+                  flexDirection: 'column',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  alignItems: 'center',
                 }}
-                ref={index === 0 ? firstTileRef : null} 
               >
                 {loading && activeIndex === index ? (
-                  <>
-                    <MoonLoader size={50}/>
-                  </>
+                  <MoonLoader size={50}/>
                 ) : (
-                  <img src={savedImages[index]?.url} alt="" style={{ width: '100%', height: '100%', border:'0px' }} />
+                  savedImages.filter(savedImage => 
+                    savedImage.coordinate.x == tile.x && savedImage.coordinate.y == tile.y
+                  ).map((image, imageIndex) => (
+                    <img key={imageIndex} src={image.url} alt="" style={{ width: '100%', height: '100%', position: 'absolute' }} />
+                  ))
                 )}
               </div>
             ))}
+            
             
               
           </div>
