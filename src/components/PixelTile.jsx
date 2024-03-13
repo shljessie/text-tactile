@@ -1134,30 +1134,6 @@ const speakNoTileFocusedMessage = () => {
         </div>
         )}
     </div>
-
-      <Dialog open={openApiKeyDialog} onClose={() => {}} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Enter API Key</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please enter your API key to proceed.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="apiKey"
-            label="API Key"
-            type="text"
-            fullWidth
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleApiKeySubmit} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
       <div className='mainContainer'>
         <div className="leftContainer" style={{
           display: 'grid',
