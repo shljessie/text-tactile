@@ -28,6 +28,15 @@ export const PixelTileNew = () => {
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
 
+  // Generating first image on tile
+  const firstTileRef = useRef(null);
+  const [tiles, setTiles] = useState([{ id: 0, image: {} }]);
+
+  // loading and generation feedback 
+  // const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  let loadingSoundSource = null;
+  const [loading, setLoading] = useState(false);
+
 //  ==========================
 
   const [showInstructions, setShowInstructions] = useState(true);
@@ -40,7 +49,6 @@ export const PixelTileNew = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [focusedIndex, setFocusedIndex] = useState(null);
 
-  const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
 
   const [openai, setOpenai] = useState();
@@ -81,11 +89,17 @@ export const PixelTileNew = () => {
   }, []);
 
   useEffect(() => {
-    const savedCanvasSize = JSON.parse(sessionStorage.getItem('canvasSize'));
+    const savedCanvasSize = JSON.parse(localStorage.getItem('canvasSize'));
     if (savedCanvasSize) {
       setCanvasSize(savedCanvasSize);
     } else {
       setOpenDialog(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (firstTileRef.current) {
+      firstTileRef.current.focus();
     }
   }, []);
 
@@ -98,6 +112,23 @@ export const PixelTileNew = () => {
     localStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
     setOpenDialog(false);
   };
+
+  useEffect(() => {
+    if (savedImages.length === 1) {
+      const updatedTiles = tiles.map((tile, index) => ({
+        ...tile,
+        image: savedImages[0],
+      }));
+      setTiles(updatedTiles);
+    } else if (savedImages.length > 1) {
+      const additionalImages = savedImages.slice(tiles.length);
+      const newTiles = additionalImages.map((img, index) => ({
+        id: tiles.length + index,
+        image: img,
+      }));
+      setTiles(tiles => [...tiles, ...newTiles]);
+    }
+  }, [savedImages]);
 
   // ====================================
 
@@ -202,6 +233,45 @@ export const PixelTileNew = () => {
       detachSizeEditKeyListener();
     };
   }, [isEditingSize, editingSizeImageIndex]); // Make sure to include all dependencies used in handleKeyDownForSizeEdit
+
+  //  ==============================
+
+  // For Loading and Image Gneration feedback
+  let isGeneratingImage = false; 
+  
+  const startLoadingSound = async() => {
+    await Tone.start();
+    isGeneratingImage = true;
+
+    const speak = () => {
+        if (!isGeneratingImage) return;
+
+        const utterance = new SpeechSynthesisUtterance("Generating image. Please wait a moment");
+        utterance.pitch = 1;
+        utterance.rate = 0.8;
+        utterance.volume = 0.5; 
+
+        utterance.onend = () => {
+            setTimeout(() => {
+                speak();
+            }, 2000);
+        };
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    speak();
+  };
+
+
+  function stopLoadingSound() {
+      if (loadingSoundSource) {
+          loadingSoundSource.stop();
+          loadingSoundSource = null;
+      }
+  }
+
+  //  ==============================
   
   
   const handleKeyDownForSizeEdit = (e) => {
@@ -396,25 +466,11 @@ export const PixelTileNew = () => {
   };
 
   const enterLocationEditMode = (gridIndex) => {
-
-    console.log('enter Locaiton Edit MODEEE')
   
-    // Calculate the expected center coordinates for the grid item
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100; // Adjust these based on your grid setup
-    const expectedCenterY = (row + 0.5) * 100;
-  
-    // Find the image object that matches these coordinates (or close enough)
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 && // Adjust tolerance as needed
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-  
-    if(imageObjectIndex !== -1) { // Make sure an image was found
+    if(gridIndex !== -1) {
       setIsEditingLocation(true);
-      setEditingImageIndex(imageObjectIndex);
-      canvasRef.current.focus(); // Ensure the canvas or relevant container can receive keyboard events
+      setEditingImageIndex(gridIndex);
+      canvasRef.current.focus();
     }
   };
 
@@ -461,16 +517,28 @@ const speakNoTileFocusedMessage = () => {
   }
 };
 
-
+  const playModeNotification = (message, callback) => {
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.onend = function(event) {
+      if (callback) {
+        callback(); // Execute the callback function after the message is spoken
+      }
+    };
+    window.speechSynthesis.speak(utterance);
+  };
+  
   useEffect(() => {
     const handleKeyDown = (e) => {
+      console.log('focused Index', focusedIndex)
       if (e.shiftKey && e.key === 'R') {
         if (focusedIndex !== null) {
           console.log('Radar Scan Activated');
           console.log('Focused Index', focusedIndex);
-          setRadarActive(true); // Step 2: Activate radar
+          setRadarActive(true);
           
-          radarScan(focusedIndex);
+          playModeNotification("Radar Scan Activated. You will hear relative location of other objects on the canvas.", () => {
+            radarScan(focusedIndex); 
+          });
 
           setTimeout(() => {
             setRadarActive(false);
@@ -484,8 +552,8 @@ const speakNoTileFocusedMessage = () => {
             console.log('Location Edit Activated');
             console.log('Focused Index', focusedIndex);
             setlocationEditActive(true); 
+            playModeNotification("Location Edit Activated. Press the arrow keys to edit the location of the object.");
 
-            console.log('enter Locaiton Edit MODEEE    -1')
             enterLocationEditMode(focusedIndex);
 
             setTimeout(() => {
@@ -500,6 +568,7 @@ const speakNoTileFocusedMessage = () => {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
           setsizeEditActive(true); 
+          playModeNotification("Size Edit Activated. Press the up down arrow keys to edit the size of the object.");
 
           enterSizeEditMode(focusedIndex);
 
@@ -516,7 +585,9 @@ const speakNoTileFocusedMessage = () => {
           console.log('Focused Index', focusedIndex);
           setinfoActive(true); 
 
-          readInfo(focusedIndex);
+          playModeNotification("Read Info Mode Activated.", () => {
+            readInfo(focusedIndex);
+          });
 
           setTimeout(() => {
             setinfoActive(false);
@@ -531,7 +602,9 @@ const speakNoTileFocusedMessage = () => {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
 
-          imageChat(focusedIndex);
+          playModeNotification("Chat Activated. Ask a question about the image", () => {
+            imageChat(focusedIndex);
+          });
 
           setTimeout(() => {
             setchatActive(false);
@@ -545,14 +618,7 @@ const speakNoTileFocusedMessage = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedIndex]); // Include radarActive if you use it in radarScan or elsewhere
-
-
-  // const handleApiKeySubmit = () => {
-  //   sessionStorage.setItem('apiKey', apiKey);
-  //   setApiKey(apiKey);
-  //   setOpenApiKeyDialog(false);
-  // };
+  }, [focusedIndex]);
 
   const startListening = () => {
     return new Promise((resolve, reject) => {
@@ -592,18 +658,8 @@ const speakNoTileFocusedMessage = () => {
   };
 
   const readInfo = (gridIndex) => {
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
-
-
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    const image = savedImages[imageObjectIndex];
+    
+    const image = savedImages[gridIndex];
 
     console.log("Reading ...",image)
 
@@ -793,15 +849,20 @@ const speakNoTileFocusedMessage = () => {
     // Update the state with the modified array
     setSavedImages(updatedSavedImages);
   };
+
+  async function playImageSound(note) {
+    await Tone.start();
+    const synth = new Tone.Synth().toDestination();
+
+    synth.triggerAttackRelease(note, "8n");
+}
   
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
 
     if (isRegeneration) {
-      // Assuming there's a method to remove the old image by index
       removeImageAtIndex(index);
-      // Assuming there's a mechanism to regenerate the image
       console.log('Regenerating image at index:', index);
     }
   
@@ -812,6 +873,8 @@ const speakNoTileFocusedMessage = () => {
       'C#5', 'D#5', 'F#5', 'G#5', 'A#5',
       'C6'
     ];
+
+    // TOODO
   
     const row = Math.floor(index / columns);
     const col = index % columns;
@@ -822,7 +885,7 @@ const speakNoTileFocusedMessage = () => {
     console.log('Generating image...');
   
     try {
-      // Assuming startListening is an async function, await its result.
+
       const voiceText = await startListening();
       setPromptText(voiceText);
       console.log('voceText:' , voiceText)
@@ -830,8 +893,11 @@ const speakNoTileFocusedMessage = () => {
   
       if (voiceText) {
         console.log('OpenAI', openai);
+        
+        startLoadingSound();
+        
         const response = await openai.createImage({
-          prompt: `${voiceText} The background should be white. Only draw outlines. No color`,
+          prompt: `${voiceText} The background should be white. Only draw thick outlines. No color`,
           n: 1,
         });
   
@@ -857,15 +923,36 @@ const speakNoTileFocusedMessage = () => {
           imageObject.descriptions = description;
         }
   
-        console.log('Image Objects', imageObjects);
+        isGeneratingImage = false;
+        window.speechSynthesis.cancel();
+        stopLoadingSound();
+
+        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The sound of ${imageObjects[0].name} is `;
+        let utterance = new SpeechSynthesisUtterance(imageDescription);
+        const imageNote = imageObjects[0].sound;
+
   
         if (isRegeneration) {
-          // Update the specific image instead of appending a new one
           updateImageAtIndex(index, imageObjects[0]);
+          speechSynthesis.speak(utterance);
+
+          utterance.onend = function(event) {
+            console.log('Speech synthesis finished.');
+            playImageSound(imageNote);
+          };
+
+          setFocusedIndex(index);
+
         } else {
-          // Append new images as before
           const updatedSavedImages = [...savedImages, ...imageObjects];
           setSavedImages(updatedSavedImages);
+          speechSynthesis.speak(utterance);
+
+          utterance.onend = function(event) {
+            console.log('Speech synthesis finished.');
+            playImageSound(imageNote); 
+          };
+          setFocusedIndex(index);
         }
       } else {
         console.log("Voice text is empty.");
@@ -994,16 +1081,44 @@ const speakNoTileFocusedMessage = () => {
 
       <div className='mainContainer'>
         <div 
-          className="leftContainer" 
-          style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${columns}, minmax(30px, 8vw))`,
-          gridTemplateRows: `repeat(${rows}, minmax(30px, 8vw))`, 
-          gap: '7px', 
-          }}>
+          className="leftContainer">
 
-              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
-              </div>
+          <div id="tileContainer" ref={canvasRef} style={{ 
+            display: 'flex', // Use Flexbox
+            justifyContent: 'center', // Center horizontally
+            alignItems: 'center', // Center vertically
+            position: 'relative', 
+            ...canvasSize, 
+            border: '1px solid black' }} tabIndex={0}>
+
+            
+
+              {tiles.map((tile, index) => (
+                <div
+                  key={tile.id}
+                  onKeyDown={(event) => tileNavigation(event, index)}
+                  tabIndex={0}
+                  style={{
+                    border: '1px solid black', 
+                    width: '10%', 
+                    height: "10%",
+                    margin: '5px',
+                    display: 'flex', // Use Flexbox
+                    justifyContent: 'center', // Center horizontally
+                    alignItems: 'center', // Center vertically 
+                    
+                  }}
+                  ref={index === 0 ? firstTileRef : null} 
+                >
+                  {loading && activeIndex === index ? (
+                    <MoonLoader size={50}/>
+                  ) : (
+                    <img src={savedImages[index]?.url} alt="" style={{ width: '100%', height: '100%', border:'0px' }} />
+                  )}
+                </div>
+              ))}
+              
+          </div>
 
         
         </div>
