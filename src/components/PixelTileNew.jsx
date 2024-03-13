@@ -23,7 +23,7 @@ import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 export const PixelTileNew = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
-  window.speechSynthesis.cancel();
+  // window.speechSynthesis.cancel();
 
   // Canvas Width & Height Setting
   const [canvasSize, setCanvasSize] = useState({ width: '0%', height: '0%' }); 
@@ -60,7 +60,6 @@ export const PixelTileNew = () => {
 
   const testWebAudioAPI = () => {
     speakDescription('hi')
-    // window.speechSynthesis.cancel();
   };
 
 
@@ -113,7 +112,6 @@ export const PixelTileNew = () => {
 
 
   const speakMessage = (message) => {
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(message);
     window.speechSynthesis.speak(utterance);
   };
@@ -305,12 +303,11 @@ export const PixelTileNew = () => {
         if (!isGeneratingImage) return;
   
         try {
-          window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}.`);
           console.log('Tone utterance', utterance);
           utterance.pitch = 1;
-          utterance.rate = 0.8;
-          utterance.volume = 0.5;
+          utterance.rate = 1;
+          utterance.volume = 1;
   
           utterance.onend = () => {
             setTimeout(() => {
@@ -321,14 +318,12 @@ export const PixelTileNew = () => {
           window.speechSynthesis.speak(utterance);
         } catch (innerError) {
           console.error('Error speaking the utterance:', innerError);
-          // Optionally, handle the speech synthesis error (e.g., log it, show a user notification)
         }
       };
   
       speak();
     } catch (error) {
       console.error('Error starting Tone.js:', error);
-      // Optionally, handle the error (e.g., log it, show an error message to the user)
     }
   };
   
@@ -603,7 +598,6 @@ const speakNoTileFocusedMessage = () => {
   // Check if the browser supports speech synthesis
   if ('speechSynthesis' in window) {
     // Create a new instance of SpeechSynthesisUtterance
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(message);
 
     // Optional: Configure the utterance properties
@@ -619,7 +613,6 @@ const speakNoTileFocusedMessage = () => {
 };
 
   const playModeNotification = (message, callback) => {
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.onend = function(event) {
       if (callback) {
@@ -1033,7 +1026,7 @@ const speakNoTileFocusedMessage = () => {
         stopLoadingSound();
 
         let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The sound of ${imageObjects[0].name} is `;
-        window.speechSynthesis.cancel();
+        
         let utterance = new SpeechSynthesisUtterance(imageDescription);
         utterance.rate = 1; // Speed of speech
         utterance.pitch = 1; // Pitch of speech
@@ -1122,7 +1115,6 @@ const speakNoTileFocusedMessage = () => {
    }
 
    const speakImageName = (text, callback) => {
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onend = function(event) {
         console.log('Speech synthesis finished speaking');
