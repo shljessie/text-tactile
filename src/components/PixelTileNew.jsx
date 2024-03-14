@@ -62,6 +62,17 @@ export const PixelTileNew = () => {
     speakDescription('hi')
   };
 
+  useEffect(() => {
+    const serializedTiles = JSON.stringify(tiles);
+    sessionStorage.setItem('tiles', serializedTiles);
+  }, [tiles]);
+
+  useEffect(() => {
+    const serializedImages = JSON.stringify(savedImages);
+    sessionStorage.setItem('savedImages', serializedImages);
+  }, [savedImages]);
+
+
 
 
   // for adding images 
@@ -897,47 +908,13 @@ const speakNoTileFocusedMessage = () => {
     }
   };
 
-  const removeImageAtIndex = (gridIndex) => {
-
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
-
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    console.log('imageObjectIndex', imageObjectIndex);
-    // Assuming savedImages is stored in your component's state
-    let updatedSavedImages = [...savedImages];
-    
-    // Remove the image at the specified index
-    updatedSavedImages.splice(imageObjectIndex, 1);
-    
-    // Update the state with the new array of images
-    setSavedImages(updatedSavedImages);
-  };
 
   const updateImageAtIndex = (gridIndex, newImageObject) => {
-    const col = gridIndex % columns;
-    const row = Math.floor(gridIndex / columns);
-    const expectedCenterX = (col + 0.5) * 100;
-    const expectedCenterY = (row + 0.5) * 100;
 
-    const imageObjectIndex = savedImages.findIndex(img => {
-      return Math.abs(img.coordinate.x - expectedCenterX) <= 50 &&
-             Math.abs(img.coordinate.y - expectedCenterY) <= 50;
-    });
-
-    // Create a copy of the current savedImages array to avoid direct state mutation
     let updatedSavedImages = [...savedImages];
     
-    // Replace the image at the specified index with the new image object
-    updatedSavedImages[imageObjectIndex] = newImageObject;
+    updatedSavedImages[gridIndex] = newImageObject;
     
-    // Update the state with the modified array
     setSavedImages(updatedSavedImages);
   };
 
@@ -952,11 +929,6 @@ const speakNoTileFocusedMessage = () => {
     setLoading(true);
     setActiveIndex(index);
 
-    if (isRegeneration) {
-      removeImageAtIndex(index);
-      console.log('Regenerating image at index:', index);
-    }
-  
     const notes = [
       'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
       'C#4', 'D#4', 'F#4', 'G#4', 'A#4',
@@ -1140,11 +1112,6 @@ const speakNoTileFocusedMessage = () => {
  
   return (
     <div id='imageGeneration'>
-
-      <SoundPlayer />
-      <button onClick={testWebAudioAPI}>Test Web Audio API</button>
-
-
       <Dialog open={openDialog} onClose={handleClose}>
         <DialogTitle>Set Canvas Size</DialogTitle>
         <DialogContent>
@@ -1216,7 +1183,7 @@ const speakNoTileFocusedMessage = () => {
                 }}
               >
                 {loading && activeIndex === index ? (
-                  <MoonLoader size={10}/>
+                  <MoonLoader size={20}/>
                 ) : (
                   savedImages.filter(savedImage => 
                     savedImage.coordinate.x == tile.x && savedImage.coordinate.y == tile.y
