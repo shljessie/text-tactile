@@ -32,7 +32,6 @@ export const PixelTileNew = () => {
   const canvasRef = useRef(null);
 
   // Generating first image on tile
-  const firstTileRef = useRef(null);
   const [tiles, setTiles] = useState([
     { 
       id: 0, 
@@ -42,12 +41,15 @@ export const PixelTileNew = () => {
     }
   ]);
 
+  // useEffect(() => {
+  //   const message = "Welcome to Soniprompt. You are currently focused on the first tile. Press enter to create an image.";
+  //   const utterance = new SpeechSynthesisUtterance(message);
+  //   speechSynthesis.speak(utterance);
+  // }, [canvasSize]);
+
   useEffect(() => {
     const centerX = (parseInt(canvasSize['width']) / 2) - ((parseInt(canvasSize['width']) / 10) / 2);
     const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
-
-    console.log('Updated centerX', centerX);
-    console.log('Updated centerY', centerY);
 
     setTiles([
       { id: 0, image: {}, x: centerX, y: centerY }
@@ -75,7 +77,11 @@ export const PixelTileNew = () => {
 
 
 
-  // for adding images 
+  // for adding images
+  
+  
+  // for pushing
+  const [isPushing, setisPushing] = useState(false);
 
 //  ==========================
 
@@ -130,23 +136,27 @@ export const PixelTileNew = () => {
   const tileSize = parseInt(canvasSize['width']) / 10; 
 
   useEffect(() => {
+        console.log('useEffect is calling add surrounding tiles')
+        if (savedImages.length > 0) {
+          const latestImage = savedImages[savedImages.length - 1];
+          setFocusedIndex(savedImages.length - 1);
+      
+          // Find if there's an existing tile for this image
+          const existingTileIndex = focusedIndex;
 
-    if (savedImages.length > 0) {
-      const latestImage = savedImages[savedImages.length - 1];
-      setFocusedIndex(savedImages.length - 1);
-  
-      // Find if there's an existing tile for this image
-      const existingTileIndex = focusedIndex;
+          console.log('existingTileInex', existingTileIndex)
+          if (existingTileIndex == -1) {
+            return
+          } else if (isEditingLocation) {
 
-      console.log('existingTileInex', existingTileIndex)
-      if (existingTileIndex == -1) {
-        return
-      } else {
-        const centralTile = tiles[focusedIndex];
-        console.log('centralTile', centralTile);
-        addSurroundingTiles(centralTile);
-      }
-    }
+          } else if (isEditingSize) {
+
+          }else {
+            const centralTile = tiles[focusedIndex];
+            console.log('centralTile', centralTile);
+            addSurroundingTiles(centralTile);
+          }
+        }
   }, [savedImages]); // Depend on savedImages to trigger this effect
   
   
@@ -166,16 +176,12 @@ export const PixelTileNew = () => {
 
   useEffect(() => {
     const savedCanvasSize = JSON.parse(localStorage.getItem('canvasSize'));
+    tileRefs.current[0].focus();
+
     if (savedCanvasSize) {
       setCanvasSize(savedCanvasSize);
     } else {
       setOpenDialog(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (firstTileRef.current) {
-      firstTileRef.current.focus();
     }
   }, []);
 
@@ -242,7 +248,7 @@ export const PixelTileNew = () => {
       console.log('canvas Focused for location edit')
       
       if (isEditingLocation && editingImageIndex !== null) {
-        console.log('editing Imag Index', editingImageIndex)
+        console.log('editing Lcoation Index', editingImageIndex)
         console.log('Keyboard Editing here')
         console.log(`Key pressed: ${e.key}`);
         let dx = 0, dy = 0;
@@ -255,6 +261,9 @@ export const PixelTileNew = () => {
             setIsEditingLocation(false);
             setEditingImageIndex(null);
             setFocusedIndex(focusedIndex)
+            if (tileRefs.current[focusedIndex]) {
+              tileRefs.current[focusedIndex].focus();
+            }
             speakMessage("Location mode exited");
             return;
           default: 
@@ -388,6 +397,9 @@ export const PixelTileNew = () => {
         setEditingSizeImageIndex(null);
         setFocusedIndex(focusedIndex)
         speakMessage("Size Edit mode exited");
+        if (tileRefs.current[focusedIndex]) {
+          tileRefs.current[focusedIndex].focus();
+        }
         changedFrequency = 340
         return;
       default:
@@ -437,9 +449,11 @@ export const PixelTileNew = () => {
   };
 
   function addSurroundingTiles(centralTile) {
+    
     if (!centralTile) return; 
+
+    console.log('add Surrounding Tiles')
   
-    console.log('Central Tile', centralTile)
     const positions = [
       { dx: -tileSize, dy: -tileSize }, // Top-left
       { dx: 0, dy: -tileSize }, // Top
@@ -460,8 +474,6 @@ export const PixelTileNew = () => {
       // Check if a tile with the same x and y already exists
       !tiles.some(tile => tile.x === newTile.x && tile.y === newTile.y)
     );
-  
-    console.log('newTiles', newTiles);
   
     // Update state with new tiles, if any
     setTiles(tiles => [...tiles, ...newTiles]);
@@ -518,6 +530,8 @@ export const PixelTileNew = () => {
   const pushImage = (movingTile, newX, newY) => {
     console.log('movingTile', movingTile)
     console.log('movingTileX', movingTile.x)
+
+    console.log('pushImage is calling add syrroudning')
     addSurroundingTiles(movingTile);
     const findImageIndex = savedImages.findIndex(image => image.coordinate.x == movingTile.x && image.coordinate.y == movingTile.y);
     const pushImage = savedImages[findImageIndex];
@@ -546,24 +560,27 @@ export const PixelTileNew = () => {
         case 'ArrowUp':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y - tileSize;
-          console.log('moveingIndex',movingIndex)
+          console.log('movingIndex Up',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           break;
         case 'ArrowDown':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
+          console.log('movingIndex Down',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowDown behavior
           break;
         case 'ArrowLeft':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x - tileSize;
+          console.log('movingIndex Left',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowLeft behavior
           break;
         case 'ArrowRight':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX = tiles[index].x + tileSize;
+          console.log('movingIndex Right',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowRight behavior
           break;
@@ -629,7 +646,13 @@ export const PixelTileNew = () => {
   
     if(gridIndex !== -1) {
       setIsEditingLocation(true);
-      setEditingImageIndex(gridIndex);
+      console.log('gridIndex',gridIndex);
+      console.log(' tiles[gridIndex].x',  tiles[gridIndex].x);
+      const tileX = tiles[gridIndex].x;
+      const tileY= tiles[gridIndex].y
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+      console.log('imageIndex', imageIndex);
+      setEditingImageIndex(imageIndex);
       canvasRef.current.focus();
     }
   };
@@ -637,12 +660,13 @@ export const PixelTileNew = () => {
   const enterSizeEditMode = (gridIndex) => {
 
     console.log('Size Edit grid index', gridIndex);
-
-    console.log('Size Edit Index', gridIndex);
+    const tileX = tiles[gridIndex].x;
+    const tileY= tiles[gridIndex].y
 
     if(gridIndex !== -1) {
       setIsEditingSize(true);
-      setEditingSizeImageIndex(gridIndex);
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+      setEditingSizeImageIndex(imageIndex);
       canvasRef.current.focus();
     }
 };
@@ -690,6 +714,9 @@ const speakNoTileFocusedMessage = () => {
           playModeNotification("Radar Scan Activated. You will hear relative location of other objects on the canvas.", () => {
             radarScan(focusedIndex); 
           });
+          if (tileRefs.current[focusedIndex]) {
+            tileRefs.current[focusedIndex].focus();
+          }
 
           setTimeout(() => {
             setRadarActive(false);
@@ -742,6 +769,9 @@ const speakNoTileFocusedMessage = () => {
             setFocusedIndex(focusedIndex)
           });
           setFocusedIndex(focusedIndex)
+          if (tileRefs.current[focusedIndex]) {
+            tileRefs.current[focusedIndex].focus();
+          }
 
           setTimeout(() => {
             setinfoActive(false);
@@ -760,6 +790,9 @@ const speakNoTileFocusedMessage = () => {
             setFocusedIndex(focusedIndex);
             imageChat(focusedIndex);
           });
+          if (tileRefs.current[focusedIndex]) {
+            tileRefs.current[focusedIndex].focus();
+          }
 
           setTimeout(() => {
             setchatActive(false);
@@ -813,8 +846,11 @@ const speakNoTileFocusedMessage = () => {
   };
 
   const readInfo = (gridIndex) => {
+    const tileX = tiles[gridIndex].x;
+    const tileY= tiles[gridIndex].y
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
     
-    const image = savedImages[gridIndex];
+    const image = savedImages[imageIndex];
 
     console.log("Reading ...",image)
 
@@ -842,10 +878,14 @@ const speakNoTileFocusedMessage = () => {
 
   
   const imageChat = async (gridIndex) => {
-  
-    console.log('check of chat image matches',savedImages[gridIndex] )
 
-    const imageURL = savedImages[focusedIndex].url;
+    const tileX = tiles[gridIndex].x;
+    const tileY= tiles[gridIndex].y
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+  
+    console.log('check of chat image matches',savedImages[imageIndex] )
+
+    const imageURL = savedImages[imageIndex].url;
 
     console.log('imageURL',imageURL)
 
@@ -861,47 +901,51 @@ const speakNoTileFocusedMessage = () => {
     Briefly describe the primary subject or focus of the image in one sentence. ${voiceText}
   `;
 
-  const payload = {
-    "model": "gpt-4-vision-preview",
-    "messages": [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": customPrompt},
-                {"type": "image_url", "image_url": imageURL}
-            ]
+    const payload = {
+      "model": "gpt-4-vision-preview",
+      "messages": [
+          {
+              "role": "user",
+              "content": [
+                  {"type": "text", "text": customPrompt},
+                  {"type": "image_url", "image_url": imageURL}
+              ]
+          }
+      ],
+      "max_tokens": 300
+    };
+
+      
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        console.log('fetched',data);
+        
+
+        if (data.choices && data.choices.length > 0) {
+          console.log(data.choices[0].message.content );
+          const description = data.choices[0].message.content;
+          speakDescription(description);
+          setFocusedIndex(gridIndex);
+          if (tileRefs.current[focusedIndex]) {
+            tileRefs.current[focusedIndex].focus();
+          }
+          return data.choices[0].message.content;
+        } else {
+          return 'No description available';
         }
-    ],
-    "max_tokens": 300
-  };
-
-  
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    console.log('fetched',data);
-
-    if (data.choices && data.choices.length > 0) {
-      console.log(data.choices[0].message.content );
-      const description = data.choices[0].message.content;
-      speakDescription(description);
-      setFocusedIndex(gridIndex);
-      return data.choices[0].message.content;
-    } else {
-      return 'No description available';
-    }
-  } catch (error) {
-    console.error('Error fetching image description:', error);
-    return 'Error fetching description';
-  }
+      } catch (error) {
+        console.error('Error fetching image description:', error);
+        return 'Error fetching description';
+      }
 
 
   }
@@ -956,8 +1000,12 @@ const speakNoTileFocusedMessage = () => {
   const updateImageAtIndex = (gridIndex, newImageObject) => {
 
     let updatedSavedImages = [...savedImages];
+
+    const tileX = tiles[gridIndex].x;
+    const tileY= tiles[gridIndex].y
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
     
-    updatedSavedImages[gridIndex] = newImageObject;
+    updatedSavedImages[imageIndex] = newImageObject;
     
     setSavedImages(updatedSavedImages);
   };
@@ -968,6 +1016,24 @@ const speakNoTileFocusedMessage = () => {
 
     synth.triggerAttackRelease(note, "8n");
 }
+
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 440; // Frequency in Hz (A4 note)
+      gainNode.gain.value = 0.1; // Reduce the volume
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.5); // Play for 0.1 seconds
+    } catch (error) {
+      console.error('Failed to play notification sound:', error);
+    }
+  };
   
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
@@ -981,48 +1047,37 @@ const speakNoTileFocusedMessage = () => {
       'C6'
     ];
 
-    // TOODO
-
     let centerX, centerY;
-
-    // if (index == 0) {
-    //   centerX = canvasSize.width / 2;
-    //   centerY = canvasSize.height / 2;
-    // } else {
-    //   // the direction it moved in 
-    //   // calculate center coordinate of that
-    console.log('Index',index);
-    console.log(tiles[index]); 
     centerX = tiles[index].x;
     centerY = tiles[index].y;
-    console.log('centerX', centerX);
-    console.log('centerY', centerY)
-    // }
   
     console.log('Generating image...');
   
     try {
 
+      playNotificationSound();
+
       const voiceText = await startListening();
       setPromptText(voiceText);
-      console.log('voceText:' , voiceText)
-      console.log('Prompt Text:', promptText);
+      console.log('voiceText:' , voiceText)
   
       if (voiceText) {
         console.log('OpenAI', openai);
-        
         startLoadingSound(voiceText);
         
         const response = await openai.createImage({
-          prompt: `${voiceText} The background should be white. Only draw thick outlines. No color`,
+          prompt: `${voiceText} The background should be white. Only draw thick outlines. No color no need to draw details.`,
           n: 1,
         });
   
-        console.log('Response', response);
+        console.log('OpenAI Image Response', response);
   
         const lengthImages = savedImages.length;
         const noteIndex = lengthImages % notes.length;
         const note = notes[noteIndex];
+        const imageSize = tileSize * 2;
+
+        console.log('image size', imageSize)
   
         const imageObjects = response.data.data.map(img => ({
           prompt: voiceText,
@@ -1031,7 +1086,7 @@ const speakNoTileFocusedMessage = () => {
           descriptions: '',
           coordinate: { x: centerX, y: centerY },   //for matching with grid
           canvas: {x: centerX, y: centerY},  //for matching 
-          sizeParts: { width: 150, height: 150 },
+          sizeParts: { width: imageSize  , height: imageSize},
           sound: note
         }));
   
@@ -1089,16 +1144,17 @@ const speakNoTileFocusedMessage = () => {
 
    const radarScan = (gridIndex) => {
 
-    console.log('Size Edit grid index', gridIndex);
+    const tileX = tiles[gridIndex].x;
+    const tileY= tiles[gridIndex].y
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
 
-    console.log('Image',savedImages[gridIndex]);
+    console.log('Image',savedImages[imageIndex]);
 
     const centerX = savedImages[gridIndex].coordinate.x;
     const centerY = savedImages[gridIndex].coordinate.y;
 
     const otherImages = savedImages.filter((_, index) => index !== gridIndex);
 
-    // Calculate distances from the radar center for each image
     const distances = otherImages.map((image, index) => {
     const distance = Math.sqrt(Math.pow(image.canvas.x - centerX, 2) + Math.pow(image.canvas.y - centerY, 2));
         return {index, distance};
@@ -1205,6 +1261,7 @@ const speakNoTileFocusedMessage = () => {
             
             {tiles.map((tile, index) => (
               <div
+                autofocus
                 ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
                 onKeyDown={(event) => {
