@@ -550,20 +550,20 @@ export const PixelTileNew = () => {
           pushImage(tiles[movingIndex], newX, newY);
           break;
         case 'ArrowDown':
+          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
-          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY + tileSize);
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowDown behavior
           break;
         case 'ArrowLeft':
+          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x - tileSize;
-          movingIndex = tiles.findIndex(tile => tile.x == newX -tileSize && tile.y == newY);
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowLeft behavior
           break;
         case 'ArrowRight':
+          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX = tiles[index].x + tileSize;
-          movingIndex = tiles.findIndex(tile => tile.x == newX + tileSize && tile.y == newY);
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowRight behavior
           break;
