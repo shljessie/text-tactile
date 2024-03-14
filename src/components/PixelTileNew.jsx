@@ -515,6 +515,19 @@ export const PixelTileNew = () => {
     playerRef.current.start();
   };
 
+  const pushImage = (movingTile, newX, newY) => {
+    console.log('movingTile', movingTile)
+    console.log('movingTileX', movingTile.x)
+    addSurroundingTiles(movingTile);
+    const findImageIndex = savedImages.findIndex(image => image.coordinate.x == movingTile.x && image.coordinate.y == movingTile.y);
+    const pushImage = savedImages[findImageIndex];
+
+    pushImage.coordinate.x = newX;
+    pushImage.coordinate.y = newY;
+
+    console.log('pushImage', pushImage);
+  }
+
   const tileNavigation = (event, index, isRegeneration=false) => {
 
     console.log('isRegeneration' , isRegeneration);
@@ -526,6 +539,37 @@ export const PixelTileNew = () => {
     let newIndex, direction;
     let newX = tiles[index].x;
     let newY = tiles[index].y;
+    let movingIndex;
+
+    if (event.shiftKey) {
+      switch (event.key) {
+        case 'ArrowUp':
+          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          newY =  tiles[index].y - tileSize;
+          console.log('moveingIndex',movingIndex)
+          pushImage(tiles[movingIndex], newX, newY);
+          break;
+        case 'ArrowDown':
+          newY =  tiles[index].y + tileSize;
+          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY + tileSize);
+          pushImage(tiles[movingIndex], newX, newY);
+          // Implement the desired Shift+ArrowDown behavior
+          break;
+        case 'ArrowLeft':
+          newX =  tiles[index].x - tileSize;
+          movingIndex = tiles.findIndex(tile => tile.x == newX -tileSize && tile.y == newY);
+          pushImage(tiles[movingIndex], newX, newY);
+          // Implement the desired Shift+ArrowLeft behavior
+          break;
+        case 'ArrowRight':
+          newX = tiles[index].x + tileSize;
+          movingIndex = tiles.findIndex(tile => tile.x == newX + tileSize && tile.y == newY);
+          pushImage(tiles[movingIndex], newX, newY);
+          // Implement the desired Shift+ArrowRight behavior
+          break;
+        // Add cases for other keys if needed
+      }
+    }
     
     switch (event.key) {
       case 'ArrowUp':
