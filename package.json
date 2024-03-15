@@ -15,6 +15,7 @@
     "@testing-library/user-event": "^13.5.0",
     "aws-sdk": "^2.1576.0",
     "compromise": "^14.12.0",
+    "cors": "^2.8.5",
     "html2canvas": "^1.4.1",
     "js-pixel-fonts": "^1.6.0",
     "natural": "^6.10.5",

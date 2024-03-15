@@ -43,11 +43,17 @@ export const PixelTileNew = () => {
   ]);
 
   var element = document.getElementById("canvas");
+  
   const myfunc= () =>{
     console.log('good luck girlie')
     var element = document.getElementById("canvas");
     console.log(element);
-    html2canvas(element).then(function(canvas) {
+    html2canvas(element, {
+            letterRendering: 1,
+            allowTaint: true,
+            useCORS: true,
+            proxy: "http://localhost:3000/tilesnew",
+        }).then(function(canvas) {
         canvas.toBlob(function(blob) {
             console.log('image girlie', blob)
             var url = URL.createObjectURL(blob);
@@ -917,7 +923,10 @@ const speakNoTileFocusedMessage = () => {
           speakNoTileFocusedMessage();
           console.log("No tile is focused.");
         }
-      } 
+      } else if (e.shiftKey && e.key === 'G') {
+        console.log('Fetching GPT Description');
+        fetchGPTDescription();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -989,6 +998,60 @@ const speakNoTileFocusedMessage = () => {
     speech.volume = 1; // Volume
   
     window.speechSynthesis.speak(speech);
+  };
+
+  // const customPrompt = generateDescriptionPrompt(savedImages);
+
+  let [customPrompt, setcustomPrompt ] = useState('')
+
+  const generateDescriptionPrompt = (savedImages) => {
+    let descriptions = savedImages.map((img, index) => {
+      return `Image ${index + 1} named "${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
+    }).join(" ");
+
+    customPrompt =  `Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions}`;
+
+    console.log(" GIRL PROMPT: ", customPrompt)
+  };
+
+
+  const fetchGPTDescription = async () => {
+
+    generateDescriptionPrompt(savedImages)
+
+    console.log('getching descriptions with', customPrompt)
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + apiKey, // Added a space after 'Bearer'
+        },
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'user',
+              content: customPrompt,
+            },
+          ],
+        }),
+      });
+
+
+    console.log('Description Response',response)
+  
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  
+    const data = await response.json();
+    console.log('data',data)
+    console.log('gpt description globa',data.choices[0].message.content);
+    const GPTDescription =data.choices[0].message.content; 
+    const utterance = new SpeechSynthesisUtterance( GPTDescription);
+    window.speechSynthesis.speak(utterance);
+    // return data.choices[0].message.content;
   };
 
 
@@ -1377,7 +1440,7 @@ const speakNoTileFocusedMessage = () => {
             
             {tiles.map((tile, index) => (
               <div
-                autofocus
+                autoFocus
                 ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
                 onKeyDown={(event) => {
@@ -1419,10 +1482,7 @@ const speakNoTileFocusedMessage = () => {
         </div>
       
         <div className="rightContainer">
-          <button onClick={() => myfunc()}>Screenshot</button>
-              
               <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
-                  LALA
                   {savedImages.map((image, index) => (
                     <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
                     tabIndex={0}>
