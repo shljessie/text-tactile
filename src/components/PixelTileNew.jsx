@@ -833,24 +833,24 @@ export const PixelTileNew = () => {
           
 
     if (imageObject !== -1) {
-      console.log('imageObject not NEW sptial', tiles[newIndex])
-      console.log('imageObject not OLD sptial', oldImage)
+      // console.log('imageObject not NEW sptial', tiles[newIndex])
+      // console.log('imageObject not OLD sptial', oldImage)
 
       const imageMatch = savedImages.find(image => image.coordinate.x == x2 && image.coordinate.y == y2)
       console.log('imageObject not sptial NEW IMAGEMATCH X', imageMatch.canvas.x);
       console.log('imageObject not sptial NEW IMAGEMATCH Y', imageMatch.canvas.y);
       console.log('imageObject not sptial IMAGEMATCH', imageMatch)
 
-      const x1 = oldImage.canvas.x; 
-      const y1 = oldImage.canvas.y;
-      const x2 = imageMatch.canvas.x; 
-      const y2 = imageMatch.canvas.y;
+      // const x1 = oldImage.canvas.x; 
+      // const y1 = oldImage.canvas.y;
+      // const x2 = imageMatch.canvas.x; 
+      // const y2 = imageMatch.canvas.y;
 
-      let distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      // let distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 
-      console.log('DISTANCE',distance)
+      // console.log('DISTANCE',distance)
 
-      playSpatialSoundwithDistance(direction,distance);
+      // playSpatialSoundwithDistance(direction,distance);
 
       speakMessage(imageMatch.name);
       
