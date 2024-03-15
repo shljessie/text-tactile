@@ -673,6 +673,44 @@ export const PixelTileNew = () => {
     console.log('pushImage', pushImage);
   }
 
+  let oldImage;
+
+  const playSpatialSoundwithDistance = (direction, distance) => {
+
+    console.log("YEAYAYAYYA")
+    if (!playerRef.current) return;
+    
+    // Normalize or scale the distance value to your application's needs
+    // This example assumes distance is a number where larger values mean further away
+    // You might need to adjust these calculations based on your actual distance scale
+    const volumeAdjustment = -Math.min(Math.log1p(distance), 10); // Example scaling, using log to dampen the effect
+    const positionScaleFactor = 1; // Adjust based on your spatial scaling needs
+    
+    // Calculate position adjustments based on direction and scaled by distance
+    const positionX = direction === 'left' ? -10 : direction === 'right' ? 10 : 0;
+    const positionY = direction === 'up' ? 10 : direction === 'down' ? -30 : 0;
+    // Adjust position by distance (you might want to fine-tune this scaling)
+    const adjustedPositionX = positionX * positionScaleFactor * Math.sqrt(distance);
+    const adjustedPositionY = positionY * positionScaleFactor * Math.sqrt(distance);
+    // Keep Z position static or adjust as needed
+    const positionZ = -1;
+
+    const panner = new Tone.Panner3D({
+      positionX: adjustedPositionX,
+      positionY: adjustedPositionY,
+      positionZ: positionZ,
+    }).toDestination();
+    
+    playerRef.current.disconnect();
+    playerRef.current.chain(panner, Tone.Destination);
+    
+    // Adjust volume based on distance, might need to map this more carefully
+    playerRef.current.volume.value = volumeAdjustment;
+    
+    playerRef.current.start();
+};
+
+
   const tileNavigation = (event, index, isRegeneration=false) => {
 
     console.log('isRegeneration' , isRegeneration);
@@ -681,26 +719,30 @@ export const PixelTileNew = () => {
     console.log('tile X', tiles[index].x);
     console.log('tile Y', tiles[index].y);
 
-    let newIndex, direction;
+    const hasImage = savedImages.find(image => image.coordinate.x == tiles[index].x & image.coordinate.y == tiles[index].y)
+    if (hasImage) {
+      oldImage = hasImage;
+      console.log("OLD INDEX", oldImage)
+    }
+
+    // oldImage = index; 
+
+    let newIndex, direction,imageMatch;
     let newX = tiles[index].x;
     let newY = tiles[index].y;
     let movingIndex;
-
-    // const originalIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
-    const originalX = tiles[index].x;
-    const originalY = tiles[index].y;
-    console.log('original X', originalX);
-    console.log('original Y', originalY);
 
     if (event.shiftKey) {
       switch (event.key) {
         case 'ArrowUp':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y - tileSize;
+          
           console.log('movingIndex Up',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           break;
         case 'ArrowDown':
+
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
           console.log('movingIndex Down',movingIndex)
@@ -708,6 +750,8 @@ export const PixelTileNew = () => {
           // Implement the desired Shift+ArrowDown behavior
           break;
         case 'ArrowLeft':
+
+      
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x - tileSize;
           console.log('movingIndex Left',movingIndex)
@@ -715,6 +759,8 @@ export const PixelTileNew = () => {
           // Implement the desired Shift+ArrowLeft behavior
           break;
         case 'ArrowRight':
+
+      
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX = tiles[index].x + tileSize;
           console.log('movingIndex Right',movingIndex)
@@ -728,21 +774,37 @@ export const PixelTileNew = () => {
     switch (event.key) {
       case 'ArrowUp':
         newY =  tiles[index].y - tileSize;
+        imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+        if (imageMatch) {
+          speakMessage(imageMatch.name);
+        }
         console.log('newY', newY)
         direction = 'up';
         break;
       case 'ArrowDown':
         newY =  tiles[index].y + tileSize;
+        imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+        if (imageMatch) {
+          speakMessage(imageMatch.name);
+        }
         console.log('newY', newY)
         direction = 'down';
         break;
       case 'ArrowLeft':
         newX =  tiles[index].x - tileSize;
+        imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+        if (imageMatch) {
+          speakMessage(imageMatch.name);
+        }
         console.log('newX', newX)
         direction = 'left';
         break;
       case 'ArrowRight':
         newX =  tiles[index].x + tileSize;
+        imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+        if (imageMatch) {
+          speakMessage(imageMatch.name);
+        }
         console.log('newX', newX)
         direction = 'right';
         break;
@@ -756,13 +818,6 @@ export const PixelTileNew = () => {
 
     newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
     console.log('newTile', newIndex);
-
-    const x2 = tiles[newIndex].x;
-    const y2 = tiles[newIndex].y;
-
-
-    let distance = Math.sqrt(Math.pow(x2 - originalX, 2) + Math.pow(y2 - originalY, 2));
-    console.log('DISTANCE', distance)
 
 
     if (newIndex !== -1 && tileRefs.current[newIndex]) {
@@ -778,21 +833,31 @@ export const PixelTileNew = () => {
           
 
     if (imageObject !== -1) {
-
-      // const imageName = savedImages[imageObject].name;
-      // speakMessage(imageName);
-      // const imageObjectTwo = savedImages.findIndex(image => image.coordinate.x == newX && image.coordinate.y == newY);
-
-      // console.log('imageObjectCreated ', savedImages[imageObjectTwo]);
-      console.log('imageObject not sptial', tiles[newIndex])
+      console.log('imageObject not NEW sptial', tiles[newIndex])
+      console.log('imageObject not OLD sptial', oldImage)
 
       const imageMatch = savedImages.find(image => image.coordinate.x == x2 && image.coordinate.y == y2)
+      console.log('imageObject not sptial NEW IMAGEMATCH X', imageMatch.canvas.x);
+      console.log('imageObject not sptial NEW IMAGEMATCH Y', imageMatch.canvas.y);
       console.log('imageObject not sptial IMAGEMATCH', imageMatch)
+
+      const x1 = oldImage.canvas.x; 
+      const y1 = oldImage.canvas.y;
+      const x2 = imageMatch.canvas.x; 
+      const y2 = imageMatch.canvas.y;
+
+      let distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+      console.log('DISTANCE',distance)
+
+      playSpatialSoundwithDistance(direction,distance);
+
       speakMessage(imageMatch.name);
       
       const sound = savedImages[imageObject].sound;
       const synth = new Tone.Synth().toDestination();
       synth.triggerAttackRelease(sound, '8n');
+      
     }else{
       console.log('playing Spatial sound', direction);
 
