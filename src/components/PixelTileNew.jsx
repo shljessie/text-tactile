@@ -327,6 +327,12 @@ export const PixelTileNew = () => {
               console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
               console.log('savedImages Data', savedImages);
 
+              originalPositionsRef.current[editingImageIndex] = {
+                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
+                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+              };
+              
+              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
             // Movement to the right of an image
             if (editedX > otherX && originalPosition.x <= otherX) {
@@ -335,6 +341,13 @@ export const PixelTileNew = () => {
               savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x + tileSize;
               console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
               console.log('savedImages Data', savedImages);
+              // Now update originalPositionsRef to reflect this new position
+              originalPositionsRef.current[editingImageIndex] = {
+                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
+                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+              };
+              
+              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
             // Movement above an image
             if (editedY < otherY && originalPosition.y >= otherY) {
@@ -344,6 +357,13 @@ export const PixelTileNew = () => {
               savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y - tileSize;
               console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
               console.log('savedImages Data', savedImages);
+
+              originalPositionsRef.current[editingImageIndex] = {
+                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
+                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+              };
+              
+              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
             // Movement below an image
             if (editedY > otherY && originalPosition.y <= otherY) {
@@ -353,6 +373,13 @@ export const PixelTileNew = () => {
               savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y + tileSize
               console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
               console.log('savedImages Data', savedImages);
+
+              originalPositionsRef.current[editingImageIndex] = {
+                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
+                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+              };
+              
+              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
           }
         }
