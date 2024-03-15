@@ -434,6 +434,22 @@ export const PixelTileNew = () => {
 
   // For Loading and Image Gneration feedback
   let isGeneratingImage = false; 
+
+  let isPlayingSound = false;
+  const synth = new Tone.Synth().toDestination();
+  const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
+  let currentNote = 0;
+
+  const playNotes = () => {
+    if (!isGeneratingImage) return;
+
+    // Play the current note and schedule the next note
+    synth.triggerAttackRelease(notes[currentNote], '8n');
+    currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
+
+    // Call playNotes again after a short delay
+    setTimeout(playNotes, 2000); 
+  };
   
   const startLoadingSound = async (voiceText) => {
     try {
@@ -441,33 +457,26 @@ export const PixelTileNew = () => {
       console.log('Tone started');
       isGeneratingImage = true;
   
-      const speak = () => {
-        if (!isGeneratingImage) return;
+      try {
+        const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}.`);
+        console.log('Tone utterance', utterance);
+        utterance.pitch = 1;
+        utterance.rate = 1;
+        utterance.volume = 1;
   
-        try {
-          const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}.`);
-          console.log('Tone utterance', utterance);
-          utterance.pitch = 1;
-          utterance.rate = 1;
-          utterance.volume = 1;
-  
-          utterance.onend = () => {
-            setTimeout(() => {
-              speak();
-            }, 2000);
-          };
-  
-          window.speechSynthesis.speak(utterance);
-        } catch (innerError) {
-          console.error('Error speaking the utterance:', innerError);
-        }
-      };
-  
-      speak();
+        utterance.onend = () => {
+          playNotes();
+        };
+        window.speechSynthesis.speak(utterance);
+      } catch (innerError) {
+        console.error('Error speaking the utterance:', innerError);
+      }
     } catch (error) {
       console.error('Error starting Tone.js:', error);
     }
   };
+  
+ 
   
 
 
@@ -1245,7 +1254,7 @@ const speakNoTileFocusedMessage = () => {
         startLoadingSound(voiceText);
         
         const response = await openai.createImage({
-          prompt: `${voiceText} The background should be white. Only draw thick outlines. No color no need to draw details.`,
+          prompt: `You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design. `,
           n: 1,
         });
   
