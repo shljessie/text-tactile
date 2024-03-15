@@ -241,7 +241,8 @@ export const PixelTileNew = () => {
     };
   }, [isDragging, draggedImageIndex]);
 
-
+  const [saveCompleted, setSaveCompleted] = useState(false);
+  const originalPositionsRef = useRef({});
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -271,12 +272,22 @@ export const PixelTileNew = () => {
             return;
         }
 
+        if (!originalPositionsRef.current[editingImageIndex]) {
+          originalPositionsRef.current[editingImageIndex] = {
+            x: savedImages[editingImageIndex].canvas.x,
+            y: savedImages[editingImageIndex].canvas.y,
+          };
+          console.log('original positions ref', originalPositionsRef)
+        }
+
         setSavedImages((prevImages) => prevImages.map((img, index) => {
           if (index === editingImageIndex) {
             return { ...img, canvas: { x: img.canvas.x + dx, y: img.canvas.y + dy } };
           }
           return img;
         }));
+
+        setSaveCompleted(true);
       }
     };
 
@@ -288,6 +299,69 @@ export const PixelTileNew = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isEditingLocation]);
+
+  // Image location change is finished and image is updated
+  useEffect(() => {
+    if (saveCompleted) {
+      console.log('==================================================');
+      console.log('Location Edit Image has been successfully updated.');
+      console.log('Saved Images', savedImages);
+  
+      const editedImage = savedImages[editingImageIndex];
+      const editedX = editedImage.canvas.x;
+      const editedY = editedImage.canvas.y;
+      const originalPosition = originalPositionsRef.current[editingImageIndex];
+  
+      savedImages.forEach((otherImage, index) => {
+        if (index !== editingImageIndex) { // Skip the edited image itself
+          const otherX = otherImage.canvas.x;
+          const otherY = otherImage.canvas.y;
+  
+          // Detect movement direction relative to each other image
+          if (originalPosition) {
+            // Movement to the left of an image
+            if (editedX < otherX && originalPosition.x >= otherX) {
+              console.log(`Image ${editingImageIndex} moved to the left of image ${index}.`);
+              console.log('savedImages before grid edit', savedImages[editingImageIndex].coordinate.x);
+              savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x - tileSize;
+              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
+              console.log('savedImages Data', savedImages);
+
+            }
+            // Movement to the right of an image
+            if (editedX > otherX && originalPosition.x <= otherX) {
+              console.log(`Image ${editingImageIndex} moved to the right of image ${index}.`);
+              console.log('savedImages before grid edit', savedImages[editingImageIndex].coordinate.x);
+              savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x + tileSize;
+              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
+              console.log('savedImages Data', savedImages);
+            }
+            // Movement above an image
+            if (editedY < otherY && originalPosition.y >= otherY) {
+              console.log(`----------------------------------`);
+              console.log(`Image ${editingImageIndex} moved above image ${index}.`);
+              console.log('savedImages before grid edit',savedImages[editingImageIndex].coordinate.y);
+              savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y - tileSize;
+              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
+              console.log('savedImages Data', savedImages);
+            }
+            // Movement below an image
+            if (editedY > otherY && originalPosition.y <= otherY) {
+              console.log(`----------------------------------`);
+              console.log(`Image ${editingImageIndex} moved below image ${index}.`);
+              console.log('savedImages before grid edit',savedImages[editingImageIndex].coordinate.y);
+              savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y + tileSize
+              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
+              console.log('savedImages Data', savedImages);
+            }
+          }
+        }
+      });
+  
+      setSaveCompleted(false);
+    }
+  }, [saveCompleted, savedImages, editingImageIndex]);
+  
 
   useEffect(() => {
     const attachSizeEditKeyListener = () => {
