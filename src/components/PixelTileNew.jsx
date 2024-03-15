@@ -19,6 +19,7 @@ import RadarIcon from '@mui/icons-material/Radar';
 import SoundPlayer from '../components/SoundPlayer';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
+import html2canvas from 'html2canvas';
 
 export const PixelTileNew = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
@@ -41,12 +42,26 @@ export const PixelTileNew = () => {
     }
   ]);
 
-  // useEffect(() => {
-  //   const message = "Welcome to Soniprompt. You are currently focused on the first tile. Press enter to create an image.";
-  //   const utterance = new SpeechSynthesisUtterance(message);
-  //   speechSynthesis.speak(utterance);
-  // }, [canvasSize]);
+  var element = document.getElementById("canvas");
+  const myfunc= () =>{
+    console.log('good luck girlie')
+    var element = document.getElementById("canvas");
+    console.log(element);
+    html2canvas(element).then(function(canvas) {
+        canvas.toBlob(function(blob) {
+            console.log('image girlie', blob)
+            var url = URL.createObjectURL(blob);
+            console.log('url',url)
+            var img = document.createElement('img');
+            img.src = url;
 
+            // Append the img element to the document to display the image
+            document.body.appendChild(img);
+            window.saveAs(blob, "Heres the Girl.png");
+        });
+    });
+  }
+  
   useEffect(() => {
     const centerX = (parseInt(canvasSize['width']) / 2) - ((parseInt(canvasSize['width']) / 10) / 2);
     const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
@@ -1404,7 +1419,10 @@ const speakNoTileFocusedMessage = () => {
         </div>
       
         <div className="rightContainer">
+          <button onClick={() => myfunc()}>Screenshot</button>
+              
               <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
+                  LALA
                   {savedImages.map((image, index) => (
                     <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
                     tabIndex={0}>
