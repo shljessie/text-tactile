@@ -448,7 +448,7 @@ export const PixelTileNew = () => {
     currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
 
     // Call playNotes again after a short delay
-    setTimeout(playNotes, 2000); 
+    setTimeout(playNotes, 1000); 
   };
   
   const startLoadingSound = async (voiceText) => {
@@ -686,6 +686,12 @@ export const PixelTileNew = () => {
     let newY = tiles[index].y;
     let movingIndex;
 
+    // const originalIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+    const originalX = tiles[index].x;
+    const originalY = tiles[index].y;
+    console.log('original X', originalX);
+    console.log('original Y', originalY);
+
     if (event.shiftKey) {
       switch (event.key) {
         case 'ArrowUp':
@@ -751,6 +757,14 @@ export const PixelTileNew = () => {
     newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
     console.log('newTile', newIndex);
 
+    const x2 = tiles[newIndex].x;
+    const y2 = tiles[newIndex].y;
+
+
+    let distance = Math.sqrt(Math.pow(x2 - originalX, 2) + Math.pow(y2 - originalY, 2));
+    console.log('DISTANCE', distance)
+
+
     if (newIndex !== -1 && tileRefs.current[newIndex]) {
       tileRefs.current[newIndex].focus();
     }
@@ -764,10 +778,24 @@ export const PixelTileNew = () => {
           
 
     if (imageObject !== -1) {
+
+      // const imageName = savedImages[imageObject].name;
+      // speakMessage(imageName);
+      // const imageObjectTwo = savedImages.findIndex(image => image.coordinate.x == newX && image.coordinate.y == newY);
+
+      // console.log('imageObjectCreated ', savedImages[imageObjectTwo]);
+      console.log('imageObject not sptial', tiles[newIndex])
+
+      const imageMatch = savedImages.find(image => image.coordinate.x == x2 && image.coordinate.y == y2)
+      console.log('imageObject not sptial IMAGEMATCH', imageMatch)
+      speakMessage(imageMatch.name);
+      
       const sound = savedImages[imageObject].sound;
       const synth = new Tone.Synth().toDestination();
       synth.triggerAttackRelease(sound, '8n');
     }else{
+      console.log('playing Spatial sound', direction);
+
       playSpatialSound(direction);
     }
 
