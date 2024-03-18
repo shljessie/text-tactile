@@ -727,10 +727,12 @@ export const PixelTileNew = () => {
 
     // oldImage = index; 
 
-    let newIndex, direction,imageMatch;
+    let newIndex, direction,imageMatch, distance;
     let newX = tiles[index].x;
     let newY = tiles[index].y;
     let movingIndex;
+
+    let x1,x2,y1,y2;
 
     if (event.shiftKey) {
       switch (event.key) {
@@ -773,36 +775,76 @@ export const PixelTileNew = () => {
     
     switch (event.key) {
       case 'ArrowUp':
+        x1 =  tiles[index].x;
+        y1 =  tiles[index].y;
+        console.log('x1',x1)
+        console.log('y1',y1)
         newY =  tiles[index].y - tileSize;
         imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
         if (imageMatch) {
+          x2 = imageMatch.canvas.x;
+          y2 = imageMatch.canvas.y;
+          console.log('x2',x2)
+          console.log('y2',y2)
+          distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          console.log('distance btw two images', distance)
           speakMessage(imageMatch.name);
         }
         console.log('newY', newY)
         direction = 'up';
         break;
       case 'ArrowDown':
+        x1 =  tiles[index].x;
+        y1 =  tiles[index].y;
+        console.log('x1',x1)
+        console.log('y1',y1)
         newY =  tiles[index].y + tileSize;
         imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
         if (imageMatch) {
+          x2 = imageMatch.canvas.x;
+          y2 = imageMatch.canvas.y;
+          console.log('x2',x2)
+          console.log('y2',y2)
+          distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          console.log('distance btw two images', distance)
           speakMessage(imageMatch.name);
         }
         console.log('newY', newY)
         direction = 'down';
         break;
       case 'ArrowLeft':
+        x1 =  tiles[index].x;
+        y1 =  tiles[index].y;
+        console.log('x1',x1)
+        console.log('y1',y1)
         newX =  tiles[index].x - tileSize;
         imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
         if (imageMatch) {
+          x2 = imageMatch.canvas.x;
+          y2 = imageMatch.canvas.y;
+          console.log('x2',x2)
+          console.log('y2',y2)
+          distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          console.log('distance btw two images', distance)
           speakMessage(imageMatch.name);
         }
         console.log('newX', newX)
         direction = 'left';
         break;
       case 'ArrowRight':
+        x1 =  tiles[index].x;
+        y1 =  tiles[index].y;
+        console.log('x1',x1)
+        console.log('y1',y1)
         newX =  tiles[index].x + tileSize;
         imageMatch = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
         if (imageMatch) {
+          x2 = imageMatch.canvas.x;
+          y2 = imageMatch.canvas.y;
+          console.log('x2',x2)
+          console.log('y2',y2)
+          distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          console.log('distance btw two images', distance)
           speakMessage(imageMatch.name);
         }
         console.log('newX', newX)
