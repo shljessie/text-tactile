@@ -1,6 +1,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap');
 
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
+  grid-gap: 10px; /* Space between grid items */
+  width: 100%;
+  max-width: 300px; /* Adjust based on your needs */
+}
+
+.grid-item {
+  background-color: #f0f0f0; /* Light grey background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* Adjust based on your needs */
+  border: 1px solid black;
+}
+
+
 
 #mainHeader {
   font-weight: 100;

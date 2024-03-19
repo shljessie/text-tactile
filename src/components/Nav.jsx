@@ -23,8 +23,8 @@ const Nav = () => {
        <h3 id="mainHeader" style={{fontSize: '1.5rem',  marginTop: '1rem',   marginLeft: '1rem'}}> <b> </b> SONI PROMPT </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {['/instructions', '/table', '/tiles', '/tilesnew'].map((path, index) => {
-          const labels = [ "Instructions", "PixelTable Editor", "PixelTile Editor", "PixelTile Editor New"];
+        {[ '/lab'].map((path, index) => {
+          const labels = [ "InteractionLab Home"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 

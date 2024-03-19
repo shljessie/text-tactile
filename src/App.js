@@ -5,6 +5,11 @@ import Canvas from './components/CanvasEditor';
 import CanvasDemo from './components/DemoEditor';
 import { ImageGenerator } from "./components/ImageGenerator";
 import Instructions from "./components/Instructions";
+import { InteractionLab } from './components/InteractionLab';
+import { InteractionLabFive } from './components/InteractionLabFive';
+import { InteractionLabFour } from './components/InteractionLabFour';
+import { InteractionLabThree } from './components/InteractionLabThree';
+import { InteractionLabTwo } from './components/InteractionLabTwo';
 import Nav from './components/Nav';
 import { Navigate } from "react-router-dom";
 import { PixelTable } from './components/PixelTable';
@@ -23,6 +28,11 @@ function App() {
         <Route path="/table" element={<PixelTable />} />
         <Route path="/tiles" element={<PixelTile />} />
         <Route path="/tilesnew" element={<PixelTileNew />} />
+        <Route path="/lab" element={<InteractionLab />} />
+        <Route path="/lab2" element={<InteractionLabTwo />} />
+        <Route path="/lab3" element={<InteractionLabThree />} />
+        <Route path="/lab4" element={<InteractionLabFour />} />
+        <Route path="/lab5" element={<InteractionLabFive />} />
       </Routes>
      </SelectedAssetsProvider>
     </Router>

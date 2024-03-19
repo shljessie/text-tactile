@@ -6,9 +6,14 @@ export const useSelectedAssets = () => useContext(SelectedAssetContext);
 
 export const SelectedAssetsProvider = ({ children }) => {
   const [selectedAssets, setSelectedAssets] = useState([]);
+  const [currentPage, setCurrentPage] = useState('/'); 
+
+  const navigateTo = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   return (
-    <SelectedAssetContext.Provider value={{ selectedAssets, setSelectedAssets }}>
+    <SelectedAssetContext.Provider value={{ selectedAssets, setSelectedAssets, currentPage, navigateTo }}>
       {children}
     </SelectedAssetContext.Provider>
   );

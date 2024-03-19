@@ -15,10 +15,7 @@
     "@testing-library/user-event": "^13.5.0",
     "aws-sdk": "^2.1576.0",
     "compromise": "^14.12.0",
-    "cors": "^2.8.5",
-    "html2canvas": "^1.4.1",
     "js-pixel-fonts": "^1.6.0",
-    "natural": "^6.10.5",
     "openai": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -27,15 +24,9 @@
     "react-scripts": "5.0.1",
     "react-speech-recognition": "^3.10.0",
     "react-spinners": "^0.13.7",
-    "spacy": "^0.0.4",
     "tone": "^14.7.77",
     "use-react-screenshot": "^4.0.0",
-    "web-vitals": "^2.1.4",
-    "wink-eng-lite-web-model": "^1.5.2",
-    "wink-ner": "^2.1.0",
-    "wink-nlp": "^1.14.3",
-    "wink-nlp-utils": "^2.1.0",
-    "wink-pos-tagger": "^2.2.2"
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
