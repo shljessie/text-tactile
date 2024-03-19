@@ -79,19 +79,32 @@ export const InteractionLab = () => {
 
     addSurroundingTiles(tiles[0])
 
-    const url = "assets/sounds/bloop.mp3";
-    const urltwo = "assets/sounds/bump.mp3";
+// Define the URLs
+const url = "https://texttactile.s3.amazonaws.com/bloop.mp3";
+const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
 
-    const player = new Tone.Player().toDestination();
-    player.load(url).then(() => {
-        playerRef.current = player;
-    });
+// Create the player for the first sound
+const player = new Tone.Player().toDestination();
 
-    const playerTwo = new Tone.Player().toDestination();
-    playerTwo.load(urltwo).then(() => {
-        thumpRef.current = playerTwo;
-    });
-    
+// Load the audio file and handle success and potential errors
+player.load(url).then(() => {
+    playerRef.current = player;
+    console.log('Audio 1 loaded');
+}).catch(error => {
+    console.error('Error loading audio 1:', error);
+});
+
+// Create the player for the second sound
+const playerTwo = new Tone.Player().toDestination();
+
+// Load the audio file and handle success and potential errors
+playerTwo.load(urlTwo).then(() => {
+    thumpRef.current = playerTwo;
+    console.log('Audio 2 loaded');
+}).catch(error => {
+    console.error('Error loading audio 2:', error);
+});
+
     
   }, []); 
 
