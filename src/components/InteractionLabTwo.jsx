@@ -276,7 +276,7 @@ export const InteractionLabTwo = () => {
       return `Image ${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
     }).join(" ");
 
-    customPrompt =  `Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions} The canvas is 300 x 300 pixels`;
+    customPrompt =  `The canvas is 300 x 300 pixels. Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions}. The canvas is 300 x 300 pixels`;
 
     console.log(" GIRL PROMPT: ", customPrompt)
   };
