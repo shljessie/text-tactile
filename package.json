@@ -27,7 +27,8 @@
     "tone": "^14.7.77",
     "use-react-screenshot": "^4.0.0",
     "web-vitals": "^2.1.4",
-    "wink-ner": "^2.1.0"
+    "wink-ner": "^2.1.0",
+    "wink-pos-tagger": "^2.2.2"
   },
   "scripts": {
     "start": "react-scripts start",
