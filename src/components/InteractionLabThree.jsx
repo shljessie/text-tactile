@@ -86,8 +86,8 @@ export const InteractionLabThree = () => {
 
     addSurroundingTiles(tiles[0])
 
-    const url = "assets/sounds/bloop.mp3";
-    const urltwo = "assets/sounds/bump.mp3";
+    const url = "https://texttactile.s3.amazonaws.com/bloop.mp3";
+    const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
 
     const player = new Tone.Player().toDestination();
     player.load(url).then(() => {
@@ -95,7 +95,7 @@ export const InteractionLabThree = () => {
     });
 
     const playerTwo = new Tone.Player().toDestination();
-    playerTwo.load(urltwo).then(() => {
+    playerTwo.load(urlTwo).then(() => {
         thumpRef.current = playerTwo;
     });
     
@@ -131,7 +131,6 @@ export const InteractionLabThree = () => {
           console.log('Focused Index', focusedIndex);
           setlocationEditActive(true); 
           playModeNotification("Location Edit Activated. Press the arrow keys to edit the location of the object.");
-          // readLocationEdit(focusedIndex);
           enterLocationEditMode(focusedIndex);
 
           setTimeout(() => {
@@ -217,6 +216,8 @@ export const InteractionLabThree = () => {
       if (isEditingLocation &&
           editingImageIndex !== null) {
 
+            const editingImage = savedImages[editingImageIndex];
+            
         if (0 > savedImages[editingImageIndex].canvas.x  ||  
           savedImages[editingImageIndex].canvas.x > 300 || 
           0 > savedImages[editingImageIndex].canvas.y  || 
@@ -224,6 +225,26 @@ export const InteractionLabThree = () => {
             speakMessage('Canvas Edge')
             playSpatialThump('top')
           }
+
+          const otherImages = savedImages.filter(image => 
+            image.coordinate.x !== tiles[focusedIndex].x || image.coordinate.y !== tiles[focusedIndex].y
+          );
+          console.log('Other Images', otherImages);
+        // play bump sound if the current  savedImages[editingImageIndex].canvas.x  and otherImage otherImage.canvas.x  and y are overlapping
+        
+        const hasOverlap = otherImages.some(otherImage => 
+          editingImage.canvas.x === otherImage.canvas.x && editingImage.canvas.y === otherImage.canvas.y
+      );
+
+      console.log('HASOVERLAP', hasOverlap)
+
+        if (hasOverlap) {
+          // Play a bump sound if there is an overlap
+          console.log('Overlap detected, playing bump sound');
+          // Replace this console.log with the actual function call to play the bump sound
+          // For example: playBumpSound();
+      }
+
 
         console.log('editing Lcoation Index', editingImageIndex)
         console.log('Keyboard Editing here')

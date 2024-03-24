@@ -89,8 +89,8 @@ export const InteractionLabFour = () => {
 
     addSurroundingTiles(tiles[0])
 
-    const url = "assets/sounds/bloop.mp3";
-    const urltwo = "assets/sounds/bump.mp3";
+    const url = "https://texttactile.s3.amazonaws.com/bloop.mp3";
+    const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
 
     const player = new Tone.Player().toDestination();
     player.load(url).then(() => {
@@ -98,7 +98,7 @@ export const InteractionLabFour = () => {
     });
 
     const playerTwo = new Tone.Player().toDestination();
-    playerTwo.load(urltwo).then(() => {
+    playerTwo.load(urlTwo).then(() => {
         thumpRef.current = playerTwo;
     });
     
