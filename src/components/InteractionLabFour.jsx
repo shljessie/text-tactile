@@ -227,19 +227,35 @@ export const InteractionLabFour = () => {
   //   speakMessage(`The size of the image is now ${savedImages[editingSizeImageIndex].sizeParts.width}`)
   // }
 
-  const updateSize = (editingSizeImageIndex, scaleFactor) =>{
+  const MIN_SIZE = 50; // Minimum size of the image
+  const MAX_SIZE = 200; // Maximum size of the image
+
+
+  const canScale = (currentSize, scaleFactor) => {
+    // Calculate the potential new size based on the current size and scale factor
+    const newSize = Math.round(currentSize * scaleFactor);
+    // Return true if the new size is within bounds, otherwise false
+    return newSize >= MIN_SIZE && newSize <= MAX_SIZE;
+  };
+  
+  const updateSize = (editingSizeImageIndex, scaleFactor) => {
     console.log('update size index', editingSizeImageIndex)
     const img = savedImages[editingSizeImageIndex];
     const originalWidth = img.sizeParts.width;
     const originalHeight = img.sizeParts.height;
-
-    const newWidth = Math.round(originalWidth * scaleFactor);
-    const newHeight = Math.round(originalHeight * scaleFactor);
+  
+    let newWidth = Math.round(originalWidth * scaleFactor);
+    let newHeight = Math.round(originalHeight * scaleFactor);
+  
+    newWidth = Math.max(MIN_SIZE, Math.min(newWidth, MAX_SIZE));
+    newHeight = Math.max(MIN_SIZE, Math.min(newHeight, MAX_SIZE));
+  
     img.sizeParts.width = newWidth;
     img.sizeParts.height = newHeight;
-
   }
   
+  let firstSizeChange = true; 
+  let firstSizeDownChange = true; 
 
   const handleKeyDownForSizeEdit = (e) => {
     if (!isEditingSize || editingSizeImageIndex === null) {
@@ -248,44 +264,63 @@ export const InteractionLabFour = () => {
   
     e.preventDefault();
     e.stopPropagation();
-
+  
     let scaleFactor = 1;
+    const img = savedImages[editingSizeImageIndex];
+    const canIncreaseSize = canScale(img.sizeParts.width, 1.1); // Check if can scale up
+    const canDecreaseSize = canScale(img.sizeParts.width, 0.9); // Check if can scale down
 
+    console.log('canInrease',canIncreaseSize);
+    console.log('can decrease', canDecreaseSize);
+  
     switch (e.key) {
       case 'ArrowUp':
-        scaleFactor = 1.1;
-        changedFrequency = changedFrequency - 30
-        speakMessage('Size up 10 percent')
-        updateSize(editingSizeImageIndex, scaleFactor)
+        if (canIncreaseSize) {
+          scaleFactor = 1.1;
+          if (firstSizeChange) {
+            speakMessage('Size up 10 percent');
+            firstSizeChange = false; // Set the flag to false after the first message
+          }
+          changedFrequency = changedFrequency - 30;
+          updateSize(editingSizeImageIndex, scaleFactor);
+        } else {
+          speakMessage('Maximum size reached.');
+        }
         break;
       case 'ArrowDown':
-        scaleFactor = 0.9;
-        speakMessage('Size down 10 percent')
-        changedFrequency = changedFrequency + 30
-        updateSize(editingSizeImageIndex, scaleFactor)
+        if (canDecreaseSize) {
+          scaleFactor = 0.9;
+          if (firstSizeDownChange) {
+            speakMessage('Size down 10 percent');
+            firstSizeDownChange = false; // Set the flag to false after the first message
+          }
+          changedFrequency = changedFrequency + 30;
+          updateSize(editingSizeImageIndex, scaleFactor);
+        } else {
+          speakMessage('Minimum size reached.');
+        }
         break;
       case 'Escape':
         setIsEditingSize(false);
         setEditingSizeImageIndex(null);
-        setFocusedIndex(focusedIndex)
+        setFocusedIndex(focusedIndex);
         speakMessage("Size Edit mode exited");
         speakMessage(`The size of the image is now ${savedImages[editingSizeImageIndex].sizeParts.width}`);
-        
+  
         if (tileRefs.current[focusedIndex]) {
           tileRefs.current[focusedIndex].focus();
         }
-        changedFrequency = 340
+        changedFrequency = 340;
         return;
       default:
         speakMessage("You are still on Size Edit mode. Press ESC to exit the size edit mode first.");
         return;
     }
-
-    console.log(changedFrequency);
-    playTone(changedFrequency);
   
-    // Adjust size with aspect ratio maintenance
-    setSavedImages((prevImages) => prevImages.map((img, index) => {
+    playTone(changedFrequency);
+
+     // Adjust size with aspect ratio maintenance
+     setSavedImages((prevImages) => prevImages.map((img, index) => {
       
       if (index === editingSizeImageIndex) {
         const originalWidth = img.sizeParts.width;
@@ -306,7 +341,6 @@ export const InteractionLabFour = () => {
       return img;
     }));
   };
-  
 
 
   const speakNoTileFocusedMessage = () => {
