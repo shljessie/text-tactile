@@ -255,10 +255,12 @@ export const InteractionLabFour = () => {
       case 'ArrowUp':
         scaleFactor = 1.1;
         changedFrequency = changedFrequency - 30
+        speakMessage('Size up 10 percent')
         updateSize(editingSizeImageIndex, scaleFactor)
         break;
       case 'ArrowDown':
         scaleFactor = 0.9;
+        speakMessage('Size down 10 percent')
         changedFrequency = changedFrequency + 30
         updateSize(editingSizeImageIndex, scaleFactor)
         break;

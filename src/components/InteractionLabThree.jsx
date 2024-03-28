@@ -127,10 +127,10 @@ export const InteractionLabThree = () => {
 
       if (e.shiftKey && e.key === 'L') {
         if (focusedIndex !== null) {
-          console.log('Location Edit Activated');
+          console.log('Location Edit Activated.');
           console.log('Focused Index', focusedIndex);
           setlocationEditActive(true); 
-          playModeNotification("Location Edit Activated. Press the arrow keys to edit the location of the object.");
+          playModeNotification("Location Edit Activated. Press the arrow keys to edit the location of the object. The canvas is 300 pixels both in width and height");
           enterLocationEditMode(focusedIndex);
 
           setTimeout(() => {
@@ -254,12 +254,13 @@ export const InteractionLabThree = () => {
           case 'ArrowLeft': 
             dx = -10; 
             playSpatialSound('left'); 
+            speakMessage('left 10');
             updateImagePosition(editingImageIndex, dx, dy);
             
             break;
-          case 'ArrowRight': dx = 10; playSpatialSound('right'); updateImagePosition(editingImageIndex, dx, dy); break;
-          case 'ArrowUp': dy = -10; playSpatialSound('up');  updateImagePosition(editingImageIndex, dx, dy); break;
-          case 'ArrowDown': dy = 10;playSpatialSound('down');   updateImagePosition(editingImageIndex, dx, dy);break;
+          case 'ArrowRight': dx = 10; playSpatialSound('right'); speakMessage('right 10'); updateImagePosition(editingImageIndex, dx, dy); break;
+          case 'ArrowUp': dy = -10; playSpatialSound('up'); speakMessage('up 10'); updateImagePosition(editingImageIndex, dx, dy); break;
+          case 'ArrowDown': dy = 10;playSpatialSound('down'); speakMessage('down 10');  updateImagePosition(editingImageIndex, dx, dy);break;
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
