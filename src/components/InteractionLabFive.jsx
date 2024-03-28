@@ -511,11 +511,7 @@ const playRadarSound = (note, x ,y ) =>{
 
 
       <div style={{display:'flex', flexDirection:'row'}}>
-        <button style={{padding: '1rem'}} aria-label="Go to Tile Navigation" onClick={goToLab1}> Tile Navigation</button>
-        <button style={{padding: '1rem'}} aria-label="Go to Global Information" onClick={goToLab2}> Global Information</button>
-        <button style={{padding: '1rem'}} aria-label="Go to Location Edit" onClick={goToLab3}> Location Edit</button>
-        <button style={{padding: '1rem'}} aria-label="Go to Size Edit" onClick={goToLab4}> Size Edit</button>
-        <button style={{padding: '1rem'}} aria-label="Go to Radar Scan" onClick={goToLab5}> Radar Scan</button>
+
       </div>
     
     </div>

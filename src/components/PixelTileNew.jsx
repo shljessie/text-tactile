@@ -196,7 +196,7 @@ export const PixelTileNew = () => {
   }, []);
 
   useEffect(() => {
-    const savedCanvasSize = JSON.parse(localStorage.getItem('canvasSize'));
+    const savedCanvasSize = JSON.parse(sessionStorage.getItem('canvasSize'));
     tileRefs.current[0].focus();
 
     if (savedCanvasSize) {
