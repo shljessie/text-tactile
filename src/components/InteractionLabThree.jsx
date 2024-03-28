@@ -232,16 +232,22 @@ export const InteractionLabThree = () => {
           console.log('Other Images', otherImages);
         // play bump sound if the current  savedImages[editingImageIndex].canvas.x  and otherImage otherImage.canvas.x  and y are overlapping
         
-        const hasOverlap = otherImages.some(otherImage => 
-          editingImage.canvas.x === otherImage.canvas.x && editingImage.canvas.y === otherImage.canvas.y
-      );
-
+        const hasOverlap = otherImages.some(otherImage => {
+          const editingImageRight = editingImage.canvas.x + editingImage.sizeParts.width;
+          const editingImageBottom = editingImage.canvas.y + editingImage.sizeParts.height;
+          const otherImageRight = otherImage.canvas.x + otherImage.sizeParts.width;
+          const otherImageBottom = otherImage.canvas.y + otherImage.sizeParts.height;
+  
+          return editingImage.canvas.x < otherImageRight && editingImageRight > otherImage.canvas.x &&
+                 editingImage.canvas.y < otherImageBottom && editingImageBottom > otherImage.canvas.y;
+        });
+        
       console.log('HASOVERLAP', hasOverlap)
 
         if (hasOverlap) {
           // Play a bump sound if there is an overlap
           console.log('Overlap detected, playing bump sound');
-          // Replace this console.log with the actual function call to play the bump sound
+          thumpRef.current.start();
           // For example: playBumpSound();
       }
 
