@@ -9,14 +9,20 @@
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@imgly/background-removal": "^1.4.5",
     "@mui/icons-material": "^5.15.12",
+    "@remove-background-ai/rembg.js": "^1.1.7",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "aws-sdk": "^2.1576.0",
+    "axios": "^1.6.8",
     "compromise": "^14.12.0",
+    "form-data": "^4.0.0",
     "js-pixel-fonts": "^1.6.0",
     "openai": "^3.1.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
@@ -24,6 +30,7 @@
     "react-scripts": "5.0.1",
     "react-speech-recognition": "^3.10.0",
     "react-spinners": "^0.13.7",
+    "rembg": "^1.0.6",
     "tone": "^14.7.77",
     "use-react-screenshot": "^4.0.0",
     "web-vitals": "^2.1.4",
@@ -54,5 +61,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000",
+  "devDependencies": {
+    "@types/node": "^20.12.2"
+  }
 }

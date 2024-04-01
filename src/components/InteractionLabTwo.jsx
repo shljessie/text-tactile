@@ -194,9 +194,25 @@ export const InteractionLabTwo = () => {
     window.speechSynthesis.speak(utterance);
   };
 
+  const [keysPressed, setKeysPressed] = useState({
+    spacebar: false,
+    rightArrow: false,
+  });
+
   useEffect(() => {
 
     const handleKeyDown = (e) => {
+
+      if (e.code === 'Space') {
+        setKeysPressed((prev) => ({ ...prev, spacebar: true }));
+      }
+      if (e.code === 'ArrowRight') {
+        setKeysPressed((prev) => ({ ...prev, rightArrow: true }));
+      }
+    
+      if (keysPressed.spacebar && keysPressed.rightArrow) {
+        goToLab3();
+      }
 
       if (e.shiftKey && e.key === 'I') {
         if (focusedIndex !== null) {

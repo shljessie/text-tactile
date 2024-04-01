@@ -17,6 +17,7 @@ import { PixelTile } from './components/PixelTile';
 import { PixelTileNew } from './components/PixelTileNew';
 import React from "react";
 import { SelectedAssetsProvider } from './components/SelectedAssetContext';
+import { SonicTiles } from './components/SonicTiles';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/table" element={<PixelTable />} />
         <Route path="/tiles" element={<PixelTile />} />
         <Route path="/tilesnew" element={<PixelTileNew />} />
+        <Route path="/sonictiles" element={<SonicTiles />} />
         <Route path="/lab" element={<InteractionLab />} />
         <Route path="/lab2" element={<InteractionLabTwo />} />
         <Route path="/lab3" element={<InteractionLabThree />} />

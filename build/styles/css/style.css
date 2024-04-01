@@ -3,22 +3,20 @@
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
-  grid-gap: 10px; /* Space between grid items */
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
   width: 100%;
-  max-width: 300px; /* Adjust based on your needs */
+  max-width: 300px;
 }
 
 .grid-item {
-  background-color: #f0f0f0; /* Light grey background */
+  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100px; /* Adjust based on your needs */
+  height: 100px;
   border: 1px solid black;
 }
-
-
 
 #mainHeader {
   font-weight: 100;
@@ -79,13 +77,13 @@
   aspect-ratio: 1 / 1;
 }
 
-.leftContainer > .pixel:focus {
+.pixel:focus {
   border: 7px solid #1E90FF !important;
   outline: none;  
   background-image: url('../../../src/assets/plus.png');
 }
 
-.leftContainer > .pixel:hover {
+.pixel:hover {
   border: 7px solid #1E90FF !important;
   outline: none;  
   background-image: url('../../../src/assets/plus.png');

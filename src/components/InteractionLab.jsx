@@ -54,6 +54,14 @@ export const InteractionLab = () => {
   const playerRef = useRef(null);
   const thumpRef = useRef(null);
 
+  const [keysPressed, setKeysPressed] = useState({
+    spacebar: false,
+    rightArrow: false,
+  });
+
+  
+
+
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Define a function to navigate to /lab2

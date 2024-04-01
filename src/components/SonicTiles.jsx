@@ -16,24 +16,20 @@ import { MoonLoader } from 'react-spinners';
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RadarIcon from '@mui/icons-material/Radar';
-import SoundPlayer from '../components/SoundPlayer';
+import SoundPlayer from './SoundPlayer';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 import html2canvas from 'html2canvas';
 import imglyRemoveBackground from "@imgly/background-removal";
 
-export const PixelTileNew = () => {
+export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
-  // window.speechSynthesis.cancel();
-
-  // Canvas Width & Height Setting
   const [canvasSize, setCanvasSize] = useState({ width: '0%', height: '0%' }); 
   const [openDialog, setOpenDialog] = useState(false);
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
 
-  // Generating first image on tile
   const [tiles, setTiles] = useState([
     { 
       id: 0, 
@@ -45,30 +41,6 @@ export const PixelTileNew = () => {
 
   var element = document.getElementById("canvas");
   
-  const myfunc= () =>{
-    console.log('good luck girlie')
-    var element = document.getElementById("canvas");
-    console.log(element);
-    html2canvas(element, {
-            letterRendering: 1,
-            allowTaint: true,
-            useCORS: true,
-            proxy: "http://localhost:3000/tilesnew",
-        }).then(function(canvas) {
-        canvas.toBlob(function(blob) {
-            console.log('image girlie', blob)
-            var url = URL.createObjectURL(blob);
-            console.log('url',url)
-            var img = document.createElement('img');
-            img.src = url;
-
-            // Append the img element to the document to display the image
-            document.body.appendChild(img);
-            window.saveAs(blob, "Heres the Girl.png");
-        });
-    });
-  }
-  
   useEffect(() => {
     const centerX = (parseInt(canvasSize['width']) / 2) - ((parseInt(canvasSize['width']) / 10) / 2);
     const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
@@ -78,13 +50,8 @@ export const PixelTileNew = () => {
     ]);
   }, [canvasSize]); 
 
-  console.log('TILES', tiles)
   let loadingSoundSource = null;
   const [loading, setLoading] = useState(false);
-
-  const testWebAudioAPI = () => {
-    speakDescription('hi')
-  };
 
   useEffect(() => {
     const serializedTiles = JSON.stringify(tiles);
@@ -96,29 +63,17 @@ export const PixelTileNew = () => {
     sessionStorage.setItem('savedImages', serializedImages);
   }, [savedImages]);
 
+  let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
 
-
-
-  // for adding images
-  
-  
-  // for pushing
   const [isPushing, setisPushing] = useState(false);
-
-//  ==========================
-
   const [showInstructions, setShowInstructions] = useState(true);
-
   const [isListening, setIsListening] = useState(false);
-
   const [rows, setRows] = useState(5);
   const [columns, setColumns] = useState(5);
   const [gridItems, setGridItems] = useState([]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [focusedIndex, setFocusedIndex] = useState(null);
-
   const [activeIndex, setActiveIndex] = useState(null);
-
   const [openai, setOpenai] = useState();
   const [promptText, setPromptText] = useState('');
 
@@ -938,7 +893,7 @@ const speakNoTileFocusedMessage = () => {
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.onend = function(event) {
       if (callback) {
-        callback(); // Execute the callback function after the message is spoken
+        callback();
       }
     };
     window.speechSynthesis.speak(utterance);
@@ -973,7 +928,7 @@ const speakNoTileFocusedMessage = () => {
             console.log('Location Edit Activated');
             console.log('Focused Index', focusedIndex);
             setlocationEditActive(true); 
-            playModeNotification("Location Edit Activated. Press the arrow keys to edit the location of the object.");
+            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object.");
 
             enterLocationEditMode(focusedIndex);
 
@@ -989,7 +944,7 @@ const speakNoTileFocusedMessage = () => {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
           setsizeEditActive(true); 
-          playModeNotification("Size Edit Activated. Press the up down arrow keys to edit the size of the object.");
+          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object.");
 
           enterSizeEditMode(focusedIndex);
 
@@ -1002,11 +957,9 @@ const speakNoTileFocusedMessage = () => {
         }
       } else if (e.shiftKey && e.key === 'I') {
         if (focusedIndex !== null) {
-          console.log('Info Activated');
-          console.log('Focused Index', focusedIndex);
           setinfoActive(true); 
 
-          playModeNotification("Read Info Mode Activated.", () => {
+          playModeNotification("I am looking at the image right now and thinking about how to describe it. Press esc to stop me.", () => {
             setFocusedIndex(focusedIndex)
             readInfo(focusedIndex);
             setFocusedIndex(focusedIndex)
@@ -1029,7 +982,7 @@ const speakNoTileFocusedMessage = () => {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
 
-          playModeNotification("Chat Activated. Ask a question about the image", () => {
+          playModeNotification("Hey there! You can ask a question about the image to me and I will answer", () => {
             setFocusedIndex(focusedIndex);
             imageChat(focusedIndex);
           });
@@ -1045,7 +998,7 @@ const speakNoTileFocusedMessage = () => {
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'G') {
-        console.log('Fetching GPT Description');
+        speakMessage('One moment looking at the canvas and thinking about how to describe it. Press ESC to stop me.')
         fetchGPTDescription();
       }
     };
@@ -1098,81 +1051,75 @@ const speakNoTileFocusedMessage = () => {
     
     const image = savedImages[imageIndex];
 
-    console.log("Reading ...",image)
-
     const script = `
       The image is called ${image.name}
       The image is a ${image.descriptions}
       It is located ${image.coordinate.x} and ${image.coordinate.y} 
       The size of the image is ${image.sizeParts.width}
     `
-    speakDescription(script);
+    speakMessage(script);
 
   };
-
-  const speakDescription = (description) => {
-    console.log('speaking')
-    var speech = new SpeechSynthesisUtterance(description);
-  
-    speech.rate = 1; // Speed of speech
-    speech.pitch = 1; // Pitch of speech
-    speech.volume = 1; // Volume
-  
-    window.speechSynthesis.speak(speech);
-  };
-
-  // const customPrompt = generateDescriptionPrompt(savedImages);
-
-  let [customPrompt, setcustomPrompt ] = useState('')
 
   const generateDescriptionPrompt = (savedImages) => {
     let descriptions = savedImages.map((img, index) => {
       return `Image ${index + 1} named "${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
     }).join(" ");
 
-    customPrompt =  `Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions}`;
-
-    console.log(" GIRL PROMPT: ", customPrompt)
+    globalDescriptionPrompt =  `Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions}.`;
   };
 
 
   const fetchGPTDescription = async () => {
 
-    generateDescriptionPrompt(savedImages)
+    console.log('Saved Images - Global Description', savedImages);
 
-    console.log('getching descriptions with', customPrompt)
+    generateDescriptionPrompt(savedImages)
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const stopOperations = () => {
+      controller.abort();
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+      console.log('Operation aborted');
+    };
+
+    const keyDownListener = (event) => {
+      if (event.key === "Escape") {
+        stopOperations();
+        document.removeEventListener('keydown', keyDownListener);
+      }
+    };
+    document.addEventListener('keydown', keyDownListener);
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + apiKey, // Added a space after 'Bearer'
+          Authorization: 'Bearer ' + apiKey,
         },
         method: 'POST',
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4',
           messages: [
             {
               role: 'user',
-              content: customPrompt,
+              content: globalDescriptionPrompt,
             },
           ],
         }),
+        signal, 
       });
-
-
-    console.log('Description Response',response)
   
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-  
     const data = await response.json();
-    console.log('data',data)
-    console.log('gpt description globa',data.choices[0].message.content);
     const GPTDescription =data.choices[0].message.content; 
-    const utterance = new SpeechSynthesisUtterance( GPTDescription);
-    window.speechSynthesis.speak(utterance);
-    // return data.choices[0].message.content;
+    console.log('Found GPT Description', GPTDescription);
+    speakMessage(GPTDescription);
+
   };
 
 
@@ -1233,7 +1180,7 @@ const speakNoTileFocusedMessage = () => {
         if (data.choices && data.choices.length > 0) {
           console.log(data.choices[0].message.content );
           const description = data.choices[0].message.content;
-          speakDescription(description);
+          speakMessage(description);
           setFocusedIndex(gridIndex);
           if (tileRefs.current[focusedIndex]) {
             tileRefs.current[focusedIndex].focus();
@@ -1378,11 +1325,14 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `You are a graphic designer. Only create one of ${voiceText}.The background should be white. It should be in a simple minimalistic image.`,
+          prompt: `You are a graphic designer. Only create one of ${voiceText}.The background should be white. It should be in a simple minimalistic image. Remove the Background from the Image.
+          `,
           n: 1,
         });
   
         console.log('OpenAI Image Response', response);
+
+
   
         const lengthImages = savedImages.length;
         const noteIndex = lengthImages % notes.length;
@@ -1402,6 +1352,8 @@ const speakNoTileFocusedMessage = () => {
           sizeParts: { width: imageSize  , height: imageSize},
           sound: note
         }));
+
+
   
         for (let imageObject of imageObjects) {
           const imageURL = imageObject.url;
@@ -1588,6 +1540,7 @@ const speakNoTileFocusedMessage = () => {
             
             {tiles.map((tile, index) => (
               <div
+                className='pixel'
                 autoFocus
                 ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
@@ -1597,7 +1550,9 @@ const speakNoTileFocusedMessage = () => {
                 }}
                 tabIndex={0}
                 style={{
-                  border: '1px solid black', 
+                  border: '3px solid gray', 
+                  borderRadius: '13px',
+                  boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
                   width: '10%', 
                   height: "10%",
                   margin: '5px',
