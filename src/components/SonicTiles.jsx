@@ -82,7 +82,9 @@ export const SonicTiles = () => {
     // Initialize or update the refs array to match the tiles array length
     tileRefs.current = Array(tiles.length).fill().map((_, i) => tileRefs.current[i] || React.createRef());
   }
-  const playerRef = useRef(null);
+  const playerLRRef = useRef(null);
+  const playerURef = useRef(null);
+  const playerDRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [draggedImageIndex, setDraggedImageIndex] = useState(null);
@@ -190,11 +192,23 @@ export const SonicTiles = () => {
 
     tileRefs.current = items.map((_, i) => tileRefs.current[i] || React.createRef());
 
-    const url = "assets/sounds/bloop.mp3";
+    const leftrighturl = "https://texttactile.s3.amazonaws.com/leftright.mp3";
+    const downurl ="https://texttactile.s3.amazonaws.com/down.mp3";
+    const upurl="https://texttactile.s3.amazonaws.com/up.mp3";
 
-    const player = new Tone.Player().toDestination();
-    player.load(url).then(() => {
-        playerRef.current = player;
+    const playerLR = new Tone.Player().toDestination();
+    playerLR.load(leftrighturl).then(() => {
+        playerLRRef.current = playerLR;
+    });
+
+    const playerD = new Tone.Player().toDestination();
+    playerD.load(downurl).then(() => {
+        playerDRef.current = playerD;
+    });
+
+    const playerU = new Tone.Player().toDestination();
+    playerU.load(upurl).then(() => {
+        playerURef.current = playerU;
     });
 
     document.documentElement.addEventListener('mousedown', () => {
@@ -600,7 +614,7 @@ export const SonicTiles = () => {
   }
 
   const playSpatialSound = (direction) => {
-    if (!playerRef.current) return;
+    if (!playerLRRef.current) return;
     
     const panner = new Tone.Panner3D({
       positionX: direction === 'left' ? -10 : direction === 'right' ? 10 : 0,
@@ -608,10 +622,25 @@ export const SonicTiles = () => {
       positionZ: -1,
     }).toDestination();
 
-    playerRef.current.disconnect();
-    playerRef.current.chain(panner, Tone.Destination);
+    if (direction === 'left' || direction === 'right') { 
+      console.log('playing lr')
+      playerLRRef.current.disconnect();
+      playerLRRef.current.chain(panner, Tone.Destination);
+      playerLRRef.current.start();
+      
+    } else if (direction === 'up') {
+      console.log('playing up')
+      playerURef.current.disconnect();
+      playerURef.current.chain(panner, Tone.Destination);
+      playerURef.current.start();
 
-    playerRef.current.start();
+    } else {
+      console.log('playing down')
+      playerDRef.current.disconnect();
+      playerDRef.current.chain(panner, Tone.Destination);
+      playerDRef.current.start();
+
+    }
   };
 
   const pushImage = (movingTile, newX, newY) => {
@@ -630,42 +659,6 @@ export const SonicTiles = () => {
   }
 
   let oldImage;
-
-  const playSpatialSoundwithDistance = (direction, distance) => {
-
-    console.log("YEAYAYAYYA")
-    if (!playerRef.current) return;
-    
-    // Normalize or scale the distance value to your application's needs
-    // This example assumes distance is a number where larger values mean further away
-    // You might need to adjust these calculations based on your actual distance scale
-    const volumeAdjustment = -Math.min(Math.log1p(distance), 10); // Example scaling, using log to dampen the effect
-    const positionScaleFactor = 1; // Adjust based on your spatial scaling needs
-    
-    // Calculate position adjustments based on direction and scaled by distance
-    const positionX = direction === 'left' ? -10 : direction === 'right' ? 10 : 0;
-    const positionY = direction === 'up' ? 10 : direction === 'down' ? -30 : 0;
-    // Adjust position by distance (you might want to fine-tune this scaling)
-    const adjustedPositionX = positionX * positionScaleFactor * Math.sqrt(distance);
-    const adjustedPositionY = positionY * positionScaleFactor * Math.sqrt(distance);
-    // Keep Z position static or adjust as needed
-    const positionZ = -1;
-
-    const panner = new Tone.Panner3D({
-      positionX: adjustedPositionX,
-      positionY: adjustedPositionY,
-      positionZ: positionZ,
-    }).toDestination();
-    
-    playerRef.current.disconnect();
-    playerRef.current.chain(panner, Tone.Destination);
-    
-    // Adjust volume based on distance, might need to map this more carefully
-    playerRef.current.volume.value = volumeAdjustment;
-    
-    playerRef.current.start();
-};
-
 
   const tileNavigation = (event, index, isRegeneration=false) => {
 
@@ -1197,6 +1190,51 @@ const speakNoTileFocusedMessage = () => {
 
   }
 
+  const fetchImageName = async (imageURL) => {
+
+    let customPrompt = `
+        Generate the title of this image. Use minimal words.
+
+        Example Response : dog
+      `;
+  
+    const payload = {
+      "model": "gpt-4-vision-preview",
+      "messages": [
+          {
+              "role": "user",
+              "content": [
+                  {"type": "text", "text": customPrompt},
+                  {"type": "image_url", "image_url": imageURL}
+              ]
+          }
+      ],
+      "max_tokens": 300
+    };
+  
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+  
+      const data = await response.json();
+  
+      if (data.choices && data.choices.length > 0) {
+        return data.choices[0].message.content;
+      } else {
+        return 'No description available';
+      }
+    } catch (error) {
+      console.error('Error fetching image description:', error);
+      return 'Error fetching description';
+    }
+  };
+
 
   const fetchImageDescription = async (imageURL) => {
 
@@ -1343,7 +1381,7 @@ const speakNoTileFocusedMessage = () => {
   
         const imageObjects = response.data.data.map(img => ({
           prompt: voiceText,
-          name: `Image_${lengthImages}`,
+          name: '',
           url: img.url,
           image_nbg: '',
           descriptions: '',
@@ -1358,21 +1396,10 @@ const speakNoTileFocusedMessage = () => {
         for (let imageObject of imageObjects) {
           const imageURL = imageObject.url;
           console.log('imageURL', imageURL)
-          
+          const name = await fetchImageName(imageURL);
           const description = await fetchImageDescription(imageURL);
           imageObject.descriptions = description;
-
-          try {
-            const transparentImageData = await removeBackground(imageURL);
-        
-            imageObject.image_nbg = transparentImageData;
-            console.log('transparent Image',transparentImageData);
-          } catch (error) {
-            console.error('Error removing background:', error);
-            // Handle the error (e.g., log it or provide a fallback)
-          }
-
-
+          imageObject.name = name;
         }
   
         isGeneratingImage = false;
@@ -1569,7 +1596,7 @@ const speakNoTileFocusedMessage = () => {
                   <MoonLoader size={20}/>
                 ) : (
                   savedImages.filter(savedImage => 
-                    savedImage.coordinate.x == tile.x && savedImage.coordinate.y == tile.y
+                    savedImage.coordinate.x === tile.x && savedImage.coordinate.y === tile.y
                   ).map((image, imageIndex) => (
                     <img key={imageIndex} src={image.url} alt="" style={{ width: '100%', height: '100%', position: 'absolute' }} />
                   ))
