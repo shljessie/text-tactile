@@ -30,6 +30,16 @@ export const SonicTiles = () => {
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
 
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleCloseInstructions = () => {
+    setOpen(false);
+  };
+
   const [tiles, setTiles] = useState([
     { 
       id: 0, 
@@ -66,7 +76,7 @@ export const SonicTiles = () => {
   let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
 
   const [isPushing, setisPushing] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [rows, setRows] = useState(5);
   const [columns, setColumns] = useState(5);
@@ -154,7 +164,7 @@ export const SonicTiles = () => {
   }, []);
 
   useEffect(() => {
-    const savedCanvasSize = JSON.parse(localStorage.getItem('canvasSize'));
+    const savedCanvasSize = JSON.parse(sessionStorage.getItem('canvasSize'));
     tileRefs.current[0].focus();
 
     if (savedCanvasSize) {
@@ -170,12 +180,15 @@ export const SonicTiles = () => {
 
   const handleSave = (width, height) => {
     setCanvasSize({ width: `${width}px`, height: `${height}px` });
-    localStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
+    sessionStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
     setOpenDialog(false);
   };
 
   // ====================================
 
+  const toggleInstructions = () => {
+    setShowInstructions(!showInstructions);
+  };
 
 
   useEffect(() => {
@@ -1552,7 +1565,12 @@ const speakNoTileFocusedMessage = () => {
         </DialogActions>
       </Dialog>
 
+      <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
+        {showInstructions ? 'Hide Instructions' : 'Show Instructions'}
+      </button>
+
       <div className='mainContainer'>
+
         <div 
           className="leftContainer">
 
@@ -1630,8 +1648,48 @@ const speakNoTileFocusedMessage = () => {
               </div>
         </div>
 
+      
+      {showInstructions && (
+      <div className="instructions" style={{fontSize: '0.8rem'}}>
+
+      <Dialog open={showInstructions} onClose={toggleInstructions} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Instructions</DialogTitle>
+          <DialogContent>
+              <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
+              <h2>Keyboard Shortcuts</h2>
+              <ul>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Displays detailed information about the currently selected item.
+                </li>
+                <li>
+                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+                </li>
+              </ul>
+              <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={toggleInstructions} color="primary">
+              Close
+            </Button>
+        </DialogActions>
+      </Dialog>
+
+    
+      </div>
+      )}
+  </div>
+
 
       </div>    
-    </div> 
   );
 };

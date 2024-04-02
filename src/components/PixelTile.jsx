@@ -1002,83 +1002,6 @@ const speakNoTileFocusedMessage = () => {
           </div>
         )} 
    
-        <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
-          {showInstructions ? 'Hide Instructions' : 'Show Instructions'}
-        </button>
-        {showInstructions && (
-        <div className="instructions" style={{fontSize: '0.8rem'}}>
-
-        <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
-        <h2>Keyboard Shortcuts</h2>
-        <ul>
-          <li>
-            <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Displays detailed information about the currently selected item.
-          </li>
-          <li>
-            <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
-          </li>
-        </ul>
-        <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
-      </div>
-      
-        <h3>Instructions</h3>
-            <h4><strong>Creating and Editing Images:</strong></h4>
-            <br/>
-            <ol>
-                <li><strong>Selecting a Tile:</strong>
-                    <ul>
-                        <li>Browse through the Pixel Tiles on the screen.</li>
-                        <li>Choose a tile where you wish to create your image.</li>
-                        <li>Press the <strong>Enter</strong> key to initiate the image creation process by recording a prompt.</li>
-                        <li>On tiles with an image, you can hear the unique sound associated with it as you navigate.</li>
-                        <li>Use the <strong>arrow keys</strong> to navigate through the image.</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Listening to Image Sounds:</strong>
-                    <ul>
-                        <li>Once an image is created in a tile, you can hear a unique sound associated with that image as you navigate through the tiles</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Editing Image Location:</strong>
-                    <ul>
-                        <li>To adjust an image's position on the canvas, click the <strong>Edit Location</strong> button.</li>
-                        <li>Use the <strong>arrow keys</strong> to move the object to a new location.</li>
-                        <li>The object's new position will be updated on the grid.</li>
-                        <li>To exit location editing mode, press the <strong>Escape</strong> key.</li>
-                    </ul>
-                </li>
-                <br/>
-                <li><strong>Editing Image Size:</strong>
-                    <ul>
-                        <li>To change the size of an image on the canvas, click the <strong>Edit Size</strong> button.</li>
-                        <li>Use the <strong>up and down arrow keys</strong> to adjust the image's size.</li>
-                        <li>Press the <strong>Escape</strong> key to exit size editing mode.</li>
-                    </ul>
-                </li>
-            </ol>
-            <br/>
-            <h4><strong>Additional Features:</strong></h4>
-            <br/>
-            <ul>
-                <li><strong>Hearing Image Descriptions:</strong> Press the <strong>Image Description</strong> button to hear a spoken description of the image.</li>
-                <li><strong>Changing the Image:</strong> To replace the image on a selected tile, press the <strong>Enter</strong> key again.</li>
-            </ul>
-            <p>Remember to exit editing modes (location or size) by pressing the <strong>Escape</strong> key when you're done with adjustments.</p>
-
-        </div>
-        )}
-    </div>
       <div className='mainContainer'>
         <div className="leftContainer" style={{
           display: 'grid',
@@ -1301,6 +1224,7 @@ const speakNoTileFocusedMessage = () => {
         
       </div>    
 
+    </div>
     </div>
   );
 };
