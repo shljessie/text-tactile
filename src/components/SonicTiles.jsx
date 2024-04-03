@@ -1739,15 +1739,17 @@ const speakNoTileFocusedMessage = () => {
           <p>
           Welcome to SonicTiles! Here you can create desired images using a tilegrid layout. <br/>
           You are currently focused on the first tile. Press Enter to record a prompt to generate an image.<br/>
-          As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
+          As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas. <br/>
+          You may have to turn off the screen reader while you are generating the image.
+          
           </p>
         </div>
         <div style={{display: 'flex', flexDirection:'column'}}>
-          <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'200' }}>
+          <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
             {showInstructions ? 'Keyboard Shortcuts' : 'Keyboard Shortcuts'}
           </button>
         
-          <button onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'200', color:'green' }}>
+          <button className='renderButton' onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'800' }}>
               Render Canvas
           </button>
         </div>

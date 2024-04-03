@@ -321,6 +321,32 @@ textarea::placeholder {
   }
 }
 
+.renderButton, input[type=submit] {
+  font-size: 1rem;
+  /* padding: 1rem; */
+  color: green;
+  margin: 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: 800;
+  border: 1px solid green;
+  background-color: #fff;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+/* Hover effect */
+.renderButton:hover, input[type=submit]:hover {
+  background-color: green; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
+}
+
+.renderButton:focus, input[type=submit]:focus {
+  background-color: green; /* Change background color */
+  color: #fff; /* Change text color */
+  cursor: pointer; /* Change cursor to pointer */
+}
+
+
 
 
 button, input[type=submit] {

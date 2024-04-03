@@ -14,7 +14,7 @@ export const RenderCanvas = () => {
       <div>
         <button style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>Download Canvas as Image</button>
         <a href="https://huggingface.co/spaces/shljessie/TactileGraphics" className="button">
-        <button style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>Generate Tactile Graphic</button></a>
+        <button className='renderButton' style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>Generate Tactile Graphic</button></a>
       </div>
         <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
           {savedImages.map((image, index) => (
