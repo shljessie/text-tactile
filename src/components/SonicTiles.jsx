@@ -2,7 +2,7 @@ import * as Tone from 'tone';
 
 import { Configuration, OpenAIApi } from 'openai';
 import React, { useEffect, useRef, useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Button from '@mui/material/Button';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -31,6 +31,13 @@ export const SonicTiles = () => {
   const canvasRef = useRef(null);
 
   const [open, setOpen] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleButtonClick = () => {
+    console.log('SavedImages',savedImages)
+    navigate('/render', { state: { savedImages, canvasSize } });
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -1723,10 +1730,17 @@ const speakNoTileFocusedMessage = () => {
           <Button onClick={handleClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
-
+      <div>
+      <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'200' }}>
+        {showInstructions ? 'Keyboard Shortcuts' : 'Keyboard Shortcuts'}
+      </button>
+    
+      <button onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'200' }}>
+          Render Canvas
+      </button>
+      </div>
 
       <div className='mainContainer'>
-
         <div 
           className="leftContainer">
           <div id="tileContainer" ref={canvasRef} style={{ 
@@ -1847,12 +1861,6 @@ const speakNoTileFocusedMessage = () => {
       </div>
       )}
   </div>
-
-  <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
-  {showInstructions ? 'Hide Keyboard Shortcuts' : 'Show Keyboard Shortcuts'}
-</button>
-
-
       </div>    
   );
 };
