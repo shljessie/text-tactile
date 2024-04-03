@@ -20,11 +20,11 @@ const Nav = () => {
   return (
     <nav>
     <div className='header'>
-       <h3 id="mainHeader" style={{fontSize: '1.5rem',  marginTop: '1rem',   marginLeft: '1rem'}}> <b> </b> SONI PROMPT </h3>
+       <h3 id="mainHeader" style={{fontSize: '1rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> SONICTILES </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {[ '/lab','/tilesnew'].map((path, index) => {
-          const labels = [ "InteractionLab Home", "Main"];
+        {[ '/lab','/sonictiles', '/tiles'].map((path, index) => {
+          const labels = [ "User Study", "Final Prototype", "Past Prototype"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 

@@ -52,7 +52,7 @@ export const SonicTiles = () => {
   var element = document.getElementById("canvas");
   
   useEffect(() => {
-    const centerX = (parseInt(canvasSize['width']) / 2) - ((parseInt(canvasSize['width']) / 10) / 2);
+    const centerX = (parseInt(canvasSize['width']) / 2.1) - ((parseInt(canvasSize['width']) / 10) / 2);
     const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
 
     setTiles([
@@ -184,6 +184,40 @@ export const SonicTiles = () => {
     setOpenDialog(false);
   };
 
+  const thumpRef = useRef(null);
+  const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
+
+  const playerTwo = new Tone.Player().toDestination();
+  playerTwo.load(urlTwo).then(() => {
+      thumpRef.current = playerTwo;
+  });
+
+
+  const playSpatialThump = (direction) => {
+    if (!thumpRef.current) return;
+    
+    const panner = new Tone.Panner3D({
+      positionX: direction === 'left' ? -10 : direction === 'right' ? 10 : 0,
+      positionY: direction === 'up' ? 10 : direction === 'down' ? -30 : 0,
+      positionZ: -1,
+    }).toDestination();
+
+    thumpRef.current.disconnect();
+    thumpRef.current.chain(panner, Tone.Destination);
+
+    thumpRef.current.start();
+  };
+
+
+  const updateImagePosition = (editingImageIndex, dx, dy) => {
+    savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].canvas.x + dx
+    savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].canvas.y + dy
+
+  // console.log('original, ', savedImages[editingImageIndex].canvas.x)
+  // console.log('updated saved images',savedImages)
+
+}
+
   // ====================================
 
   const toggleInstructions = () => {
@@ -248,31 +282,85 @@ export const SonicTiles = () => {
   const [saveCompleted, setSaveCompleted] = useState(false);
   const originalPositionsRef = useRef({});
 
+  const readLocationEdit = (focusedIndex) => {
+    console.log('READ LOCATION EDIT',  tiles[focusedIndex].x)
+    const image = savedImages.find(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
+    console.log('EDIT IMAGE', image)
+    const script = `The image is now located in ${image.canvas.x} and ${image.canvas.y}`
+
+    speakMessage(script)
+
+  }
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       console.log('canvas Focused for location edit')
       
-      if (isEditingLocation && editingImageIndex !== null) {
+      if (isEditingLocation &&
+          editingImageIndex !== null) {
+
+            const editingImage = savedImages[editingImageIndex];
+            
+        // if (0 > savedImages[editingImageIndex].canvas.x  ||  
+        //   savedImages[editingImageIndex].canvas.x > 300 || 
+        //   0 > savedImages[editingImageIndex].canvas.y  || 
+        //   savedImages[editingImageIndex].canvas.y > 300){
+        //     speakMessage('Canvas Edge')
+        //     playSpatialThump('top')
+        //   }
+
+          // const otherImages = savedImages.filter(image => 
+          //   image.coordinate.x !== tiles[focusedIndex].x || image.coordinate.y !== tiles[focusedIndex].y
+          // console.log('Other Images', otherImages);
+        // play bump sound if the current  savedImages[editingImageIndex].canvas.x  and otherImage otherImage.canvas.x  and y are overlapping
+        
+        // const hasOverlap = otherImages.some(otherImage => {
+        //   const editingImageRight = editingImage.canvas.x + editingImage.sizeParts.width;
+        //   const editingImageBottom = editingImage.canvas.y + editingImage.sizeParts.height;
+        //   const otherImageRight = otherImage.canvas.x + otherImage.sizeParts.width;
+        //   const otherImageBottom = otherImage.canvas.y + otherImage.sizeParts.height;
+  
+        //   return editingImage.canvas.x < otherImageRight && editingImageRight > otherImage.canvas.x &&
+        //          editingImage.canvas.y < otherImageBottom && editingImageBottom > otherImage.canvas.y;
+        // });
+        
+      // console.log('HASOVERLAP', hasOverlap)
+
+      //   if (hasOverlap) {
+      //     // Play a bump sound if there is an overlap
+      //     console.log('Overlap detected, playing bump sound');
+      //     thumpRef.current.start();
+      //     // For example: playBumpSound();
+      // }
+
+
         console.log('editing Lcoation Index', editingImageIndex)
         console.log('Keyboard Editing here')
         console.log(`Key pressed: ${e.key}`);
         let dx = 0, dy = 0;
         switch(e.key) {
-          case 'ArrowLeft': dx = -10; playSpatialSound('left'); break;
-          case 'ArrowRight': dx = 10; playSpatialSound('right'); break;
-          case 'ArrowUp': dy = -10; playSpatialSound('up'); break;
-          case 'ArrowDown': dy = 10;playSpatialSound('down'); break;
+          case 'ArrowLeft': 
+            dx = -10; 
+            playSpatialSound('left'); 
+            speakMessage('left 10');
+            updateImagePosition(editingImageIndex, dx, dy);
+            
+            break;
+          case 'ArrowRight': dx = 10; playSpatialSound('right'); speakMessage('right 10'); updateImagePosition(editingImageIndex, dx, dy); break;
+          case 'ArrowUp': dy = -10; playSpatialSound('up'); speakMessage('up 10'); updateImagePosition(editingImageIndex, dx, dy); break;
+          case 'ArrowDown': dy = 10;playSpatialSound('down'); speakMessage('down 10');  updateImagePosition(editingImageIndex, dx, dy);break;
+          case 'Shift': console.log('space'); speakMessage(`The current image position is ${dx} and ${dy}`);break;
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
-            setFocusedIndex(focusedIndex)
+            setFocusedIndex(focusedIndex);
             if (tileRefs.current[focusedIndex]) {
               tileRefs.current[focusedIndex].focus();
             }
             speakMessage("Location mode exited");
+            readLocationEdit(focusedIndex)
             return;
           default: 
-            speakMessage("You are still on Location Edit mode. Press ESC to exit the Location Edit mode first.");
             return;
         }
 
@@ -285,6 +373,7 @@ export const SonicTiles = () => {
         }
 
         setSavedImages((prevImages) => prevImages.map((img, index) => {
+          console.log('saving images', savedImages)
           if (index === editingImageIndex) {
             return { ...img, canvas: { x: img.canvas.x + dx, y: img.canvas.y + dy } };
           }
@@ -292,6 +381,12 @@ export const SonicTiles = () => {
         }));
 
         setSaveCompleted(true);
+        console.log('Saved Complemted', saveCompleted)
+        if(saveCompleted ){
+          readLocationEdit(focusedIndex)
+        }
+
+      } else {
       }
     };
 
@@ -407,11 +502,10 @@ export const SonicTiles = () => {
       attachSizeEditKeyListener();
     }
   
-    // Cleanup function to ensure the listener is removed when the component unmounts or the state changes
     return () => {
       detachSizeEditKeyListener();
     };
-  }, [isEditingSize, editingSizeImageIndex]); // Make sure to include all dependencies used in handleKeyDownForSizeEdit
+  }, [isEditingSize, editingSizeImageIndex]);
 
   //  ==============================
 
@@ -495,16 +589,29 @@ export const SonicTiles = () => {
     e.preventDefault();
     e.stopPropagation();
 
+    
+
+    let originalWidth = savedImages[editingSizeImageIndex].sizeParts.width;
+    let originalHeight = savedImages[editingSizeImageIndex].sizeParts.height;
+    let scaleUp = 0;
+    let scaleDown = 0;
+
     let scaleFactor = 1;
+    console.log('Size Editing Index',editingSizeImageIndex);
 
     switch (e.key) {
       case 'ArrowUp':
         scaleFactor = 1.1;
         changedFrequency = changedFrequency - 30
+        speakMessage('increase 10');
         break;
       case 'ArrowDown':
         scaleFactor = 0.9;
         changedFrequency = changedFrequency + 30
+        speakMessage('decrease 10');
+        break;
+      case 'Shift':
+        speakMessage(`The current size is ${originalWidth} by ${originalHeight}`);
         break;
       case 'Escape':
         setIsEditingSize(false);
@@ -517,12 +624,14 @@ export const SonicTiles = () => {
         changedFrequency = 340
         return;
       default:
-        speakMessage("You are still on Size Edit mode. Press ESC to exit the size edit mode first.");
         return;
     }
 
     console.log(changedFrequency);
     playTone(changedFrequency);
+    savedImages[editingSizeImageIndex].sizeParts.width = Math.round(originalWidth * scaleFactor);
+    savedImages[editingSizeImageIndex].sizeParts.height = Math.round(originalHeight * scaleFactor);
+  
   
     // Adjust size with aspect ratio maintenance
     setSavedImages((prevImages) => prevImages.map((img, index) => {
@@ -547,20 +656,6 @@ export const SonicTiles = () => {
     }));
   };
   
-
-
-  const handleMouseDownOnImage = (index) => (e) => {
-
-    console.log('isEditing',isEditingLocation )
-
-    if (isEditingLocation) {
-      e.preventDefault(); 
-      setIsDragging(true);
-      setDraggedImageIndex(index);
-    } else {
-      // If in editing location mode, ignore
-    }
-  };
 
   function addSurroundingTiles(centralTile) {
     
@@ -638,7 +733,7 @@ export const SonicTiles = () => {
     if (direction === 'left' || direction === 'right') { 
       console.log('playing lr')
       playerLRRef.current.disconnect();
-      playerLRRef.current.chain(panner, Tone.Destination);
+      playerLRRef.current.chain(panner, Tone.Destination);      
       playerLRRef.current.start();
       
     } else if (direction === 'up') {
@@ -705,13 +800,14 @@ export const SonicTiles = () => {
           console.log('movingIndex Up',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           break;
+
         case 'ArrowDown':
 
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
           console.log('movingIndex Down',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
-          // Implement the desired Shift+ArrowDown behavior
+
           break;
         case 'ArrowLeft':
 
@@ -836,12 +932,16 @@ export const SonicTiles = () => {
     const imageObject = savedImages.findIndex(image => image.coordinate.x == newX && image.coordinate.y == newY);
           
 
-    if (imageObject !== -1) {
-      
+    if (imageObject !== -1 || tiles.length == 1) {
+      console.log('Only One tile')
     }else{
-      console.log('playing Spatial sound', direction);
-
-      playSpatialSound(direction);
+      if( newIndex == -1) {
+        console.log('playing Spatial Thump', direction);
+        playSpatialThump(direction);
+      }else{
+        console.log('playing Spatial sound', direction);
+        playSpatialSound(direction);
+      }
     }
 
   };
@@ -934,7 +1034,7 @@ const speakNoTileFocusedMessage = () => {
             console.log('Location Edit Activated');
             console.log('Focused Index', focusedIndex);
             setlocationEditActive(true); 
-            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object.");
+            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press Escape to exit the mode.");
 
             enterLocationEditMode(focusedIndex);
 
@@ -950,7 +1050,7 @@ const speakNoTileFocusedMessage = () => {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
           setsizeEditActive(true); 
-          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object.");
+          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object. Press Shift to hear the size. Press Escape to exit the mode");
 
           enterSizeEditMode(focusedIndex);
 
@@ -965,7 +1065,7 @@ const speakNoTileFocusedMessage = () => {
         if (focusedIndex !== null) {
           setinfoActive(true); 
 
-          playModeNotification("I am looking at the image right now and thinking about how to describe it. Press esc to stop me.", () => {
+          playModeNotification("Describing Image. Press esc to stop me.", () => {
             setFocusedIndex(focusedIndex)
             readInfo(focusedIndex);
             setFocusedIndex(focusedIndex)
@@ -1418,13 +1518,12 @@ const speakNoTileFocusedMessage = () => {
         isGeneratingImage = false;
         stopLoadingSound();
 
-        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The sound of ${imageObjects[0].name} is `;
+        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}.`;
         
         let utterance = new SpeechSynthesisUtterance(imageDescription);
-        utterance.rate = 1; // Speed of speech
-        utterance.pitch = 1; // Pitch of speech
-        utterance.volume = 1; // Volume
-        const imageNote = imageObjects[0].sound;
+        utterance.rate = 1;
+        utterance.pitch = 1; 
+        utterance.volume = 1; 
 
   
         if (isRegeneration) {
@@ -1434,7 +1533,6 @@ const speakNoTileFocusedMessage = () => {
 
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
-            playImageSound(imageNote);
           };
 
           setFocusedIndex(index);
@@ -1446,7 +1544,6 @@ const speakNoTileFocusedMessage = () => {
 
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
-            playImageSound(imageNote); 
           };
           setFocusedIndex(index);
         }
@@ -1565,22 +1662,17 @@ const speakNoTileFocusedMessage = () => {
         </DialogActions>
       </Dialog>
 
-      <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
-        {showInstructions ? 'Hide Instructions' : 'Show Instructions'}
-      </button>
 
       <div className='mainContainer'>
 
         <div 
           className="leftContainer">
-
           <div id="tileContainer" ref={canvasRef} style={{ 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative', 
-            ...canvasSize, 
-            border: '1px solid black' }} tabIndex={0}>
+            ...canvasSize,  }} tabIndex={0}>
 
             
             {tiles.map((tile, index) => (
@@ -1591,6 +1683,10 @@ const speakNoTileFocusedMessage = () => {
                 key={tile.id}
                 onKeyDown={(event) => {
                   setFocusedIndex(index);
+
+                  if(tiles>1){
+
+                  }
                   tileNavigation(event, index, savedImages.some(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y));
                 }}
                 tabIndex={0}
@@ -1610,8 +1706,9 @@ const speakNoTileFocusedMessage = () => {
                   alignItems: 'center',
                 }}
               >
+                
                 {loading && activeIndex === index ? (
-                  <MoonLoader size={20}/>
+                  <MoonLoader size={30}/>
                 ) : (
                   savedImages.filter(savedImage => 
                     savedImage.coordinate.x === tile.x && savedImage.coordinate.y === tile.y
@@ -1630,7 +1727,8 @@ const speakNoTileFocusedMessage = () => {
         </div>
       
         <div className="rightContainer">
-              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '1px solid black' }} tabIndex={0}>
+          <h2>Canvas</h2>
+              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
                   {savedImages.map((image, index) => (
                     <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
                     tabIndex={0}>
@@ -1653,10 +1751,9 @@ const speakNoTileFocusedMessage = () => {
       <div className="instructions" style={{fontSize: '0.8rem'}}>
 
       <Dialog open={showInstructions} onClose={toggleInstructions} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Instructions</DialogTitle>
+        <DialogTitle id="form-dialog-title">Keyboard ShortCuts</DialogTitle>
           <DialogContent>
               <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
-              <h2>Keyboard Shortcuts</h2>
               <ul>
                 <li>
                   <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
@@ -1688,6 +1785,10 @@ const speakNoTileFocusedMessage = () => {
       </div>
       )}
   </div>
+
+  <button onClick={toggleInstructions} style={{ marginBottom: '10px', padding :'0.5rem', fontWeight:'200' }}>
+  {showInstructions ? 'Hide Keyboard Shortcuts' : 'Show Keyboard Shortcuts'}
+</button>
 
 
       </div>    
