@@ -292,6 +292,8 @@ export const SonicTiles = () => {
 
   }
 
+  let outside = false;
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       console.log('canvas Focused for location edit')
@@ -341,15 +343,70 @@ export const SonicTiles = () => {
         switch(e.key) {
           case 'ArrowLeft': 
             dx = -10; 
-            playSpatialSound('left'); 
-            speakMessage('left 10');
-            updateImagePosition(editingImageIndex, dx, dy);
+            console.log('x axis', savedImages[editingImageIndex].canvas.x);
+            if (savedImages[editingImageIndex].canvas.x <= (savedImages[editingImageIndex].sizeParts.width / 6) ){
+              console.log('outside left')
+              thumpRef.current.start();
+              outside = true;
+            }else{
+              playSpatialSound('left'); 
+              speakMessage('left 10');
+              updateImagePosition(editingImageIndex, dx, dy);
+              outside = false;
+            }
             
             break;
-          case 'ArrowRight': dx = 10; playSpatialSound('right'); speakMessage('right 10'); updateImagePosition(editingImageIndex, dx, dy); break;
-          case 'ArrowUp': dy = -10; playSpatialSound('up'); speakMessage('up 10'); updateImagePosition(editingImageIndex, dx, dy); break;
-          case 'ArrowDown': dy = 10;playSpatialSound('down'); speakMessage('down 10');  updateImagePosition(editingImageIndex, dx, dy);break;
-          case 'Shift': console.log('space'); speakMessage(`The current image position is ${dx} and ${dy}`);break;
+          case 'ArrowRight':
+            dx = 10;
+
+            console.log('x axis', savedImages[editingImageIndex].canvas.x);
+            // console.log('right limit ',canvasSize - (savedImages[editingImageIndex].sizeParts.width / 2))
+            if (savedImages[editingImageIndex].canvas.x >=  parseInt(canvasSize.width) - savedImages[editingImageIndex].sizeParts.width ){
+              console.log('outside right')
+              thumpRef.current.start();
+              outside = true;
+            }else{
+              playSpatialSound('right');
+              speakMessage('right 10'); 
+              updateImagePosition(editingImageIndex, dx, dy);
+              outside = false;
+            }
+
+            
+            break;
+          case 'ArrowUp': 
+            dy = -10; 
+            console.log('y axis', savedImages[editingImageIndex].canvas.y);
+            if (savedImages[editingImageIndex].canvas.y <= (savedImages[editingImageIndex].sizeParts.width / 6) ){
+              console.log('outside up')
+              thumpRef.current.start();
+              outside = true;
+            }else{
+              playSpatialSound('up'); 
+              speakMessage('up 10'); 
+              updateImagePosition(editingImageIndex, dx, dy);
+              outside = false;
+            }
+
+            break;
+          case 'ArrowDown': 
+            dy = 10;
+
+            console.log('y axis', savedImages[editingImageIndex].canvas.y);
+            console.log('bottom limit ', parseInt(canvasSize.width) )
+            if (savedImages[editingImageIndex].canvas.y >= parseInt(canvasSize.width) - savedImages[editingImageIndex].sizeParts.width ){
+              console.log('outside down')
+              thumpRef.current.start();
+              outside = true;
+            }else{
+              playSpatialSound('down');
+              speakMessage('down 10');  
+              updateImagePosition(editingImageIndex, dx, dy);
+              outside = false;
+            }
+
+            break;
+          case 'Shift': console.log('space'); speakMessage(`The current image position is ${savedImages[editingImageIndex].canvas.x} and ${savedImages[editingImageIndex].canvas.y}`);break;
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
@@ -372,19 +429,24 @@ export const SonicTiles = () => {
           console.log('original positions ref', originalPositionsRef)
         }
 
-        setSavedImages((prevImages) => prevImages.map((img, index) => {
-          console.log('saving images', savedImages)
-          if (index === editingImageIndex) {
-            return { ...img, canvas: { x: img.canvas.x + dx, y: img.canvas.y + dy } };
-          }
-          return img;
-        }));
+        if (!outside){
 
-        setSaveCompleted(true);
-        console.log('Saved Complemted', saveCompleted)
-        if(saveCompleted ){
-          readLocationEdit(focusedIndex)
-        }
+          setSavedImages((prevImages) => prevImages.map((img, index) => {
+            console.log('saving images', savedImages)
+            if (index === editingImageIndex) {
+              return { ...img, canvas: { x: img.canvas.x + dx, y: img.canvas.y + dy } };
+            }
+            return img;
+          }));
+  
+          setSaveCompleted(true);
+          console.log('Saved Complemted', saveCompleted)
+          if(saveCompleted ){
+            readLocationEdit(focusedIndex)
+          }
+
+        } 
+
 
       } else {
       }
