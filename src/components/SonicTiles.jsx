@@ -1730,17 +1730,33 @@ const speakNoTileFocusedMessage = () => {
           <Button onClick={handleClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
-      <div>
-      <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'200' }}>
-        {showInstructions ? 'Keyboard Shortcuts' : 'Keyboard Shortcuts'}
-      </button>
-    
-      <button onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'200' }}>
-          Render Canvas
-      </button>
+
+      <div style={{display: 'flex', flexDirection:'row',marginTop: '1rem',}}>
+        <div>
+          <h2 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', color:'#1E90FF'}}> <b> </b> SONICTILES </h2>
+        </div>
+        <div style={{backgroundColor:'aliceblue', padding:'1rem'}}>
+          <p>
+          Welcome to SonicTiles! Here you can create desired images using a tilegrid layout. <br/>
+          You are currently focused on the first tile. Press Enter to record a prompt to generate an image.<br/>
+          As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
+          </p>
+        </div>
+        <div style={{display: 'flex', flexDirection:'column'}}>
+          <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'200' }}>
+            {showInstructions ? 'Keyboard Shortcuts' : 'Keyboard Shortcuts'}
+          </button>
+        
+          <button onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'200', color:'green' }}>
+              Render Canvas
+          </button>
+        </div>
       </div>
 
+
+
       <div className='mainContainer'>
+      
         <div 
           className="leftContainer">
           <div id="tileContainer" ref={canvasRef} style={{ 
@@ -1803,7 +1819,7 @@ const speakNoTileFocusedMessage = () => {
         </div>
       
         <div className="rightContainer">
-          <h2>Canvas</h2>
+          <h4>Canvas</h4>
               <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
                   {savedImages.map((image, index) => (
                     <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
@@ -1826,25 +1842,34 @@ const speakNoTileFocusedMessage = () => {
       {showInstructions && (
       <div className="instructions" style={{fontSize: '0.8rem'}}>
 
-      <Dialog open={showInstructions} onClose={toggleInstructions} aria-labelledby="form-dialog-title">
+      <Dialog open={showInstructions} onClose={toggleInstructions} aria-labelledby="form-dialog-title" >
         <DialogTitle id="form-dialog-title">Keyboard ShortCuts</DialogTitle>
-          <DialogContent>
+          <DialogContent style= {{width: '100%'}}>
               <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
-              <ul>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>R</kbd>: Activate Radar Scan - Scans the currently focused tile for additional information.
+              <ul style={{marginTop: '0.5rem', width: '100%'}}>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
                 </li>
-                <li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>G</kbd>:Global - Descriptions about what the canvas currently looks like
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+                </li>
+                <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
                 </li>
-                <li>
+                <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
                 </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Displays detailed information about the currently selected item.
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
                 </li>
-                <li>
-                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
                 </li>
               </ul>
               <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
