@@ -16,7 +16,6 @@ import { MoonLoader } from 'react-spinners';
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RadarIcon from '@mui/icons-material/Radar';
-import SoundPlayer from './other/SoundPlayer';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 import html2canvas from 'html2canvas';
