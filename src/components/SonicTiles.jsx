@@ -21,6 +21,17 @@ export const SonicTiles = () => {
     width:  window.innerWidth * 0.35,
     height: window.innerWidth * 0.35,
   });
+
+  useEffect(() => {
+    console.log(
+      `
+      Loading Check
+      API_KEY_LOADED: ${!!apiKey}
+      Canvas Size: ${canvasSize.width}, ${canvasSize.height}
+      `
+    )
+    tileRefs.current[0].focus()
+  }, []);
   
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
@@ -126,7 +137,7 @@ export const SonicTiles = () => {
   const tileSize = parseInt(canvasSize['width']) / 10; 
 
   useEffect(() => {
-        console.log('useEffect is calling add surrounding tiles')
+    // Fix callign each time
         if (savedImages.length > 0) {
           const latestImage = savedImages[savedImages.length - 1];
           setFocusedIndex(savedImages.length - 1);
@@ -147,7 +158,7 @@ export const SonicTiles = () => {
             addSurroundingTiles(centralTile);
           }
         }
-  }, [savedImages]); // Depend on savedImages to trigger this effect
+  }, [savedImages]);
   
   
   useEffect(() => {
@@ -192,23 +203,11 @@ export const SonicTiles = () => {
   const updateImagePosition = (editingImageIndex, dx, dy) => {
     savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].canvas.x + dx
     savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].canvas.y + dy
-
-  // console.log('original, ', savedImages[editingImageIndex].canvas.x)
-  // console.log('updated saved images',savedImages)
-
-}
-
-  // ====================================
+  }
 
   const toggleInstructions = () => {
     setShowInstructions(!showInstructions);
   };
-
-
-  useEffect(() => {
-      console.log('Saved Images Updated', savedImages);
-      localStorage.setItem('images', JSON.stringify(savedImages));
-    }, [savedImages]);
 
   useEffect(() => {
     const items = [];
@@ -282,39 +281,6 @@ export const SonicTiles = () => {
           editingImageIndex !== null) {
 
             const editingImage = savedImages[editingImageIndex];
-            
-        // if (0 > savedImages[editingImageIndex].canvas.x  ||  
-        //   savedImages[editingImageIndex].canvas.x > 300 || 
-        //   0 > savedImages[editingImageIndex].canvas.y  || 
-        //   savedImages[editingImageIndex].canvas.y > 300){
-        //     speakMessage('Canvas Edge')
-        //     playSpatialThump('top')
-        //   }
-
-          // const otherImages = savedImages.filter(image => 
-          //   image.coordinate.x !== tiles[focusedIndex].x || image.coordinate.y !== tiles[focusedIndex].y
-          // console.log('Other Images', otherImages);
-        // play bump sound if the current  savedImages[editingImageIndex].canvas.x  and otherImage otherImage.canvas.x  and y are overlapping
-        
-        // const hasOverlap = otherImages.some(otherImage => {
-        //   const editingImageRight = editingImage.canvas.x + editingImage.sizeParts.width;
-        //   const editingImageBottom = editingImage.canvas.y + editingImage.sizeParts.height;
-        //   const otherImageRight = otherImage.canvas.x + otherImage.sizeParts.width;
-        //   const otherImageBottom = otherImage.canvas.y + otherImage.sizeParts.height;
-  
-        //   return editingImage.canvas.x < otherImageRight && editingImageRight > otherImage.canvas.x &&
-        //          editingImage.canvas.y < otherImageBottom && editingImageBottom > otherImage.canvas.y;
-        // });
-        
-      // console.log('HASOVERLAP', hasOverlap)
-
-      //   if (hasOverlap) {
-      //     // Play a bump sound if there is an overlap
-      //     console.log('Overlap detected, playing bump sound');
-      //     thumpRef.current.start();
-      //     // For example: playBumpSound();
-      // }
-
 
         console.log('editing Lcoation Index', editingImageIndex)
         console.log('Keyboard Editing here')
@@ -1651,47 +1617,52 @@ const speakNoTileFocusedMessage = () => {
   return (
     <div id='imageGeneration'>
 
-      <div style={{display: 'flex', flexDirection:'row',marginTop: '1rem',}}>
+      <div style={{display: 'flex', flexDirection:'row', marginTop: '1rem'}}>
         <div>
-          <h2 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', color:'#1E90FF'}}> <b> </b> SONICTILES </h2>
+          <h1 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', marginLeft:'3rem', color:'#1E90FF'}}>SONICTILES</h1>
         </div>
-        <div style={{backgroundColor:'aliceblue', padding:'1rem'}}>
+        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'60%'}}>
           <p>
-          Welcome to SonicTiles! Here you can create desired images using a tilegrid layout. <br/>
-          You are currently focused on the first tile. Press Enter to record a prompt to generate an image.<br/>
-          As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas. <br/>
-          You may have to turn off the screen reader while you are generating the image.
-          
+            Welcome to SonicTiles! Here you can create desired images using a tilegrid layout.
+            You are currently focused on the first tile. Press Enter to record a prompt to generate an image.
+            As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
+            The size of the canvas is {Math.round(canvasSize.width)} x {Math.round(canvasSize.height)}
           </p>
         </div>
-        <div style={{display: 'flex', flexDirection:'column'}}>
-          <button onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
-            {showInstructions ? 'Keyboard Shortcuts' : 'Keyboard Shortcuts'}
+        <div style={{display: 'flex', flexDirection:'column', marginLeft:'3rem'}}>
+          <button  aria-label="Review Keyboard Shortcuts" aria-expanded="false" onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
+            Keyboard Shortcuts
           </button>
-        
-          <button className='renderButton' onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'800' }}>
+          <button aria-label="Render Canvas After you have made the Image" className='renderButton' onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'800' }}>
               Render Canvas
           </button>
         </div>
       </div>
 
 
-
       <div className='mainContainer'>
       
         <div 
-          className="leftContainer">
-          <div id="tileContainer" ref={canvasRef} style={{ 
+          className="leftContainer"
+          aria-label="Left Portion of the Screen"
+          >
+          <div 
+            aria-label="Tiles Container"
+            id="tileContainer" 
+            ref={canvasRef} 
+            style={{ 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative', 
-            ...canvasSize,  }} tabIndex={0}>
+            ...canvasSize,  }} 
+            tabIndex={0}>
 
             
             {tiles.map((tile, index) => (
               <div
                 className='pixel'
+                aria-label={`Tile ${index + 1}`} 
                 autoFocus
                 ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
@@ -1740,9 +1711,12 @@ const speakNoTileFocusedMessage = () => {
         
         </div>
       
-        <div className="rightContainer">
+        <div 
+          className="rightContainer"
+          aria-label="Right Portion of the Screen"
+          >
           <h4>Canvas</h4>
-              <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
+              <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
                   {savedImages.map((image, index) => (
                     <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
                     tabIndex={0}>
@@ -1764,46 +1738,59 @@ const speakNoTileFocusedMessage = () => {
       {showInstructions && (
       <div className="instructions" style={{fontSize: '0.8rem'}}>
 
-      <Dialog open={showInstructions} onClose={toggleInstructions} aria-labelledby="form-dialog-title" >
-        <DialogTitle id="form-dialog-title">Keyboard ShortCuts</DialogTitle>
-          <DialogContent style= {{width: '100%'}}>
-              <div className="keyboard-shortcuts" style={{marginBottom: '2%'}}>
-              <ul style={{marginTop: '0.5rem', width: '100%'}}>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>G</kbd>:Global - Descriptions about what the canvas currently looks like
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
-                </li>
-              </ul>
-              <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={toggleInstructions} color="primary">
-              Close
-            </Button>
-        </DialogActions>
-      </Dialog>
-
+      <Dialog
+      open={showInstructions}
+      onClose={toggleInstructions}
+      aria-labelledby="form-dialog-title"
+      aria-describedby="keyboard-shortcuts-description"
+    >
+      <DialogTitle id="form-dialog-title">Keyboard Shortcuts</DialogTitle>
+      <DialogContent style={{width: '100%'}} aria-live="polite">
+        <div
+          className="keyboard-shortcuts"
+          style={{marginBottom: '2%'}}
+          id="keyboard-shortcuts-description"
+        >
+          <ul style={{marginTop: '0.5rem', width: '100%'}} role="list">
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>G</kbd>: Global - Descriptions about what the canvas currently looks like.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
+            </li>
+          </ul>
+          <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={toggleInstructions}
+          color="primary"
+          aria-label="Close keyboard shortcuts dialog"
+        >
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+    
     
       </div>
       )}
