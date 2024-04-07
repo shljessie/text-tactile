@@ -58,13 +58,12 @@ const TestSoundButtons = () => {
     <div>
       <h2 class="header">Test Sound Buttons</h2>
       {/* Direction Buttons */}
-      <button onClick={() => playSound('left', '')}>Play Left Sound</button>
-      <button onClick={() => playSound('right', '')}>Play Right Sound</button>
-      <button onClick={() => playSound('top', '')}>Play Top Sound</button>
-      <button onClick={() => playSound('bottom', '')}>Play Bottom Sound</button>
-      <button onClick={() => playSound('center', '')}>Play Center Sound</button>
+      <button style={{ padding :'0.5rem', fontWeight:'800' }} onClick={() => playSound('left', '')}>Play Left Sound</button>
+      <button style={{ padding :'0.5rem', fontWeight:'800' }} onClick={() => playSound('right', '')}>Play Right Sound</button>
+      <button style={{ padding :'0.5rem', fontWeight:'800' }} onClick={() => playSound('top', '')}>Play Top Sound</button>
+      <button style={{ padding :'0.5rem', fontWeight:'800' }} onClick={() => playSound('bottom', '')}>Play Bottom Sound</button>
       {/* Size Buttons */}
-      <button onClick={() => playSound('', 'big')}>Play Big Sound</button>
+      <button style={{ padding :'0.5rem', fontWeight:'800' }} onClick={() => playSound('', 'big')}>Play Big Sound</button>
       <button onClick={() => playSound('', 'medium')}>Play Medium Sound</button>
       <button onClick={() => playSound('', 'small')}>Play Small Sound</button>
     </div>

@@ -3,7 +3,6 @@ import * as Tone from 'tone';
 import { Configuration, OpenAIApi } from 'openai';
 import React, { useEffect, useRef, useState } from 'react';
 
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Button from '@mui/material/Button';
 import ClearIcon from '@mui/icons-material/Clear';
 import Dialog from '@mui/material/Dialog';
@@ -11,22 +10,18 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import InfoIcon from '@mui/icons-material/Info';
 import { MoonLoader } from 'react-spinners';
-import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import RadarIcon from '@mui/icons-material/Radar';
 import TextField from '@mui/material/TextField';
-import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
-import html2canvas from 'html2canvas';
-import imglyRemoveBackground from "@imgly/background-removal";
 import { useNavigate } from 'react-router-dom';
 
 export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
-  const [canvasSize, setCanvasSize] = useState({ width: '0%', height: '0%' }); 
-  const [openDialog, setOpenDialog] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({
+    width:  window.innerWidth * 0.35,
+    height: window.innerWidth * 0.35,
+  });
+  
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
 
@@ -81,7 +76,6 @@ export const SonicTiles = () => {
   }, [savedImages]);
 
   let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
-
   const [isPushing, setisPushing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -169,27 +163,6 @@ export const SonicTiles = () => {
     }
     
   }, []);
-
-  useEffect(() => {
-    const savedCanvasSize = JSON.parse(sessionStorage.getItem('canvasSize'));
-    tileRefs.current[0].focus();
-
-    if (savedCanvasSize) {
-      setCanvasSize(savedCanvasSize);
-    } else {
-      setOpenDialog(true);
-    }
-  }, []);
-
-  const handleClose = () => {
-    setOpenDialog(false);
-  };
-
-  const handleSave = (width, height) => {
-    setCanvasSize({ width: `${width}px`, height: `${height}px` });
-    sessionStorage.setItem('canvasSize', JSON.stringify({ width: `${width}px`, height: `${height}px` }));
-    setOpenDialog(false);
-  };
 
   const thumpRef = useRef(null);
   const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
@@ -839,19 +812,10 @@ export const SonicTiles = () => {
 
   const tileNavigation = (event, index, isRegeneration=false) => {
 
-    console.log('isRegeneration' , isRegeneration);
-    console.log('index', index);
-    console.log('tiles', tiles[index]);
-    console.log('tile X', tiles[index].x);
-    console.log('tile Y', tiles[index].y);
-
     const hasImage = savedImages.find(image => image.coordinate.x == tiles[index].x & image.coordinate.y == tiles[index].y)
     if (hasImage) {
       oldImage = hasImage;
-      console.log("OLD INDEX", oldImage)
     }
-
-    // oldImage = index; 
 
     let newIndex, direction,imageMatch, distance;
     let newX = tiles[index].x;
@@ -1502,17 +1466,6 @@ const speakNoTileFocusedMessage = () => {
     }
   };
 
-  async function removeBackground(imageURL) {
-    imglyRemoveBackground(imageURL).then((blob: Blob) => {
-      console.log('imglyRemoveBackground')
-      // The result is a blob encoded as PNG. It can be converted to an URL to be used as HTMLImage.src
-      const url = URL.createObjectURL(blob);
-      console.log('removed background', url)
-      return url
-    })
-  }
-
-
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
@@ -1697,39 +1650,6 @@ const speakNoTileFocusedMessage = () => {
  
   return (
     <div id='imageGeneration'>
-      <Dialog open={openDialog} onClose={handleClose}>
-        <DialogTitle>Set Canvas Size</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Enter the width and height for the canvas.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="width"
-            label="Canvas Width (px)"
-            type="number"
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            margin="dense"
-            id="height"
-            label="Canvas Height (px)"
-            type="number"
-            fullWidth
-            variant="standard"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            const width = document.getElementById('width').value;
-            const height = document.getElementById('height').value;
-            handleSave(width, height);
-          }}>Save</Button>
-          <Button onClick={handleClose}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
 
       <div style={{display: 'flex', flexDirection:'row',marginTop: '1rem',}}>
         <div>
