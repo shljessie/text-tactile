@@ -2,7 +2,7 @@ import * as Tone from 'tone';
 
 import { Configuration, OpenAIApi } from 'openai';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Button from '@mui/material/Button';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -16,11 +16,12 @@ import { MoonLoader } from 'react-spinners';
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RadarIcon from '@mui/icons-material/Radar';
-import SoundPlayer from './SoundPlayer';
+import SoundPlayer from './other/SoundPlayer';
 import TextField from '@mui/material/TextField';
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 import html2canvas from 'html2canvas';
 import imglyRemoveBackground from "@imgly/background-removal";
+import { useNavigate } from 'react-router-dom';
 
 export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;

@@ -23,8 +23,8 @@ const Nav = () => {
        <h3 id="mainHeader" style={{fontSize: '1rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> SONICTILES </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
-        {[ '/lab','/sonictiles', '/tiles'].map((path, index) => {
-          const labels = [ "User Study", "Final Prototype", "Past Prototype"];
+        {[ '/lab'].map((path, index) => {
+          const labels = [ "Main"];
           return (
             <li key={path} style={{ display: 'inline', marginRight: '10px' }}>
               <NavLink 
