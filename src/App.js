@@ -1,6 +1,5 @@
 import { Route, BrowserRouter as Router, Routes, Switch } from "react-router-dom"
 
-import Instructions from "./components/Instructions";
 import Nav from './components/Nav';
 import { Navigate } from "react-router-dom";
 import React from "react";
