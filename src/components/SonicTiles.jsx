@@ -1465,7 +1465,7 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `You are a graphic designer. Only create one of ${voiceText}.The background should be white. It should be in a simple minimalistic image. Remove the Background from the Image.
+          prompt: `You are a graphic designer. Only create one of ${voiceText}. Only draw thick outlines without color. It should be in a simple minimalistic graphic design. Remove the Background from the Image.
           `,
           n: 1,
         });
