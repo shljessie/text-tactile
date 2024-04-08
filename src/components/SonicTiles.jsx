@@ -127,11 +127,21 @@ export const SonicTiles = () => {
   const [sizeEditActive, setsizeEditActive] = useState(false);
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
-
-
+  
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
+
     window.speechSynthesis.speak(utterance);
+    utterance.rate = 0.9; 
+  
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        window.speechSynthesis.cancel();
+        document.removeEventListener("keydown", handleEscape);
+      }
+    };
+  
+    document.addEventListener("keydown", handleEscape);
   };
 
   const tileSize = parseInt(canvasSize['width']) / 10; 
@@ -189,7 +199,7 @@ export const SonicTiles = () => {
     
     const panner = new Tone.Panner3D({
       positionX: direction === 'left' ? -10 : direction === 'right' ? 10 : 0,
-      positionY: direction === 'up' ? 10 : direction === 'down' ? -30 : 0,
+      positionY: direction === 'up' ? 10 : direction === 'down' ? -10 : 0,
       positionZ: -1,
     }).toDestination();
 
@@ -734,7 +744,7 @@ export const SonicTiles = () => {
     
     const panner = new Tone.Panner3D({
       positionX: direction === 'left' ? -10 : direction === 'right' ? 10 : 0,
-      positionY: direction === 'up' ? 10 : direction === 'down' ? -30 : 0,
+      positionY: direction === 'up' ? 10 : direction === 'down' ? -10 : 0,
       positionZ: -1,
     }).toDestination();
 
@@ -975,7 +985,7 @@ export const SonicTiles = () => {
 };
 
 const speakNoTileFocusedMessage = () => {
-  const message = "No tile is focused.";
+  const message = "Please select a tile with an image on it.";
 
   // Check if the browser supports speech synthesis
   if ('speechSynthesis' in window) {
@@ -1033,7 +1043,7 @@ const speakNoTileFocusedMessage = () => {
             console.log('Location Edit Activated');
             console.log('Focused Index', focusedIndex);
             setlocationEditActive(true); 
-            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press Escape to exit the mode.");
+            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press the Escape Key to exit the mode.");
 
             enterLocationEditMode(focusedIndex);
 
@@ -1049,7 +1059,7 @@ const speakNoTileFocusedMessage = () => {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
           setsizeEditActive(true); 
-          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object. Press Shift to hear the size. Press Escape to exit the mode");
+          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object. Press Shift to hear the size. Press the Escape Key to exit the mode");
 
           enterSizeEditMode(focusedIndex);
 
@@ -1061,10 +1071,10 @@ const speakNoTileFocusedMessage = () => {
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'I') {
-        if (focusedIndex !== null) {
+        if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
           setinfoActive(true); 
 
-          playModeNotification("Describing Image. Press esc to stop me.", () => {
+          playModeNotification("Describing Image on Tile. Press the Escape Key to stop me.", () => {
             setFocusedIndex(focusedIndex)
             readInfo(focusedIndex);
             setFocusedIndex(focusedIndex)
@@ -1079,15 +1089,14 @@ const speakNoTileFocusedMessage = () => {
           }, 3000); 
         } else {
           speakNoTileFocusedMessage();
-          console.log("No tile is focused.");
+          console.log("There is no image on this tile.");
         }
       }  else if (e.shiftKey && e.key === 'C') {
-        if (focusedIndex !== null) {
-          console.log('Chat Activated');
+        if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y) ) {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
 
-          playModeNotification("Hey there! You can ask a question about the image to me and I will answer", () => {
+          playModeNotification("Ask a question about the image on this tile and I will answer", () => {
             setFocusedIndex(focusedIndex);
             imageChat(focusedIndex);
           });
@@ -1103,8 +1112,8 @@ const speakNoTileFocusedMessage = () => {
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'G') {
-        speakMessage('One moment looking at the canvas and thinking about how to describe it. Press ESC to stop me.')
-        fetchGPTDescription();
+        speakMessage('Describing Canvas. Press the Escape Key to stop me.')
+        fetchGlobalDescription();
       }
     };
 
@@ -1156,15 +1165,24 @@ const speakNoTileFocusedMessage = () => {
     
     const image = savedImages[imageIndex];
 
+    console.log('image.coordinate.x / canvasSize.width', image.coordinate.x / canvasSize.width)
+
     const script = `
-      The image is called ${image.name}
-      The image is a ${image.descriptions}
-      It is located ${image.coordinate.x} and ${image.coordinate.y} 
-      The size of the image is ${image.sizeParts.width}
+      The image is called ${image.name}.
+      ${image.descriptions}
+      It is located ${Math.round((image.coordinate.x / canvasSize.width)* 100) } and ${Math.round((image.coordinate.y / canvasSize.width)* 100 )} 
+      The size of the image is ${ Math.round((image.sizeParts.width/ canvasSize.width)* 100) }
     `
+
+    console.log('Read Info Script:', script)
     speakMessage(script);
 
   };
+
+  const isImageOnTile = (tileX, tileY) => {
+    return savedImages.some(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
+  };
+  
 
   const generateDescriptionPrompt = (savedImages) => {
     let descriptions = savedImages.map((img, index) => {
@@ -1175,9 +1193,7 @@ const speakNoTileFocusedMessage = () => {
   };
 
 
-  const fetchGPTDescription = async () => {
-
-    console.log('Saved Images - Global Description', savedImages);
+  const fetchGlobalDescription = async () => {
 
     generateDescriptionPrompt(savedImages)
     const controller = new AbortController();
@@ -1188,16 +1204,7 @@ const speakNoTileFocusedMessage = () => {
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
-      console.log('Operation aborted');
     };
-
-    const keyDownListener = (event) => {
-      if (event.key === "Escape") {
-        stopOperations();
-        document.removeEventListener('keydown', keyDownListener);
-      }
-    };
-    document.addEventListener('keydown', keyDownListener);
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
         headers: {
@@ -1221,9 +1228,10 @@ const speakNoTileFocusedMessage = () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    const GPTDescription =data.choices[0].message.content; 
-    console.log('Found GPT Description', GPTDescription);
-    speakMessage(GPTDescription);
+    const globalDescription =data.choices[0].message.content; 
+    
+    console.log('Global Description', globalDescription);
+    speakMessage(globalDescription);
 
   };
 
@@ -1295,7 +1303,7 @@ const speakNoTileFocusedMessage = () => {
           return 'No description available';
         }
       } catch (error) {
-        console.error('Error fetching image description:', error);
+        speakMessage('Sorry could you ask the question again?')
         return 'Error fetching description';
       }
 
@@ -1626,7 +1634,7 @@ const speakNoTileFocusedMessage = () => {
             Welcome to SonicTiles! Here you can create desired images using a tilegrid layout.
             You are currently focused on the first tile. Press Enter to record a prompt to generate an image.
             As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
-            The size of the canvas is {Math.round(canvasSize.width)} x {Math.round(canvasSize.height)}
+            The size of the canvas is 100 x 100
           </p>
         </div>
         <div style={{display: 'flex', flexDirection:'column', marginLeft:'3rem'}}>
@@ -1663,14 +1671,14 @@ const speakNoTileFocusedMessage = () => {
               <div
                 className='pixel'
                 aria-label={`Tile ${index + 1}`} 
+                aria-live="polite"
                 autoFocus
                 ref={(el) => tileRefs.current[index] = el}
                 key={tile.id}
                 onKeyDown={(event) => {
                   setFocusedIndex(index);
-
                   if(tiles>1){
-
+                    isImageOnTile(tile.x, tile.y)
                   }
                   tileNavigation(event, index, savedImages.some(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y));
                 }}
