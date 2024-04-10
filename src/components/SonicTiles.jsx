@@ -67,8 +67,8 @@ export const SonicTiles = () => {
   var element = document.getElementById("canvas");
   
   useEffect(() => {
-    const centerX = Math.round((parseInt(canvasSize['width']) / 2.1) - ((parseInt(canvasSize['width']) / 10) / 2));
-    const centerY = Math.round((parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2));
+    const centerX = Math.round((canvasSize['width'] / 2));
+    const centerY = Math.round((canvasSize['height'] / 2));
 
     setTiles([
       { id: 0, image: {}, x: centerX, y: centerY }
@@ -336,8 +336,14 @@ export const SonicTiles = () => {
           case 'ArrowLeft': 
             dx = - moveDistance;
             isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.x <=  savedImages[editingImageIndex].sizeParts.width / 2){
+            let newLeftPosition = savedImages[editingImageIndex].canvas.x + dx - (savedImages[editingImageIndex].sizeParts.width / 2);
+            console.log('x position',savedImages[editingImageIndex].canvas.x);
+            console.log('image Size', savedImages[editingImageIndex].sizeParts.width / 2);
+            console.log('left side bump',savedImages[editingImageIndex].canvas.x - (savedImages[editingImageIndex].sizeParts.width / 2))
+            if (newLeftPosition < 0) {
               thumpRef.current.start();
+              
+              savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].sizeParts.width / 2;
               outside = true;
             }else{
               playSpatialSound('left'); 
@@ -349,10 +355,12 @@ export const SonicTiles = () => {
             
           case 'ArrowRight':
             dx = moveDistance;
-            isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.x >=  Math.round((canvasSize.width) - (savedImages[editingImageIndex].sizeParts.width / 2) ) ){
-              console.log('outside right')
+            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
+            let newRightPosition = savedImages[editingImageIndex].canvas.x + dx + (savedImages[editingImageIndex].sizeParts.width / 2);
+            if (newRightPosition > canvasSize.width) {
               thumpRef.current.start();
+              // Place the image right on the right edge.
+              savedImages[editingImageIndex].canvas.x = canvasSize.width - (savedImages[editingImageIndex].sizeParts.width / 2);
               outside = true;
             }else{
               playSpatialSound('right');
@@ -364,10 +372,12 @@ export const SonicTiles = () => {
 
           case 'ArrowUp': 
             dy = -moveDistance; 
-            isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.y <= savedImages[editingImageIndex].sizeParts.width / 2 ){
-              console.log('outside up')
+            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
+            let newTopPosition = savedImages[editingImageIndex].canvas.y + dy - (savedImages[editingImageIndex].sizeParts.height / 2);
+            if (newTopPosition < 0) {
               thumpRef.current.start();
+              // Place the image right on the top edge.
+              savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].sizeParts.height / 2;
               outside = true;
             }else{
               playSpatialSound('up'); 
@@ -379,10 +389,12 @@ export const SonicTiles = () => {
             
           case 'ArrowDown': 
             dy = moveDistance;
-            isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.y >= parseInt(canvasSize.width) - savedImages[editingImageIndex].sizeParts.width / 2  ){
-              console.log('outside down')
+            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
+            let newBottomPosition = savedImages[editingImageIndex].canvas.y + dy + (savedImages[editingImageIndex].sizeParts.height / 2);
+            if (newBottomPosition > canvasSize.height) {
               thumpRef.current.start();
+              // Place the image right on the bottom edge.
+              savedImages[editingImageIndex].canvas.y = canvasSize.height - (savedImages[editingImageIndex].sizeParts.height / 2);
               outside = true;
             }else{
               playSpatialSound('down');
