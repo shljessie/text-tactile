@@ -18,10 +18,10 @@ export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
   const [canvasSize, setCanvasSize] = useState({
-    width:  window.innerWidth * 0.35,
-    height: window.innerWidth * 0.35,
+    width:  Math.round(window.innerWidth * 0.35),
+    height: Math.round(window.innerWidth * 0.35),
   });
-  const tileSize =canvasSize['width'] / 10;
+  const tileSize = Math.round(canvasSize['width'] / 10);
 
   useEffect(() => {
     console.log(
@@ -67,8 +67,8 @@ export const SonicTiles = () => {
   var element = document.getElementById("canvas");
   
   useEffect(() => {
-    const centerX = (parseInt(canvasSize['width']) / 2.1) - ((parseInt(canvasSize['width']) / 10) / 2);
-    const centerY = (parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2);
+    const centerX = Math.round((parseInt(canvasSize['width']) / 2.1) - ((parseInt(canvasSize['width']) / 10) / 2));
+    const centerY = Math.round((parseInt(canvasSize['height']) / 2) - ((parseInt(canvasSize['height']) / 10) / 2));
 
     setTiles([
       { id: 0, image: {}, x: centerX, y: centerY }
@@ -883,7 +883,10 @@ export const SonicTiles = () => {
         y1 =  tiles[index].y;
         console.log('up x1',x1)
         console.log('up y1',y1)
+        console.log('tileSize',tileSize)
         newY =  tiles[index].y - tileSize;
+        console.log('newX', newX)
+        console.log('newY', newY)
         direction = 'up';
         break;
       case 'ArrowDown':
@@ -891,7 +894,10 @@ export const SonicTiles = () => {
         y1 =  tiles[index].y;
         console.log('x1',x1)
         console.log('y1',y1)
+        console.log('tileSize',tileSize)
         newY =  tiles[index].y + tileSize;
+        console.log('newX', newX)
+        console.log('newY', newY)
         direction = 'down';
         break;
       case 'ArrowLeft':
@@ -899,7 +905,10 @@ export const SonicTiles = () => {
         y1 =  tiles[index].y;
         console.log('x1',x1)
         console.log('y1',y1)
+        console.log('tileSize',tileSize)
         newX =  tiles[index].x - tileSize;
+        console.log('newX', newX)
+        console.log('newY', newY)
         direction = 'left';
         break;
       case 'ArrowRight':
@@ -907,7 +916,10 @@ export const SonicTiles = () => {
         y1 =  tiles[index].y;
         console.log('x1',x1)
         console.log('y1',y1)
+        console.log('tileSize',tileSize)
         newX =  tiles[index].x + tileSize;
+        console.log('newX', newX)
+        console.log('newY', newY)
         direction = 'right';
         break;
       case 'Enter': 
@@ -1465,7 +1477,7 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `You are a graphic designer. Only create one of ${voiceText}. Only draw thick outlines without color. It should be in a simple minimalistic graphic design. Remove the Background from the Image.
+          prompt: `You are a minimalistic cartoon childrens graphic designer. Only create one of ${voiceText}. Only draw very thick outlines without color. Remove details on the Image. Remove the Background from the Image. Draw thick black Outlines
           `,
           n: 1,
         });
