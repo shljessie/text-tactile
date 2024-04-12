@@ -889,6 +889,7 @@ export const SonicTiles = () => {
     
     switch (event.key) {
       case 'ArrowUp':
+
         console.log('moving UP')
         console.log(' tiles[index]', tiles[index])
         x1 =  tiles[index].x;
@@ -960,13 +961,15 @@ export const SonicTiles = () => {
 
     if (imageObject !== -1 || tiles.length == 1) {
       console.log('Only One tile')
+      speakMessage(`${savedImages[imageObject].name}`)
     }else{
       if( newIndex == -1) {
         console.log('playing Spatial Thump', direction);
         playSpatialThump(direction);
-      }else{
-        console.log('playing Spatial sound', direction);
-        playSpatialSound(direction);
+      }
+      else{
+          console.log('playing Spatial sound', direction);
+          playSpatialSound(direction);
       }
     }
 
@@ -1695,7 +1698,10 @@ const speakNoTileFocusedMessage = () => {
                 onKeyDown={(event) => {
                   setFocusedIndex(index);
                   if(tiles>1){
-                    isImageOnTile(tile.x, tile.y)
+                    const currImage = isImageOnTile(tile.x, tile.y)
+                    // const currImage = savedImages.find(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y)
+                    console.log('image on TILE', currImage)
+                    speakMessage(`${currImage.name}`);
                   }
                   tileNavigation(event, index, savedImages.some(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y));
                 }}
