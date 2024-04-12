@@ -151,8 +151,7 @@ export const SonicTiles = () => {
         if (savedImages.length > 0) {
           const latestImage = savedImages[savedImages.length - 1];
           setFocusedIndex(savedImages.length - 1);
-      
-          // Find if there's an existing tile for this image
+    
           const existingTileIndex = focusedIndex;
 
           console.log('existingTileInex', existingTileIndex)
