@@ -579,19 +579,6 @@ export const SonicTiles = () => {
 
   let isPlayingSound = false;
   const synth = new Tone.Synth().toDestination();
-  const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
-  let currentNote = 0;
-
-  const playNotes = () => {
-    if (!isGeneratingImage) return;
-
-    // Play the current note and schedule the next note
-    synth.triggerAttackRelease(notes[currentNote], '8n');
-    currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
-
-    // Call playNotes again after a short delay
-    setTimeout(playNotes, 1000); 
-  };
   
   const startLoadingSound = async (voiceText) => {
     try {
@@ -606,9 +593,6 @@ export const SonicTiles = () => {
         utterance.rate = 1;
         utterance.volume = 1;
   
-        utterance.onend = () => {
-          playNotes();
-        };
         window.speechSynthesis.speak(utterance);
       } catch (innerError) {
         console.error('Error speaking the utterance:', innerError);
@@ -1432,12 +1416,6 @@ const speakNoTileFocusedMessage = () => {
     setSavedImages(updatedSavedImages);
   };
 
-  async function playImageSound(note) {
-    await Tone.start();
-    const synth = new Tone.Synth().toDestination();
-
-    synth.triggerAttackRelease(note, "8n");
-}
 
   const playNotificationSound = () => {
     try {
@@ -1460,14 +1438,6 @@ const speakNoTileFocusedMessage = () => {
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
-
-    const notes = [
-      'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
-      'C#4', 'D#4', 'F#4', 'G#4', 'A#4',
-      'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5',
-      'C#5', 'D#5', 'F#5', 'G#5', 'A#5',
-      'C6'
-    ];
 
     let centerX, centerY;
     centerX = tiles[index].x;
@@ -1499,8 +1469,6 @@ const speakNoTileFocusedMessage = () => {
 
   
         const lengthImages = savedImages.length;
-        const noteIndex = lengthImages % notes.length;
-        const note = notes[noteIndex];
         const imageSize = tileSize * 2;
 
         console.log('image size', imageSize)
@@ -1514,7 +1482,6 @@ const speakNoTileFocusedMessage = () => {
           coordinate: { x: centerX, y: centerY },
           canvas: {x: centerX, y: centerY},
           sizeParts: { width: imageSize  , height: imageSize},
-          sound: note
         }));
 
 
