@@ -16,6 +16,7 @@ app.use(cors({
     origin: 'https://main.d3onukrw5z0iwo.amplifyapp.com/' // Replace with your actual Amplify URL
 }));
 
+
 // Directory to save and serve images
 const imagesDir = path.join(__dirname, 'public', 'images');
 fs.mkdirSync(imagesDir, { recursive: true }); // Ensure the directory exists

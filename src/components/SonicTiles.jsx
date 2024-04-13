@@ -43,7 +43,7 @@ export const SonicTiles = () => {
 
     console.log('FORM DATA',formData)
 
-    fetch('https://art.alt-canvas.com//remove-background', {
+    fetch('https://art.alt-canvas.com/remove-background', {
         method: 'POST',
         body: formData // Send the form data
     })
