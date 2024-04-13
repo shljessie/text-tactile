@@ -41,7 +41,7 @@ export const SonicTiles = () => {
     const formData = new FormData();
     formData.append('image_url', imageURL); // Add the image URL to the form data
 
-    fetch('http://localhost:3001/remove-background', {
+    fetch('https://main.d3onukrw5z0iwo.amplifyapp.com/remove-background', {
         method: 'POST',
         body: formData // Send the form data
     })
