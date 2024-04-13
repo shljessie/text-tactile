@@ -29,21 +29,29 @@ function getServerIP() {
 }
 
 function getFormattedTimestamp() {
-  return new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+  const now = new Date();
+  const year = now.getFullYear(); // You might not need this.
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  return `${month}.${day}.${hours}:${minutes}:${seconds}`;
 }
+
 
 
 // Set up the log directory and file
 const logDir = path.join(__dirname, 'public', 'logs');
 fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists
-const serverIP = getServerIP();
+const serverIP = getServerIP(); // Ensure you have a function to retrieve the server IP
 const timestamp = getFormattedTimestamp();
-const logFile = path.join(logDir, `server-log-${serverIP}-${timestamp}.txt`);
+const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.txt`);
 
 
 // Function to log data to a file
 function logData(message) {
-  const time = new Date().toISOString();
+  const time = getFormattedTimestamp(); // Use the formatted timestamp
   const logMessage = `${time} - ${JSON.stringify(message)}\n`;
   fs.appendFileSync(logFile, logMessage, 'utf8');
 }
