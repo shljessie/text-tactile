@@ -5,23 +5,25 @@ const FormData = require('form-data');
 const fs = require('fs');
 const formidable = require('formidable');
 const cors = require('cors');
-const os = require('os');
 const app = express();
+const os = require('os');
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
+// Allow requests from your Amplify frontend
 app.use(cors({
-  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com', 'http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
+  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
+
 
 function getServerIP() {
   const interfaces = os.networkInterfaces();
   for (const iface of Object.values(interfaces)) {
-    for (const alias of iface) {
-      if (alias.family === 'IPv4' && !alias.internal) {
-        return alias.address.replace(/\./g, '-');
+      for (const alias of iface) {
+          if (alias.family === 'IPv4' && !alias.internal) {
+              return alias.address.replace(/\./g, '-');
+          }
       }
-    }
   }
   return 'localhost';
 }
@@ -55,6 +57,15 @@ function logData(data) {
   });
 }
 
+// Function to log data to a file asynchronously
+function logData(message) {
+  const time = getFormattedTimestamp(); // Use the formatted timestamp
+  const logEntry = { message };
+  fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
+    if (err) console.error('Error appending to log file:', err);
+  });
+}
+
 // API to receive log data
 app.post('/log-data', (req, res) => {
   logData(req.body);
@@ -71,47 +82,60 @@ process.on('exit', closeLogFile);
 process.on('SIGINT', closeLogFile);
 process.on('SIGTERM', closeLogFile);
 
-// Directory to save and serve images
-const imagesDir = path.join(__dirname, 'public', 'images');
-fs.mkdirSync(imagesDir, { recursive: true });
 
+
+app.use(cors({
+  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
+}));
+app.use(express.static(path.join(__dirname, '../build')));
 app.use('/images', express.static(imagesDir));
 app.post('/remove-background', async (req, res) => {
-  const form = new formidable.IncomingForm();
+    const form = new formidable.IncomingForm();
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error parsing form data');
-    }
-    const image_url = fields.image_url;
-    const formData = new FormData();
-    formData.append("image_url", image_url[0]);
+    form.parse(req, async (err, fields, files) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error parsing form data');
+        }
 
-    try {
-      const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
-        headers: {
-          ...formData.getHeaders(),
-          "Rm-Token": "4875dcc6-f255-4528-a564-3fa810c4c045"
-        },
-        responseType: 'arraybuffer'
-      });
-      const imageName = `processed-${Date.now()}.png`;
-      const imagePath = path.join(imagesDir, imageName);
-      fs.writeFileSync(imagePath, response.data);
-      const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
-      res.json({ imageUrl });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error processing image');
-    }
-  });
+        // console.log('Fields:', fields); // Check what's inside fields
+        const image_url = fields.image_url;
+    
+        const formData = new FormData();
+        // console.log('Appending image_url:', image_url[0]); // Verify the type and value
+        formData.append("image_url", image_url[0]);
+        formData.append("get_file", "1");
+
+        try {
+            const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
+                headers: {
+                    ...formData.getHeaders(),
+                    "Rm-Token": "4875dcc6-f255-4528-a564-3fa810c4c045"
+                },
+                responseType: 'arraybuffer'
+            });
+
+            // Generate a unique file name
+            const imageName = `processed-${Date.now()}.png`;
+            const imagePath = path.join(imagesDir, imageName);
+
+            // Save the image data to a file
+            fs.writeFileSync(imagePath, response.data);
+
+            // Generate URL to access the image
+            const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
+            res.json({ imageUrl });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error processing image');
+        }
+    });
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../build', 'index.html'));
+    res.sendFile(path.resolve(__dirname, '../build', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
