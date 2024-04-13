@@ -9,24 +9,50 @@ const app = express();
 const os = require('os');
 const PORT = process.env.PORT || 3001;
 
+let logFile = '';
+
 app.use(express.json());
 // Allow requests from your Amplify frontend
-app.use(cors({
-  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
-}));
+const corsOptions = {
+  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com', 'http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000', 'https://localhost:3000'],
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable CORS for all resources
 
 
-function getServerIP() {
-  const interfaces = os.networkInterfaces();
-  for (const iface of Object.values(interfaces)) {
-      for (const alias of iface) {
-          if (alias.family === 'IPv4' && !alias.internal) {
-              return alias.address.replace(/\./g, '-');
-          }
-      }
+app.post('/sonic', (req, res) => {
+  const uuid = req.body.uuid;
+  console.log('Received UUID:', uuid);
+
+  // Respond back to the client
+  res.status(200).json({ status: 'success', message: 'UUID received successfully', receivedUuid: uuid });
+
+  // Log the UUID to a file with a timestamp
+  const timestamp = getFormattedTimestamp();
+  const logDir = path.join(__dirname, 'public', 'logs');
+  fs.mkdirSync(logDir, { recursive: true }); // Ensure the log directory exists
+
+  // Create a file name based on UUID only (not timestamp, to avoid duplication)
+  logFile = path.join(logDir, `UUID_${uuid}.json`);
+
+  // Check if the log file already exists
+  if (!fs.existsSync(logFile)) {
+    console.log('Log file created:', logFile);
+  } else {
+    console.log('Log file already exists for UUID:', uuid);
   }
-  return 'localhost';
+});
+
+// Function to log data to a file asynchronously
+function logData(message) {
+  const time = getFormattedTimestamp(); // Use the formatted timestamp
+  const logEntry = { message };
+  fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
+    if (err) console.error('Error appending to log file:', err);
+  });
 }
+
 
 function getFormattedTimestamp() {
   const now = new Date();
@@ -38,22 +64,13 @@ function getFormattedTimestamp() {
   return `${month}.${day}_${hours}:${minutes}:${seconds}`;
 }
 
-// Set up the log directory and file
-const logDir = path.join(__dirname, 'public', 'logs');
-fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists
-const serverIP = getServerIP(); // Ensure you have a function to retrieve the server IP
-const timestamp = getFormattedTimestamp();
-const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
+// // Set up the log directory and file
+// const logDir = path.join(__dirname, 'public', 'logs');
+// fs.mkdirSync(logDir, { recursive: true }); 
+// const timestamp = getFormattedTimestamp();
+// const logFile = path.join(logDir, `UUID:${uuid}_Time:${timestamp}.json`);
 
 
-// Function to log data to a file asynchronously
-function logData(message) {
-  const time = getFormattedTimestamp(); // Use the formatted timestamp
-  const logEntry = { message };
-  fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
-    if (err) console.error('Error appending to log file:', err);
-  });
-}
 
 // API to receive log data
 app.post('/log-data', (req, res) => {

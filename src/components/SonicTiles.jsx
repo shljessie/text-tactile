@@ -12,10 +12,35 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
 import TextField from '@mui/material/TextField';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
+
+  // Generate UUID only on initial mount
+  const getUuid = () => {
+    let uuid = localStorage.getItem('uuid');
+    if (!uuid) {
+      uuid = uuidv4();
+      localStorage.setItem('uuid', uuid);
+    }
+    return uuid;
+  };
+  
+  const sendUuidToServer = async () => {
+    const uuid = getUuid();
+
+    try {
+      const response = await axios.post('https://art.alt-canvas.com/sonic', {
+        uuid: uuid, // Use the persistent UUID from localStorage
+      });
+      console.log('Server response:', response.data);
+    } catch (error) {
+      console.error('Error sending UUID to the server:', error);
+    }
+  };
 
   const [canvasSize, setCanvasSize] = useState({
     width:  Math.round(window.innerWidth * 0.35),
@@ -24,11 +49,16 @@ export const SonicTiles = () => {
   const tileSize = Math.round(canvasSize['width'] / 10);
 
   useEffect(() => {
+
+    sendUuidToServer();
+    const uuid=  localStorage.getItem('uuid');
+
     console.log(
       `
       Loading Check
       API_KEY_LOADED: ${!!apiKey}
       Canvas Size: ${canvasSize.width}, ${canvasSize.height}
+      UUID: ${uuid}
       `
     )
 
