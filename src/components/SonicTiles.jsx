@@ -362,6 +362,9 @@ export const SonicTiles = () => {
         console.log('editing Location Index', editingImageIndex)
         let dx = 0, dy = 0;
         let moveDistance =  Math.round((canvasSize.width )/ 10);
+        // const currentTime= getFormattedTimestamp()
+        const currentTime = getFormattedTimestamp()
+        
         
         switch(e.key) {
           case 'ArrowLeft': 
@@ -373,7 +376,6 @@ export const SonicTiles = () => {
             console.log('left side bump',savedImages[editingImageIndex].canvas.x - (savedImages[editingImageIndex].sizeParts.width / 2))
             if (newLeftPosition < 0) {
               thumpRef.current.start();
-              
               savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].sizeParts.width / 2;
               outside = true;
             }else{
@@ -440,6 +442,15 @@ export const SonicTiles = () => {
                 `The current image position is 
                 ${Math.round((savedImages[editingImageIndex].canvas.x / canvasSize.width)*100)} 
                 and ${Math.round((savedImages[editingImageIndex].canvas.y / canvasSize.width)*100)}`);
+
+                console.log(`${currentTime}: Checking Location Coordinate- ${focusedIndex}`);
+          
+                logEvent({
+                  time: currentTime,
+                  action: 'location_edit_info',
+                  focusedIndex: focusedIndex,
+                });
+                
               break;
               
           case 'Escape':
@@ -451,6 +462,15 @@ export const SonicTiles = () => {
             }
             speakMessage("Location mode exited");
             readLocationEdit(focusedIndex)
+            
+            console.log(`${currentTime}: Exit Location Edit- ${focusedIndex}`);
+          
+            logEvent({
+              time: currentTime,
+              action: 'location_edit_exit',
+              focusedIndex: focusedIndex,
+            });
+            
             return;
           default: 
             return;
@@ -685,7 +705,7 @@ export const SonicTiles = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    
+    const currentTime = getFormattedTimestamp()
 
     let originalWidth = savedImages[editingSizeImageIndex].sizeParts.width;
     let originalHeight = savedImages[editingSizeImageIndex].sizeParts.height;
@@ -699,6 +719,7 @@ export const SonicTiles = () => {
       case 'ArrowUp':
         scaleFactor = 1.1;
         changedFrequency = changedFrequency - 30
+        
         speakMessage('increase 10');
         break;
       case 'ArrowDown':
@@ -708,12 +729,30 @@ export const SonicTiles = () => {
         break;
       case 'Shift':
         speakMessage(`The current size is ${originalWidth} by ${originalHeight}`);
+
+        console.log(`${currentTime}: Size - Edit Info Focused Index: ${focusedIndex}`);
+          
+        logEvent({
+          time: currentTime,
+          action: 'size_edit_info',
+          focusedIndex: focusedIndex,
+        });
+        
         break;
       case 'Escape':
         setIsEditingSize(false);
         setEditingSizeImageIndex(null);
-        setFocusedIndex(focusedIndex)
+        setFocusedIndex(focusedIndex);
+        
         speakMessage("Size Edit mode exited");
+        console.log(`${currentTime}: Size - Edit Exit Focused Index: ${focusedIndex}`);
+          
+        logEvent({
+          time: currentTime,
+          action: 'size_edit_exit',
+          focusedIndex: focusedIndex,
+        });
+        
         if (tileRefs.current[focusedIndex]) {
           tileRefs.current[focusedIndex].focus();
         }
@@ -783,35 +822,6 @@ export const SonicTiles = () => {
     // Update state with new tiles, if any
     setTiles(tiles => [...tiles, ...newTiles]);
   }
-  
-  
-
-
-  const handleMouseMoveOnCanvas = (e) => {
-    if (!isDragging || draggedImageIndex === null) return;
-
-    // Calculate new coordinates based on the mouse position relative to the canvas
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left - 75; // 75 to center cursor to the image's center
-    const y = e.clientY - rect.top - 75; // Adjust based on your needs or image size
-
-    // Update the position of the dragged image in the savedImages array
-    setSavedImages((prevImages) => prevImages.map((img, index) => {
-      if (index === draggedImageIndex) {
-        return { ...img, coordinate: { x, y } };
-      }
-      return img;
-    }));
-  };
-
-  const handleMouseUpOnCanvas = (e) => {
-
-    if (!isDragging || draggedImageIndex === null) return;
-    setIsDragging(false);
-    setDraggedImageIndex(null);
-  };
-  
 
   const getSurroundingPositions = (index) => {
     console.log('tiles', tiles[index])
@@ -877,12 +887,20 @@ export const SonicTiles = () => {
     let movingIndex;
 
     let x1,x2,y1,y2;
+    const currentTime = getFormattedTimestamp();
 
     if (event.shiftKey) {
       switch (event.key) {
         case 'ArrowUp':
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y - tileSize;
+          console.log(`${currentTime}: Pushing Up - Moving Index:${index} To Index: ${movingIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'pushup',
+            focusedIndex: movingIndex,
+          });
           
           console.log('movingIndex Up',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
@@ -894,6 +912,13 @@ export const SonicTiles = () => {
           newY =  tiles[index].y + tileSize;
           console.log('movingIndex Down',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
+          console.log(`${currentTime}: Pushing Down - Moving Index:${index} To Index: ${movingIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'pushdown',
+            focusedIndex: movingIndex,
+          });
 
           break;
         case 'ArrowLeft':
@@ -904,6 +929,13 @@ export const SonicTiles = () => {
           console.log('movingIndex Left',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
           // Implement the desired Shift+ArrowLeft behavior
+          console.log(`${currentTime}: Pushing Left - Moving Index:${index} To Index: ${movingIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'pushleft',
+            focusedIndex: movingIndex,
+          });
           break;
         case 'ArrowRight':
 
@@ -912,9 +944,15 @@ export const SonicTiles = () => {
           newX = tiles[index].x + tileSize;
           console.log('movingIndex Right',movingIndex)
           pushImage(tiles[movingIndex], newX, newY);
-          // Implement the desired Shift+ArrowRight behavior
+          console.log(`${currentTime}: Pushing Right - Moving Index:${index} To Index: ${movingIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'pushright',
+            focusedIndex: movingIndex,
+          });
           break;
-        // Add cases for other keys if needed
+
       }
     }
     
@@ -969,6 +1007,25 @@ export const SonicTiles = () => {
       case 'Enter': 
         newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
         setFocusedIndex(newIndex);
+        if(isRegeneration){
+          console.log(`${currentTime}: Image Regeneration - ${newIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'image_REgeneration',
+            focusedIndex: newIndex,
+          });
+        }else{
+          console.log(`${currentTime}: Image Generation - ${newIndex}`);
+          
+          logEvent({
+            time: currentTime,
+            action: 'image_generation',
+            focusedIndex: newIndex,
+          });
+
+        }
+
         generateImage(newIndex, isRegeneration);
       default:
         return;
@@ -1108,7 +1165,7 @@ const speakNoTileFocusedMessage = () => {
           
           logEvent({
             time: currentTime,
-            action: 'radar',
+            action: 'radar_scan_start',
             focusedIndex: focusedIndex,
           });
 
@@ -1134,7 +1191,7 @@ const speakNoTileFocusedMessage = () => {
 
             logEvent({
               time: currentTime,
-              action: 'location',
+              action: 'location_edit_start',
               focusedIndex: focusedIndex,
             });
 
@@ -1160,7 +1217,7 @@ const speakNoTileFocusedMessage = () => {
 
           logEvent({
             time: currentTime,
-            action: 'size',
+            action: 'size_edit_start',
             focusedIndex: focusedIndex,
           });
           
@@ -1183,7 +1240,7 @@ const speakNoTileFocusedMessage = () => {
 
           logEvent({
             time: currentTime,
-            action: 'localInfo',
+            action: 'localInfo_start',
             focusedIndex: focusedIndex,
           });
 
@@ -1213,7 +1270,7 @@ const speakNoTileFocusedMessage = () => {
 
           logEvent({
             time: currentTime,
-            action: 'chat',
+            action: 'chat_start',
             focusedIndex: focusedIndex,
           });
 
@@ -1238,7 +1295,7 @@ const speakNoTileFocusedMessage = () => {
 
         logEvent({
           time: currentTime,
-          action: 'global',
+          action: 'globalInfo_start',
           focusedIndex: focusedIndex,
         });
         console.log(`${currentTime}: Global Information - Focused Index: ${focusedIndex}`);
