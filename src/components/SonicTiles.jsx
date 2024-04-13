@@ -34,7 +34,25 @@ export const SonicTiles = () => {
 
     tileRefs.current[0].focus()
 
+    // Add event listener for beforeunload when the component mounts
+    window.addEventListener('beforeunload', performRefreshAction);
+
+    // Remove event listener when the component unmounts
+    return () => {
+      window.removeEventListener('beforeunload', performRefreshAction);
+    };
+
   }, []);
+
+  function performRefreshAction(event) {
+    // Prevent the default dialog to show up if not necessary
+    console.log('PAGE REFRESH')
+    event.preventDefault();
+    event.returnValue = ''; // Needed for some browsers
+    logEvent({'event': 'PAGE_REFRESH'});  // Call your logEvent function
+  }
+
+
 
   const removeBackground = (imageURL, imageObject) => {
     console.log('making call');
