@@ -38,17 +38,27 @@ function getFormattedTimestamp() {
   return `${month}.${day}_${hours}:${minutes}:${seconds}`;
 }
 
+const baseLogDir = path.join(__dirname, 'public', 'logs');
+fs.mkdirSync(baseLogDir, { recursive: true });
+
 // Log directory setup
-const logDir = path.join(__dirname, 'public', 'logs');
-fs.mkdirSync(logDir, { recursive: true });
-const serverIP = getServerIP();
-const timestamp = getFormattedTimestamp();
-const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
+// const logDir = path.join(__dirname, 'public', 'logs');
+// fs.mkdirSync(logDir, { recursive: true });
+// const serverIP = getServerIP();
+// const timestamp = getFormattedTimestamp();
+// const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
 
 // Function to log data to a file asynchronously in array format
-function logData(data) {
+function logData(req, data) {
+  const ipDir = path.join(baseLogDir, req.ip.replace(/\./g, '-'));
+  if (!fs.existsSync(ipDir)) {
+    fs.mkdirSync(ipDir, { recursive: true });
+  }
+  
+  const logFile = path.join(ipDir, `log-${getFormattedTimestamp()}.json`);
   const time = getFormattedTimestamp();
-  const logEntry = [time, data.action, data.focusedIndex];
+  const logEntry = { time, ...data };
+
   fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
     if (err) console.error('Error appending to log file:', err);
   });
