@@ -7,7 +7,6 @@ const formidable = require('formidable');
 const cors = require('cors');
 const app = express();
 const os = require('os');
-const { v4: uuidv4 } = require('uuid'); 
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
@@ -15,6 +14,19 @@ app.use(express.json());
 app.use(cors({
   origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
+
+
+function getServerIP() {
+  const interfaces = os.networkInterfaces();
+  for (const iface of Object.values(interfaces)) {
+      for (const alias of iface) {
+          if (alias.family === 'IPv4' && !alias.internal) {
+              return alias.address.replace(/\./g, '-');
+          }
+      }
+  }
+  return 'localhost';
+}
 
 function getFormattedTimestamp() {
   const now = new Date();
@@ -28,10 +40,10 @@ function getFormattedTimestamp() {
 
 // Set up the log directory and file
 const logDir = path.join(__dirname, 'public', 'logs');
-fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists// Ensure you have a function to retrieve the server IP
-const uniqueIdentifier = uuidv4();  // Generate a UUID
+fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists
+const serverIP = getServerIP(); // Ensure you have a function to retrieve the server IP
 const timestamp = getFormattedTimestamp();
-const logFile = path.join(logDir, `UUID:${uniqueIdentifier}_Time:${timestamp}.json`);
+const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
 
 
 // Function to log data to a file asynchronously
