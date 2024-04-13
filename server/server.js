@@ -55,11 +55,6 @@ function logData(message) {
   });
 }
 
-// Example usage in an Express app
-const express = require('express');
-const app = express();
-app.use(express.json());
-
 app.post('/log-data', (req, res) => {
   const data = req.body;
   logData(data);
