@@ -49,7 +49,7 @@ const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
 // Function to log data to a file asynchronously
 function logData(message) {
   const time = getFormattedTimestamp(); // Use the formatted timestamp
-  const logEntry = { timestamp: time, data: message };
+  const logEntry = { message };
   fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
     if (err) console.error('Error appending to log file:', err);
   });
