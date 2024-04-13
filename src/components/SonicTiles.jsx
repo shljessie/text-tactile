@@ -41,11 +41,13 @@ export const SonicTiles = () => {
     const formData = new FormData();
     formData.append('image_url', imageURL); // Add the image URL to the form data
 
-    console.log('FORM DATA',formData)
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
     fetch('https://art.alt-canvas.com/remove-background', {
         method: 'POST',
-        body: formData // Send the form data
+        body: formData 
     })
     .then(response => response.json())
     .then(data => {

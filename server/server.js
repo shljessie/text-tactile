@@ -12,8 +12,9 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json());
 // Allow requests from your Amplify frontend
 app.use(cors({
-    origin: 'https://main.d3onukrw5z0iwo.amplifyapp.com/'
+  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
+
 
 function getServerIP() {
   const interfaces = os.networkInterfaces();
@@ -58,6 +59,9 @@ const imagesDir = path.join(__dirname, 'public', 'images');
 fs.mkdirSync(imagesDir, { recursive: true });
 
 
+app.use(cors({
+  origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
+}));
 app.use(express.static(path.join(__dirname, '../build')));
 app.use('/images', express.static(imagesDir));
 app.post('/remove-background', async (req, res) => {
@@ -81,7 +85,7 @@ app.post('/remove-background', async (req, res) => {
             const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
                 headers: {
                     ...formData.getHeaders(),
-                    "Rm-Token": "4a4f6fc2-f211-466b-b63a-17bd56024c83"
+                    "Rm-Token": "4875dcc6-f255-4528-a564-3fa810c4c045"
                 },
                 responseType: 'arraybuffer'
             });
