@@ -45,9 +45,6 @@ const serverIP = getServerIP();
 const timestamp = getFormattedTimestamp();
 const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
 
-// Initialize the log file with an array
-fs.writeFileSync(logFile, '[\n', 'utf8');
-
 // Function to log data to a file asynchronously in array format
 function logData(data) {
   const time = getFormattedTimestamp();
@@ -72,18 +69,8 @@ app.post('/log-data', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Data logged successfully' });
 });
 
-// Ensure to close the JSON array in the log file when the server process ends
-function closeLogFile() {
-  fs.appendFile(logFile, ']', 'utf8', (err) => {
-    if (err) console.error('Error closing log file:', err);
-  });
-}
-process.on('exit', closeLogFile);
-process.on('SIGINT', closeLogFile);
-process.on('SIGTERM', closeLogFile);
 
-
-
+const imagesDir = path.join(__dirname, 'public', 'images');
 app.use(cors({
   origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
