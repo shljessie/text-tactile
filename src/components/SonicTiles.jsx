@@ -173,14 +173,19 @@ export const SonicTiles = () => {
       if (event.key === "Escape") {
         window.speechSynthesis.cancel();
         document.removeEventListener("keydown", handleEscape);
-        
-        console.log(`${currentTime}: Exit Mode - Focused Index: ${focusedIndex}`);
+
+        if(isEditingLocation || isEditingSize){
+
+        }else{
+          console.log(`${currentTime}: Exit Mode - Focused Index: ${focusedIndex}`);
           
-        logEvent({
-          time: currentTime,
-          action: 'mode_exit',
-          focusedIndex: focusedIndex,
-        });
+          logEvent({
+            time: currentTime,
+            action: 'mode_exit',
+            focusedIndex: focusedIndex,
+          });
+        }
+        
       }
     };
   
