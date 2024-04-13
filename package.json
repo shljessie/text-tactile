@@ -71,7 +71,7 @@
   "devDependencies": {
     "@types/node": "^20.12.2"
   },
-  "main": "index.js",
+  "main": "server/server.js",
   "keywords": [],
   "author": "",
   "license": "ISC",

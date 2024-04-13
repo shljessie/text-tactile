@@ -8,9 +8,18 @@ const formidable = require('formidable'); // Include formidable to parse incomin
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+
+const cors = require('cors');
+
+// Allow requests from your Amplify frontend
+app.use(cors({
+    origin: 'https://main.d3onukrw5z0iwo.amplifyapp.com/' // Replace with your actual Amplify URL
+}));
+
 // Directory to save and serve images
 const imagesDir = path.join(__dirname, 'public', 'images');
 fs.mkdirSync(imagesDir, { recursive: true }); // Ensure the directory exists
+
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../build')));

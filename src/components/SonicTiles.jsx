@@ -43,7 +43,7 @@ export const SonicTiles = () => {
 
     console.log('FORM DATA',formData)
 
-    fetch('https://main.d3onukrw5z0iwo.amplifyapp.com/remove-background', {
+    fetch('http://100.24.37.30:3001/remove-background', {
         method: 'POST',
         body: formData // Send the form data
     })
