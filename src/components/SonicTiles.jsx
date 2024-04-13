@@ -41,17 +41,20 @@ export const SonicTiles = () => {
     const formData = new FormData();
     formData.append('image_url', imageURL); // Add the image URL to the form data
 
+    console.log('FORM DATA',formData)
+
     fetch('https://main.d3onukrw5z0iwo.amplifyapp.com/remove-background', {
         method: 'POST',
         body: formData // Send the form data
     })
     .then(response => response.json())
     .then(data => {
+        console.log('DaTA', data)
         console.log('Image URL:', data.imageUrl);
         imageObject.image_nbg = data.imageUrl;
-        const imageElement = document.createElement('img');
-        imageElement.src = data.imageUrl;
-        document.body.appendChild(imageElement);
+        // const imageElement = document.createElement('img');
+        // imageElement.src = data.imageUrl;
+        // document.body.appendChild(imageElement);
         // return data.imageUrl;
     })
     .catch(error => {
