@@ -38,22 +38,27 @@ function getFormattedTimestamp() {
   return `${month}.${day}_${hours}:${minutes}:${seconds}`;
 }
 
-
-
 // Set up the log directory and file
 const logDir = path.join(__dirname, 'public', 'logs');
 fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists
 const serverIP = getServerIP(); // Ensure you have a function to retrieve the server IP
 const timestamp = getFormattedTimestamp();
-const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.txt`);
+const logFile = path.join(logDir, `IP:${serverIP}_Time:${timestamp}.json`);
 
 
-// Function to log data to a file
+// Function to log data to a file asynchronously
 function logData(message) {
   const time = getFormattedTimestamp(); // Use the formatted timestamp
-  const logMessage = `${time} - ${JSON.stringify(message)}\n`;
-  fs.appendFileSync(logFile, logMessage, 'utf8');
+  const logEntry = { timestamp: time, data: message };
+  fs.appendFile(logFile, JSON.stringify(logEntry) + ',\n', 'utf8', (err) => {
+    if (err) console.error('Error appending to log file:', err);
+  });
 }
+
+// Example usage in an Express app
+const express = require('express');
+const app = express();
+app.use(express.json());
 
 app.post('/log-data', (req, res) => {
   const data = req.body;
