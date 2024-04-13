@@ -33,7 +33,33 @@ export const SonicTiles = () => {
     )
 
     tileRefs.current[0].focus()
+
   }, []);
+
+  const removeBackground = (imageURL, imageObject) => {
+    console.log('making call');
+    const formData = new FormData();
+    formData.append('image_url', imageURL); // Add the image URL to the form data
+
+    fetch('http://localhost:3001/remove-background', {
+        method: 'POST',
+        body: formData // Send the form data
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Image URL:', data.imageUrl);
+        imageObject.image_nbg = data.imageUrl;
+        const imageElement = document.createElement('img');
+        imageElement.src = data.imageUrl;
+        document.body.appendChild(imageElement);
+        // return data.imageUrl;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+
+
   
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
@@ -86,6 +112,7 @@ export const SonicTiles = () => {
   useEffect(() => {
     const serializedImages = JSON.stringify(savedImages);
     sessionStorage.setItem('savedImages', serializedImages);
+    console.log('SAVED IMAGES', savedImages);
   }, [savedImages]);
 
   let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
@@ -1519,18 +1546,21 @@ const speakNoTileFocusedMessage = () => {
           sound: note
         }));
 
+        
 
   
         for (let imageObject of imageObjects) {
           const imageURL = imageObject.url;
           console.log('imageURL', imageURL)
+          const nbg = await removeBackground(imageURL, imageObject);
           const name = await fetchImageName(imageURL);
           const description = await fetchImageDescription(imageURL);
+          console.log("Remove Background RESULT",imageObject)
+          // imageObject.image_nbg = nbg;
           imageObject.descriptions = description;
           imageObject.name = name;
         }
   
-        isGeneratingImage = false;
         stopLoadingSound();
 
         let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}.`;
@@ -1556,6 +1586,7 @@ const speakNoTileFocusedMessage = () => {
           const updatedSavedImages = [...savedImages, ...imageObjects];
           setSavedImages(updatedSavedImages);
           speechSynthesis.speak(utterance);
+          isGeneratingImage = false;
 
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
@@ -1747,20 +1778,33 @@ const speakNoTileFocusedMessage = () => {
           >
           <h4>Canvas</h4>
               <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
-                  {savedImages.map((image, index) => (
-                    <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }}
-                    tabIndex={0}>
-                      <img
-                        src={image.url}
-                        alt={`Generated Content ${index}`}
-                        style={{
-                          width: image.sizeParts.width + 'px',
-                          height: image.sizeParts.height + 'px',
-                          cursor: 'move', 
-                        }}
-                      />
-                    </div>
-                  ))}
+              {savedImages.map((image, index) => {
+                if (image.image_nbg !== '') { // Only render and log if image_nbg is not an empty string
+                    // Log the image URL here, before returning the JSX
+                    console.log(`Image for index ${index}:`, image);
+                    console.log(`Image for index ${index}:`, image.image_nbg);
+                    console.log(`Image URL for index ${index}:`, image['image_nbg']);
+            
+                    // Now return your JSX
+                    return (
+                        <div key={index} 
+                             style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }} 
+                             tabIndex={0}>
+                            <img
+                                src={image.image_nbg}
+                                alt={`Generated Content ${index}`}
+                                style={{
+                                    width: image.sizeParts.width + 'px',
+                                    height: image.sizeParts.height + 'px',
+                                    cursor: 'move', 
+                                }}
+                            />
+                        </div>
+                    );
+                }
+                return null; // Return null if image_nbg is empty
+            })}
+            
               </div>
         </div>
 
