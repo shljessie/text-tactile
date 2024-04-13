@@ -164,6 +164,7 @@ export const SonicTiles = () => {
   
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
+    const currentTime = getFormattedTimestamp();
 
     window.speechSynthesis.speak(utterance);
     utterance.rate = 0.9; 
@@ -172,6 +173,14 @@ export const SonicTiles = () => {
       if (event.key === "Escape") {
         window.speechSynthesis.cancel();
         document.removeEventListener("keydown", handleEscape);
+        
+        console.log(`${currentTime}: Exit Mode - Focused Index: ${focusedIndex}`);
+          
+        logEvent({
+          time: currentTime,
+          action: 'mode_exit',
+          focusedIndex: focusedIndex,
+        });
       }
     };
   
