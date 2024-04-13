@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const cors = require('cors');
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
