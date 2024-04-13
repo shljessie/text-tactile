@@ -1053,6 +1053,22 @@ const speakNoTileFocusedMessage = () => {
   }
 };
 
+  const logEvent = (data) => {
+    console.log('Logging event:', data);
+    localStorage.setItem('lastKeyEvent', JSON.stringify(data)); // Store locally
+
+    fetch('https://art.alt-canvas.com/log-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => console.log('Server response:', data))
+    .catch(error => console.error('Error sending data to server:', error));
+  }
+
   const playModeNotification = (message, callback) => {
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.onend = function(event) {
@@ -1064,15 +1080,25 @@ const speakNoTileFocusedMessage = () => {
   };
 
   useEffect(() => {
+    
 
     const handleKeyDown = (e) => {
+      const currentTime = new Date().toISOString();
       console.log('focused Index', focusedIndex)
+      
       if (e.shiftKey && e.key === 'R') {
         if (focusedIndex !== null) {
           console.log('Radar Scan Activated');
           console.log('Focused Index', focusedIndex);
           setRadarActive(true);
+          console.log(`${currentTime}: Radar Scan - Focused Index: ${focusedIndex}`);
           
+          logEvent({
+            time: currentTime,
+            action: 'radar',
+            focusedIndex: focusedIndex,
+          });
+
           playModeNotification("Radar Scan Activated. You will hear relative location of other objects on the canvas.", () => {
             radarScan(focusedIndex); 
           });
@@ -1091,6 +1117,16 @@ const speakNoTileFocusedMessage = () => {
           if (focusedIndex !== null  && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
             console.log('Location Edit Activated');
             console.log('Focused Index', focusedIndex);
+            console.log(`${currentTime}: Location Edit - Focused Index: ${focusedIndex}`);
+
+            logEvent({
+              time: currentTime,
+              action: 'location',
+              focusedIndex: focusedIndex,
+            });
+
+            
+            
             setlocationEditActive(true); 
             playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press the Escape Key to exit the mode.");
 
@@ -1107,6 +1143,14 @@ const speakNoTileFocusedMessage = () => {
         if (focusedIndex !== null  && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
+          console.log(`${currentTime}: Size Edit - Focused Index: ${focusedIndex}`);
+
+          logEvent({
+            time: currentTime,
+            action: 'size',
+            focusedIndex: focusedIndex,
+          });
+          
           setsizeEditActive(true); 
           playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object. Press Shift to hear the size. Press the Escape Key to exit the mode");
 
@@ -1122,6 +1166,13 @@ const speakNoTileFocusedMessage = () => {
       } else if (e.shiftKey && e.key === 'I') {
         if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
           setinfoActive(true); 
+          console.log(`${currentTime}: Local Information - Focused Index: ${focusedIndex}`);
+
+          logEvent({
+            time: currentTime,
+            action: 'localInfo',
+            focusedIndex: focusedIndex,
+          });
 
           playModeNotification("Describing Image on Tile. Press the Escape Key to stop me.", () => {
             setFocusedIndex(focusedIndex)
@@ -1144,6 +1195,14 @@ const speakNoTileFocusedMessage = () => {
         if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y) ) {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
+          console.log(`${currentTime}: Chat - Focused Index: ${focusedIndex}`);
+
+
+          logEvent({
+            time: currentTime,
+            action: 'chat',
+            focusedIndex: focusedIndex,
+          });
 
           playModeNotification("Ask a question about the image on this tile and I will answer", () => {
             setFocusedIndex(focusedIndex);
@@ -1163,6 +1222,13 @@ const speakNoTileFocusedMessage = () => {
       } else if (e.shiftKey && e.key === 'G') {
         speakMessage('Describing Canvas. Press the Escape Key to stop me.')
         fetchGlobalDescription();
+
+        logEvent({
+          time: currentTime,
+          action: 'global',
+          focusedIndex: focusedIndex,
+        });
+        console.log(`${currentTime}: Global Information - Focused Index: ${focusedIndex}`);
       }
     };
 

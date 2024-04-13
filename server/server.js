@@ -3,28 +3,63 @@ const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-const formidable = require('formidable'); // Include formidable to parse incoming form data
+const formidable = require('formidable');
+const cors = require('cors');
 const app = express();
+const os = require('os');
 const PORT = process.env.PORT || 3001;
 
-
-const cors = require('cors');
-
+app.use(express.json());
 // Allow requests from your Amplify frontend
 app.use(cors({
-    origin: 'https://main.d3onukrw5z0iwo.amplifyapp.com/' // Replace with your actual Amplify URL
+    origin: 'https://main.d3onukrw5z0iwo.amplifyapp.com/'
 }));
 
+function getServerIP() {
+  const interfaces = os.networkInterfaces();
+  for (const iface of Object.values(interfaces)) {
+      for (const alias of iface) {
+          if (alias.family === 'IPv4' && !alias.internal) {
+              return alias.address.replace(/\./g, '-');
+          }
+      }
+  }
+  return 'localhost';
+}
+
+function getFormattedTimestamp() {
+  return new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+}
+
+
+// Set up the log directory and file
+const logDir = path.join(__dirname, 'public', 'logs');
+fs.mkdirSync(logDir, { recursive: true }); // Ensure the directory exists
+const serverIP = getServerIP();
+const timestamp = getFormattedTimestamp();
+const logFile = path.join(logDir, `server-log-${serverIP}-${timestamp}.txt`);
+
+
+// Function to log data to a file
+function logData(message) {
+  const time = new Date().toISOString();
+  const logMessage = `${time} - ${JSON.stringify(message)}\n`;
+  fs.appendFileSync(logFile, logMessage, 'utf8');
+}
+
+app.post('/log-data', (req, res) => {
+  const data = req.body;
+  logData(data);
+  res.status(200).json({ status: 'success', message: 'Data logged successfully' });
+});
 
 // Directory to save and serve images
 const imagesDir = path.join(__dirname, 'public', 'images');
-fs.mkdirSync(imagesDir, { recursive: true }); // Ensure the directory exists
+fs.mkdirSync(imagesDir, { recursive: true });
 
 
-app.use(cors());
 app.use(express.static(path.join(__dirname, '../build')));
-app.use('/images', express.static(imagesDir)); // Serve images directory
-
+app.use('/images', express.static(imagesDir));
 app.post('/remove-background', async (req, res) => {
     const form = new formidable.IncomingForm();
 
