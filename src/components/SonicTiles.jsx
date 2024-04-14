@@ -1705,11 +1705,12 @@ const speakNoTileFocusedMessage = () => {
         console.log('OpenAI', openai);
         startLoadingSound(voiceText);
         
+        
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create an image of a simple ${voiceText} graphic that would go in a children's coloring book. Only draw the outer shape and do not draw any details
-          This type of drawing is often used in coloring books, instructional material, or as a stylistic choice for its simplicity and elegance. The outlines are precise, and the internal details are represented by dotted lines, suggesting texture and depth without the complexity of full shading.
-          The outlines of this drawing are very thick and the drawings are never cut off at the edges. Create only one of ${voiceText}
+          prompt: `Create an image of a SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          This type of drawing is often used in COLORING BOOK or instructional material. There should be NO DETAILS or SHADING in the drawing.
+          use VERY THICK OUTLINES and NO CUTOFF. Create ONLY ONE of ${voiceText}
           `,
           n: 1,
         });
