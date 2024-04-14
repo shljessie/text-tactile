@@ -20,7 +20,7 @@ const Nav = () => {
   return (
     <nav>
     <div className='header'>
-       <h3 id="mainHeader" style={{fontSize: '1rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> SONICTILES </h3>
+       <h3 id="mainHeader" style={{fontSize: '1rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> ALT CANVAS </h3>
     </div>
       <ul style={{ listStyleType: 'none', padding: 0, width:'150%' }}>
         {[ '/lab'].map((path, index) => {

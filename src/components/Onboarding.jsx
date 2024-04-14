@@ -116,17 +116,17 @@ const Onboarding = () => {
   return (
     <div className="onboarding-container" style={{ paddingTop: '2rem', textAlign: 'start' }}>
     <div className='header'>
-        <h3 id="mainHeader"  aria-label="SonicTiles Study Onboarding"  style={{fontSize: '1rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> SONICTILES </h3>
+        <h3 id="mainHeader"  aria-label="SonicTiles Study Onboarding"  style={{fontSize: '1.5rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> ALT CANVAS </h3>
     </div>
 
 
       <div>
-        <h2>Study Instructions & Onboarding</h2>
-        <p>In this study, we will be exploring spatial audio cues. Please ensure you have headphones on.</p>
+        <h2>Onboarding System Check</h2>
+        <p>Go through the sections below to make sure the system audio and recording work.</p>
       </div>
       <div className="spatial-sound-test">
         <h3>Test Spatial Sound</h3>
-        <p>Press the buttons below to test headphone spatial sounds. Ensure your headphones are on.</p>
+        <p>Press the buttons below to test spatial sounds.</p>
         <button aria-label="Test sound from the left" onClick={() => playSpatialSound('left')}>Left</button>
         <button aria-label="Test sound from the right" onClick={() => playSpatialSound('right')}>Right</button>
         <button aria-label="Test sound from the top" onClick={() => playSpatialSound('up')}>Top</button>
@@ -134,8 +134,8 @@ const Onboarding = () => {
       </div>
 
       <div className="audio-recording-test">
-        <h3>Test Audio Recording</h3>
-        <p>Click the button below to start or stop audio recording. Speak into your microphone.</p>
+        <h3>Test Audio Recording and System Speech</h3>
+        <p>Click the button below to start or stop audio recording.</p>
         {isRecording ? (
           <button aria-label="Stop recording" onClick={stopRecording}>Stop Recording</button>
         ) : (
@@ -146,7 +146,7 @@ const Onboarding = () => {
 
       <div className="screen-reader-check">
         <h3>Screen Reader Check</h3>
-        <p>Make sure your screen reader is enabled to navigate through the study effectively.</p>
+        <p>After pressing the start study button, please turn off your screen reader.</p>
       </div>
 
       <button id="startStudyButton" aria-label="Start the study and proceed to the main page" onClick={handleButtonClick}>Start Study</button>

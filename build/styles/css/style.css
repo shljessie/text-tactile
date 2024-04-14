@@ -98,6 +98,22 @@
   }
 }
 
+@media print {
+  body * {
+    visibility: hidden; /* Hide everything in the body by default */
+  }
+  #printableArea, #printableArea * {
+    visibility: visible; /* Only printableArea will be visible */
+  }
+  #printableArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+
+
 
 @media only screen and (max-width: 800px) {
   header h1 {

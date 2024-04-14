@@ -1874,7 +1874,7 @@ const speakNoTileFocusedMessage = () => {
         </div>
         <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'60%'}}>
           <p>
-            Welcome to SonicTiles! Here you can create desired images using a tilegrid layout.
+            Welcome to AltCanvas! Here you can create desired images using a tilegrid layout.
             You are currently focused on the first tile. Press Enter to record a prompt to generate an image.
             As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
             The size of the canvas is 100 x 100
