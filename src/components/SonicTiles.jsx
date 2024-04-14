@@ -778,7 +778,7 @@ export const SonicTiles = () => {
         speakMessage('decrease 10');
         break;
       case 'Shift':
-        speakMessage(`The current size is ${originalWidth} by ${originalHeight}`);
+        speakMessage(`The current size is ${Math.round(originalWidth / canvasSize.width)} by ${Math.round(originalHeight  / canvasSize.height)}`);
 
         console.log(`${currentTime}: Size - Edit Info Focused Index: ${focusedIndex}`);
           
@@ -1707,7 +1707,9 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `You are a minimalistic cartoon childrens graphic designer. Only create one of ${voiceText}. Only draw very thick outlines without color. Remove details on the Image. Remove the Background from the Image. Draw thick black Outlines
+          prompt: `Create an image of a simple ${voiceText} graphic that would go in a children's coloring book. Only draw the outer shape and do not draw any details
+          This type of drawing is often used in coloring books, instructional material, or as a stylistic choice for its simplicity and elegance. The outlines are precise, and the internal details are represented by dotted lines, suggesting texture and depth without the complexity of full shading.
+          The outlines of this drawing are very thick and the drawings are never cut off at the edges. Create only one of ${voiceText}
           `,
           n: 1,
         });
