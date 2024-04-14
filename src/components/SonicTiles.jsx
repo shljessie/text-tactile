@@ -13,7 +13,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
 import TextField from '@mui/material/TextField';
 import axios from 'axios';
-import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -208,18 +207,6 @@ export const SonicTiles = () => {
   const [sizeEditActive, setsizeEditActive] = useState(false);
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
-
-  const captureCanvas = async () => {
-    const canvasDiv = document.getElementById('canvas');
-    try {
-      const canvas = await html2canvas(canvasDiv);
-      const imageSrc = canvas.toDataURL('image/png');
-      console.log(imageSrc); // Logs the Base64 image data; you can also upload this image or handle it as needed
-      return imageSrc; // You might want to use this for further processing or API calls
-    } catch (error) {
-      console.error('Error capturing canvas:', error);
-    }
-  };
   
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
@@ -1443,8 +1430,6 @@ const speakNoTileFocusedMessage = () => {
 
 
   const fetchGlobalDescription = async () => {
-    const a = captureCanvas()
-    console.log(a)
 
     generateDescriptionPrompt(savedImages)
     const controller = new AbortController();
