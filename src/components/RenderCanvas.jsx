@@ -11,9 +11,27 @@ export const RenderCanvas = () => {
   const handlePrint = () => {
     window.print();
   };
+  
+  const printStyles = `
+  @media print {
+    body * {
+      visibility: hidden; /* Hide everything in the body by default */
+    }
+    #printablearea, #printablearea * {
+      visibility: visible; /* Only printableArea and its children will be visible */
+    }
+    #printablearea {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+  }
+`;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', marginTop:'none' }}>
+    <style>{printStyles}</style>
       <div>
         <button style={{ marginBottom: '10px', padding: '0.5rem', fontWeight: '200' }} onClick={handlePrint}>Print Final Image</button>
       </div>
