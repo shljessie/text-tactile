@@ -1956,7 +1956,7 @@ const [isUpdating, setIsUpdating] = useState(false);
         <p>
           Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles.
           Relative locations of images on the tiles reflect the relative locations of the canvas.
-          The size of the canvas is 100 width and 100 height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
+          The size of the canvas is {canvasSize.width} width and {canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
           After that, navigate to other tile locations and create images there.
           For more commands, press Shift+K to learn about the keyboard options and press Shift+S to go to the Render Canvas.
         </p>
