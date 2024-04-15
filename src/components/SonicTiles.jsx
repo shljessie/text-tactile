@@ -368,8 +368,6 @@ export const SonicTiles = () => {
     console.log('Toggle keyOptions', !keyOptions)
   };
 
-  
-
   useEffect(() => {
     const items = [];
     for (let i = 0; i < rows * columns; i++) {
@@ -420,15 +418,13 @@ export const SonicTiles = () => {
 
   let outside = false;
   
-  const isOverlapping = (editingImage, editingImageIndex) => {  // Add tolerance parameter with default value
-    // Destructure the position and size of the currently editing image
+  const isOverlapping = (editingImage, editingImageIndex) => { 
 
     const { x: currX, y: currY } = editingImage.canvas;
     const { width: currWidth, height: currHeight } = editingImage.sizeParts;
 
     const tolerance =  - (currWidth/ 20);
 
-    // Calculate edges for the current editing image with tolerance
     const currLeft = currX - currWidth / 2 - tolerance;
     const currRight = currX + currWidth / 2 + tolerance;
     const currTop = currY - currHeight / 2 - tolerance;
@@ -439,13 +435,11 @@ export const SonicTiles = () => {
         const { x: otherX, y: otherY } = otherImage.canvas;
         const { width: otherWidth, height: otherHeight } = otherImage.sizeParts;
 
-        // Calculate edges for the other image with tolerance
         const otherLeft = otherX - otherWidth / 2 - tolerance;
         const otherRight = otherX + otherWidth / 2 + tolerance;
         const otherTop = otherY - otherHeight / 2 - tolerance;
         const otherBottom = otherY + otherHeight / 2 + tolerance;
 
-        // Check for overlap considering the tolerance
         if (!(otherRight < currLeft ||
               otherLeft > currRight ||
               otherBottom < currTop || 
@@ -532,8 +526,6 @@ const [isUpdating, setIsUpdating] = useState(false);
             break;
 
           case 'Shift': 
-              console.log('currentX',(savedImages[editingImageIndex].canvas.x / canvasSize.width)*100 )
-              console.log('currentY',(savedImages[editingImageIndex].canvas.y / canvasSize.width)*100 )
               speakMessage(
                 `The current image position is 
                 ${savedImages[editingImageIndex].canvas.x} 
@@ -626,43 +618,32 @@ const [isUpdating, setIsUpdating] = useState(false);
       const originalPosition = originalPositionsRef.current[editingImageIndex];
   
       savedImages.forEach((otherImage, index) => {
-        if (index !== editingImageIndex) { // Skip the edited image itself
+        if (index !== editingImageIndex) {
           const otherX = otherImage.canvas.x;
           const otherY = otherImage.canvas.y;
   
-          // Detect movement direction relative to each other image
           if (originalPosition) {
-            // Movement to the left of an image
             if (editedX < otherX && originalPosition.x >= otherX) {
-              console.log(`Image ${editingImageIndex} moved to the left of image ${index}.`);
-              console.log('savedImages before grid edit', savedImages[editingImageIndex].coordinate.x);
               savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x - tileSize;
-              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
-              console.log('savedImages Data', savedImages);
 
               originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
-                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+                x: savedImages[editingImageIndex].canvas.x,
+                y: savedImages[editingImageIndex].canvas.y,
               };
               
               console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
-            // Movement to the right of an image
             if (editedX > otherX && originalPosition.x <= otherX) {
-              console.log(`Image ${editingImageIndex} moved to the right of image ${index}.`);
               console.log('savedImages before grid edit', savedImages[editingImageIndex].coordinate.x);
               savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x + tileSize;
-              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.x);
-              console.log('savedImages Data', savedImages);
-              // Now update originalPositionsRef to reflect this new position
               originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
-                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+                x: savedImages[editingImageIndex].canvas.x, 
+                y: savedImages[editingImageIndex].canvas.y,
               };
               
               console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
-            // Movement above an image
+
             if (editedY < otherY && originalPosition.y >= otherY) {
               console.log(`----------------------------------`);
               console.log(`Image ${editingImageIndex} moved above image ${index}.`);
@@ -672,13 +653,13 @@ const [isUpdating, setIsUpdating] = useState(false);
               console.log('savedImages Data', savedImages);
 
               originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
-                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+                x: savedImages[editingImageIndex].canvas.x, 
+                y: savedImages[editingImageIndex].canvas.y,
               };
               
               console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
             }
-            // Movement below an image
+
             if (editedY > otherY && originalPosition.y <= otherY) {
               console.log(`----------------------------------`);
               console.log(`Image ${editingImageIndex} moved below image ${index}.`);
@@ -688,8 +669,8 @@ const [isUpdating, setIsUpdating] = useState(false);
               console.log('savedImages Data', savedImages);
 
               originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, // Assuming canvas.x is already updated to the new position
-                y: savedImages[editingImageIndex].canvas.y, // y stays the same in this case
+                x: savedImages[editingImageIndex].canvas.x, /
+                y: savedImages[editingImageIndex].canvas.y, 
               };
               
               console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
