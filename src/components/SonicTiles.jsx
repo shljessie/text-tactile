@@ -115,28 +115,43 @@ export const SonicTiles = () => {
   function displayCurrentCommand() {
     console.log(`Current Command: ${commands[currentCommandIndex]}`);
   }
+
+  const [keyOptions, setkeyOptions] = useState(false);
+
   
   function defaultKeyOptions(event) {
+
     if (event.shiftKey && event.key === 'K') {
       console.log('Shift+K pressed');
       toggleInstructions();
+      setkeyOptions(true)
       speakMessage('Keyboard Instructions.');
       speakMessage('To Navigate through the Options use Up and Down arrow keys. There are a total of 10 commands. Press the escape key Twice to exit the mode.');
       displayCurrentCommand();
     } else if (event.shiftKey && event.key === 'D') {
       console.log('Shift+S pressed');
       renderCanvas();
-    } else if (event.keyCode === 38) { // Up arrow key
-      console.log('Up pressed');
-      currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
-      speakMessage(commands[currentCommandIndex]);
-      displayCurrentCommand();
-    } else if (event.keyCode === 40) { // Down arrow key
-      console.log('Down pressed');
-      currentCommandIndex = (currentCommandIndex + 1) % commands.length;
-      speakMessage(commands[currentCommandIndex]);
-      displayCurrentCommand();
     } 
+    
+    if(keyOptions){
+       if (event.keyCode === 38) { // Up arrow key
+        console.log('Up pressed');
+        currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
+        speakMessage(commands[currentCommandIndex]);
+        displayCurrentCommand();
+      } else if (event.keyCode === 40) { // Down arrow key
+        console.log('Down pressed');
+        currentCommandIndex = (currentCommandIndex + 1) % commands.length;
+        speakMessage(commands[currentCommandIndex]);
+        displayCurrentCommand();
+      } else if (event.keyCode === 27) { // ESC key
+        console.log('ESC pressed');
+        setkeyOptions(false)
+      } 
+
+    }
+    
+      
   }
 
   function performRefreshAction(event) {
@@ -319,7 +334,7 @@ export const SonicTiles = () => {
   useEffect(() => {
     if (apiKey) {
       const configuration = new Configuration({
-        "model": "dall-e-2",
+        "model": "dall-e-3",
         apiKey: apiKey,
         "size": "1024x1024"
       });
@@ -755,12 +770,14 @@ export const SonicTiles = () => {
   const playNotes = () => {
     if (!isGeneratingImage) return;
 
-    // Play the current note and schedule the next note
-    synth.triggerAttackRelease(notes[currentNote], '8n');
-    currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
+    if(isGeneratingImage){
+      // Play the current note and schedule the next note
+      synth.triggerAttackRelease(notes[currentNote], '8n');
+      currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
 
-    // Call playNotes again after a short delay
-    setTimeout(playNotes, 1000); 
+      // Call playNotes again after a short delay
+      setTimeout(playNotes, 1000); 
+    }
   };
   
   const startLoadingSound = async (voiceText) => {
@@ -777,10 +794,11 @@ export const SonicTiles = () => {
         utterance.volume = 1;
   
         utterance.onend = () => {
-          if(isGeneratingImage){
-            playNotes();
-          }
+          // if(isGeneratingImage){
+          //   playNotes();
+          // }
         };
+
         window.speechSynthesis.speak(utterance);
       } catch (innerError) {
         console.error('Error speaking the utterance:', innerError);
@@ -1774,6 +1792,7 @@ const speakNoTileFocusedMessage = () => {
   
       if (voiceText) {
         console.log('OpenAI', openai);
+
         startLoadingSound(voiceText);
         
         
