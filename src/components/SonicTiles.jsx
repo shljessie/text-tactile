@@ -46,8 +46,8 @@ export const SonicTiles = () => {
   }
 
   const [canvasSize, setCanvasSize] = useState({
-    width:  roundToNearest100(window.innerWidth * 0.35),
-    height: roundToNearest100(window.innerWidth * 0.35),
+    width:  roundToNearest100(window.innerWidth * 0.35)+ 100,
+    height: roundToNearest100(window.innerWidth * 0.35)+ 100,
   });
   
   const tileSize = Math.round(canvasSize['width'] / 10);
