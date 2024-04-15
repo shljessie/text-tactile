@@ -439,48 +439,46 @@ export const SonicTiles = () => {
   }
 
   let outside = false;
-
-  const isOverlapping = (editingImage, editingImageIndex) => {
+  
+  const isOverlapping = (editingImage, editingImageIndex) => {  // Add tolerance parameter with default value
     // Destructure the position and size of the currently editing image
+
     const { x: currX, y: currY } = editingImage.canvas;
-    const { width: currWidth, height: currHeight } = editingImage.sizeParts
+    const { width: currWidth, height: currHeight } = editingImage.sizeParts;
 
-    // Calculate edges for the current editing image
-    const currLeft = currX - currWidth / 2;
-    const currRight = currX + currWidth / 2;
-    const currTop = currY - currHeight / 2;
-    const currBottom = currY + currHeight / 2;
+    const tolerance =  - (currWidth/ 20);
 
+    // Calculate edges for the current editing image with tolerance
+    const currLeft = currX - currWidth / 2 - tolerance;
+    const currRight = currX + currWidth / 2 + tolerance;
+    const currTop = currY - currHeight / 2 - tolerance;
+    const currBottom = currY + currHeight / 2 + tolerance;
 
     const otherImages = savedImages.filter((_, index) => index !== editingImageIndex);
     for (let otherImage of otherImages) {
         const { x: otherX, y: otherY } = otherImage.canvas;
         const { width: otherWidth, height: otherHeight } = otherImage.sizeParts;
 
-        const otherLeft = otherX- otherWidth / 2;
-        const otherRight = otherX + otherWidth / 2 ;
-        const otherTop = otherY- otherHeight / 2;
-        const otherBottom = otherY + otherHeight / 2;
+        // Calculate edges for the other image with tolerance
+        const otherLeft = otherX - otherWidth / 2 - tolerance;
+        const otherRight = otherX + otherWidth / 2 + tolerance;
+        const otherTop = otherY - otherHeight / 2 - tolerance;
+        const otherBottom = otherY + otherHeight / 2 + tolerance;
 
-        const isleftRange = (otherLeft<currRight) && (otherLeft >currLeft)
-        const isrightRange = (otherRight<currRight) && (otherRight >currLeft)
-        const istopRange = (otherTop<currBottom) && (otherTop >currTop)
-        const isbottomRange = (otherBottom<currBottom) && (otherBottom >currTop)
-
-   
+        // Check for overlap considering the tolerance
         if (!(otherRight < currLeft ||
-        otherLeft > currRight ||
-        otherBottom < currTop || 
-        otherTop > currBottom)) {
+              otherLeft > currRight ||
+              otherBottom < currTop || 
+              otherTop > currBottom)) {
             console.log('Overlap detected with image at index', savedImages.indexOf(otherImage));
             speakMessage(`Overlapping with ${otherImage.name}`);
             thumpRef.current.start();
             return true; 
         }
-
     }
     return false;
 };
+
 
 const [isUpdating, setIsUpdating] = useState(false);
 
@@ -497,7 +495,6 @@ const [isUpdating, setIsUpdating] = useState(false);
         switch(e.key) {
           case 'ArrowLeft': 
             dx = - moveDistance;
-            isOverlapping(savedImages[editingImageIndex],editingImageIndex);
 
             if (savedImages[editingImageIndex].canvas.x <= moveDistance) {
               thumpRef.current.start();
@@ -507,13 +504,13 @@ const [isUpdating, setIsUpdating] = useState(false);
               playSpatialSound('left'); 
               speakMessage(`left ${-dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
+              isOverlapping(savedImages[editingImageIndex],editingImageIndex);
               outside = false;
             }
             break;
             
           case 'ArrowRight':
             dx = moveDistance;
-            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
             if (savedImages[editingImageIndex].canvas.x >= canvasSize.width - (moveDistance)) {
               thumpRef.current.start();
               outside = true;
@@ -521,13 +518,13 @@ const [isUpdating, setIsUpdating] = useState(false);
               playSpatialSound('right');
               speakMessage(`right ${dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
+              isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
             }
             break;
 
           case 'ArrowUp': 
             dy = -moveDistance; 
-            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
             if (savedImages[editingImageIndex].canvas.y <= moveDistance ) {
               thumpRef.current.start();
               outside = true;
@@ -535,13 +532,13 @@ const [isUpdating, setIsUpdating] = useState(false);
               playSpatialSound('up'); 
               speakMessage(`up ${-dy}`);
               updateImagePosition(editingImageIndex, dx, dy);
+              isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
             }
             break;
             
           case 'ArrowDown': 
             dy = moveDistance;
-            isOverlapping(savedImages[editingImageIndex], editingImageIndex);
             if (savedImages[editingImageIndex].canvas.y >= canvasSize.height - moveDistance) {
               thumpRef.current.start();
               outside = true;
@@ -549,6 +546,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               playSpatialSound('down');
               speakMessage(`down ${dy}`); 
               updateImagePosition(editingImageIndex, dx, dy);
+              isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
             }
             break;
@@ -1959,7 +1957,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           Relative locations of images on the tiles reflect the relative locations of the canvas.
           The size of the canvas is {canvasSize.width} width and {canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
           After that, navigate to other tile locations and create images there.
-          For more commands, press Shift+K to learn about the keyboard options and press Shift+S to go to the Render Canvas.
+          For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
         </p>
       </div>
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
