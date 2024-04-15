@@ -19,7 +19,6 @@ import { v4 as uuidv4 } from 'uuid';
 export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
-  // Generate UUID only on initial mount
   const getUuid = () => {
     let uuid = localStorage.getItem('uuid');
     if (!uuid) {
@@ -34,7 +33,7 @@ export const SonicTiles = () => {
 
     try {
       const response = await axios.post('https://art.alt-canvas.com/sonic', {
-        uuid: uuid, // Use the persistent UUID from localStorage
+        uuid: uuid,
       });
       console.log('Server response:', response.data);
     } catch (error) {
@@ -69,38 +68,15 @@ export const SonicTiles = () => {
 
     tileRefs.current[0].focus()
 
-    // Add event listener for beforeunload when the component mounts
     window.addEventListener('beforeunload', performRefreshAction);
     window.addEventListener('keydown', defaultKeyOptions);
 
-    // Remove event listener when the component unmounts
     return () => {
       window.removeEventListener('beforeunload', performRefreshAction);
       window.removeEventListener('keydown', defaultKeyOptions);
     };
 
   }, []);
-
-  const handleKeyInstructionPress = (event) => {
-    console.log('ENTERED MODE')
-    switch (event.key) {
-      case 'Enter':
-        console.log('ASK QUESTION')
-        speakMessage('Ask a question');
-        break;
-      case 'R':
-        speakMessage('Reading Instructions');
-        console.log('Read instructions');
-        break;
-      case 'Escape':
-        setShowInstructions(!showInstructions);
-        console.log('Exit instructions');
-        break;
-      default:
-        // Handle other keys or do nothing
-        break;
-      }
-  };
 
   const commands = [
     "Command One,  Enter: Generate/regenerate image on a tile",
@@ -122,7 +98,7 @@ export const SonicTiles = () => {
     console.log(`Current Command: ${commands[currentCommandIndex]}`);
   }
 
-  const [keyOptions, setkeyOptions] = useState(false);
+ let keyOptions;
 
   
   function defaultKeyOptions(event) {
@@ -130,7 +106,8 @@ export const SonicTiles = () => {
     if (event.shiftKey && event.key === 'K') {
       console.log('Shift+K pressed');
       toggleInstructions();
-      setkeyOptions(true)
+      keyOptions = true;
+      console.log('keyOptions',keyOptions);
       speakMessage('Keyboard Instructions.');
       speakMessage('To Navigate through the Options use Up and Down arrow keys. There are a total of 10 commands. Press the escape key Twice to exit the mode.');
       displayCurrentCommand();
@@ -152,7 +129,8 @@ export const SonicTiles = () => {
         displayCurrentCommand();
       } else if (event.keyCode === 27) { // ESC key
         console.log('ESC pressed');
-        setkeyOptions(false)
+        keyOptions = false
+        console.log('keyOptions', keyOptions);
       } 
 
     }
@@ -1008,6 +986,8 @@ const [isUpdating, setIsUpdating] = useState(false);
 
   const tileNavigation = (event, index, isRegeneration=false) => {
 
+    if(!keyOptions){
+
     const hasImage = savedImages.find(image => image.coordinate.x == tiles[index].x & image.coordinate.y == tiles[index].y)
     if (hasImage) {
       oldImage = hasImage;
@@ -1208,7 +1188,11 @@ const [isUpdating, setIsUpdating] = useState(false);
 
     if (imageObject !== -1 || tiles.length == 1) {
       console.log('Only One tile')
-      speakMessage(`${savedImages[imageObject].name}`)
+      if(!savedImages[imageObject]){
+        speakMessage('Press enter to generate the first image.')
+      }else{
+        speakMessage(`${savedImages[imageObject].name}`)
+      }
     }else{
       if( newIndex == -1) {
         console.log('playing Spatial Thump', direction);
@@ -1219,6 +1203,8 @@ const [isUpdating, setIsUpdating] = useState(false);
           playSpatialSound(direction);
       }
     }
+
+  }
 
   };
 
