@@ -134,7 +134,7 @@ export const SonicTiles = () => {
     } 
     
     if(keyOptions){
-       if (event.keyCode === 38) { // Up arrow key
+       gif (event.keyCode === 38) { // Up arrow key
         console.log('Up pressed');
         currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
         speakMessage(commands[currentCommandIndex]);
@@ -787,7 +787,7 @@ export const SonicTiles = () => {
       isGeneratingImage = true;
   
       try {
-        const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}.`);
+        const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
         console.log('Tone utterance', utterance);
         utterance.pitch = 1;
         utterance.rate = 1;
