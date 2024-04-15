@@ -42,10 +42,15 @@ export const SonicTiles = () => {
     }
   };
 
+  function roundToNearest100(x) {
+    return Math.round(x / 100) * 100;
+  }
+
   const [canvasSize, setCanvasSize] = useState({
-    width:  Math.round(window.innerWidth * 0.35),
-    height: Math.round(window.innerWidth * 0.35),
+    width:  roundToNearest100(window.innerWidth * 0.35),
+    height: roundToNearest100(window.innerWidth * 0.35),
   });
+  
   const tileSize = Math.round(canvasSize['width'] / 10);
 
   useEffect(() => {
@@ -309,7 +314,6 @@ export const SonicTiles = () => {
   };
 
   useEffect(() => {
-    // Fix callign each time
         if (savedImages.length > 0) {
           const latestImage = savedImages[savedImages.length - 1];
           setFocusedIndex(savedImages.length - 1);
@@ -447,76 +451,65 @@ export const SonicTiles = () => {
     const currTop = currY - currHeight / 2;
     const currBottom = currY + currHeight / 2;
 
-    // Find and iterate over other images to check for overlap
+
     const otherImages = savedImages.filter((_, index) => index !== editingImageIndex);
     for (let otherImage of otherImages) {
-        // Destructure the position and size of the other image
         const { x: otherX, y: otherY } = otherImage.canvas;
         const { width: otherWidth, height: otherHeight } = otherImage.sizeParts;
 
-        // Calculate edges for the other image
         const otherLeft = otherX- otherWidth / 2;
         const otherRight = otherX + otherWidth / 2 ;
         const otherTop = otherY- otherHeight / 2;
         const otherBottom = otherY + otherHeight / 2;
 
-        
-       // Check if the current image is to the left, right, above, or below the other image
-        // If none of these are true, then there is an overlap
         const isleftRange = (otherLeft<currRight) && (otherLeft >currLeft)
         const isrightRange = (otherRight<currRight) && (otherRight >currLeft)
         const istopRange = (otherTop<currBottom) && (otherTop >currTop)
         const isbottomRange = (otherBottom<currBottom) && (otherBottom >currTop)
 
    
-        if (!(otherRight < currLeft ||   // Other image is entirely to the left of the current image
-        otherLeft > currRight ||  // Other image is entirely to the right of the current image
-        otherBottom < currTop ||  // Other image is entirely above the current image
-        otherTop > currBottom)) { // Other image is entirely below the current image
+        if (!(otherRight < currLeft ||
+        otherLeft > currRight ||
+        otherBottom < currTop || 
+        otherTop > currBottom)) {
             console.log('Overlap detected with image at index', savedImages.indexOf(otherImage));
             speakMessage(`Overlapping with ${otherImage.name}`);
             thumpRef.current.start();
-            return true; // Indicate that an overlap was detected
+            return true; 
         }
-        
 
     }
-    // No overlaps detected
     return false;
 };
 
+const [isUpdating, setIsUpdating] = useState(false);
+
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      console.log('canvas Focused for location edit')
+    const handleKeyDownLocationEdit = (e) => {
       
-      if (isEditingLocation &&
-          editingImageIndex !== null) {
-
-            const editingImage = savedImages[editingImageIndex];
-
-        console.log('editing Location Index', editingImageIndex)
+      if (isEditingLocation && editingImageIndex !== null) {
+        const editingImage = savedImages[editingImageIndex];
         let dx = 0, dy = 0;
-        let moveDistance =  Math.round((canvasSize.width )/ 10);
-        // const currentTime= getFormattedTimestamp()
-        const currentTime = getFormattedTimestamp()
+        let moveDistance = 50;
         
+        console.log('move Distance', moveDistance)
+        console.log('relative Image Size', Math.round((savedImages[editingImageIndex].sizeParts.width)/ canvasSize.width) * 100);
+        const imageWidth =  Math.round((savedImages[editingImageIndex].sizeParts.width)/ canvasSize.width) * 100;
+        const currentTime = getFormattedTimestamp()
         
         switch(e.key) {
           case 'ArrowLeft': 
             dx = - moveDistance;
             isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            let newLeftPosition = savedImages[editingImageIndex].canvas.x + dx - (savedImages[editingImageIndex].sizeParts.width / 2);
-            console.log('x position',savedImages[editingImageIndex].canvas.x);
-            console.log('image Size', savedImages[editingImageIndex].sizeParts.width / 2);
-            console.log('left side bump',savedImages[editingImageIndex].canvas.x - (savedImages[editingImageIndex].sizeParts.width / 2))
-            if (newLeftPosition < 0) {
+            let newLeftPosition = savedImages[editingImageIndex].canvas.x + dx;
+            if (newLeftPosition <= 10) {
               thumpRef.current.start();
               savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].sizeParts.width / 2;
               outside = true;
             }else{
               playSpatialSound('left'); 
-              speakMessage('left 10');
+              speakMessage(`left ${dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
@@ -533,7 +526,7 @@ export const SonicTiles = () => {
               outside = true;
             }else{
               playSpatialSound('right');
-              speakMessage('right 10'); 
+              speakMessage(`right ${dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
@@ -550,7 +543,7 @@ export const SonicTiles = () => {
               outside = true;
             }else{
               playSpatialSound('up'); 
-              speakMessage('up 10'); 
+              speakMessage(`up ${dy}`);
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
@@ -567,13 +560,15 @@ export const SonicTiles = () => {
               outside = true;
             }else{
               playSpatialSound('down');
-              speakMessage('down 10');  
+              speakMessage(`down ${dy}`); 
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
             break;
 
           case 'Shift': 
+              console.log('currentX',(savedImages[editingImageIndex].canvas.x / canvasSize.width)*100 )
+              console.log('currentY',(savedImages[editingImageIndex].canvas.y / canvasSize.width)*100 )
               speakMessage(
                 `The current image position is 
                 ${Math.round((savedImages[editingImageIndex].canvas.x / canvasSize.width)*100)} 
@@ -643,11 +638,11 @@ export const SonicTiles = () => {
     };
 
     if (isEditingLocation) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDownLocationEdit);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDownLocationEdit);
     };
   }, [isEditingLocation]);
 

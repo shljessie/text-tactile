@@ -105,7 +105,7 @@ app.post('/remove-background', async (req, res) => {
             const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
                 headers: {
                     ...formData.getHeaders(),
-                    "Rm-Token": "4875dcc6-f255-4528-a564-3fa810c4c045"
+                    "Rm-Token": "74CAD990-738E-B276-5ACB-E1AFD5049E3D"
                 },
                 responseType: 'arraybuffer'
             });
