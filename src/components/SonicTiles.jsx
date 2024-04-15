@@ -991,13 +991,15 @@ const [isUpdating, setIsUpdating] = useState(false);
 
   const pushImage = (movingTile, newX, newY) => {
 
-    console.log('pushImage is calling add syrroudning')
-    addSurroundingTiles(movingTile);
     const findImageIndex = savedImages.findIndex(image => image.coordinate.x == movingTile.x && image.coordinate.y == movingTile.y);
     const pushImage = savedImages[findImageIndex];
 
     pushImage.coordinate.x = newX;
     pushImage.coordinate.y = newY;
+
+    const centralTile = tiles.find(tile => tile.x == newX && tile.y == newY )
+
+    addSurroundingTiles(centralTile)
 
     console.log('pushImage', pushImage);
   }
@@ -1014,7 +1016,7 @@ const [isUpdating, setIsUpdating] = useState(false);
     let newIndex, direction,imageMatch, distance;
     let newX = tiles[index].x;
     let newY = tiles[index].y;
-    let movingIndex, targetTile;
+    let movingIndex, targetTile,targetIndex;
 
     let x1,x2,y1,y2;
     const currentTime = getFormattedTimestamp();
@@ -1026,6 +1028,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y - tileSize;
           targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           console.log('targetTile',targetTile);
           if(targetTile){
             speakMessage('There is an image in the tile above. Push the Image above first.')
@@ -1050,6 +1053,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
           targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           console.log('targetTile',targetTile);
           if(targetTile){
             speakMessage('There is an image in the tile below. Push the Image below first.')
@@ -1072,6 +1076,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x - tileSize;
           targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the left. Push the Image left first.')
           }
@@ -1092,6 +1097,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x + tileSize;
           targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the right. Push the Image right first.')
           }
