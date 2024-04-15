@@ -559,7 +559,9 @@ const [isUpdating, setIsUpdating] = useState(false);
               speakMessage(
                 `The current image position is 
                 ${savedImages[editingImageIndex].canvas.x} 
-                and ${savedImages[editingImageIndex].canvas.y}`);
+                and ${savedImages[editingImageIndex].canvas.y}
+                
+                `);
 
                 console.log(`${currentTime}: Checking Location Coordinate- ${focusedIndex}`);
           
@@ -851,7 +853,7 @@ const [isUpdating, setIsUpdating] = useState(false);
         speakMessage('decrease 10');
         break;
       case 'Shift':
-        speakMessage(`The current size is ${Math.round(originalWidth / canvasSize.width)} by ${Math.round(originalHeight  / canvasSize.height)}`);
+        speakMessage(`The current size is ${savedImages[editingSizeImageIndex].sizeParts.width} by ${savedImages[editingSizeImageIndex].sizeParts.height}`);
 
         console.log(`${currentTime}: Size - Edit Info Focused Index: ${focusedIndex}`);
           
@@ -1798,7 +1800,7 @@ const [isUpdating, setIsUpdating] = useState(false);
 
   
         const lengthImages = savedImages.length;
-        const imageSize = tileSize * 2;
+        const imageSize = 100;
 
         console.log('image size', imageSize)
   
