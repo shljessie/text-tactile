@@ -1954,6 +1954,9 @@ const [isUpdating, setIsUpdating] = useState(false);
           The size of the canvas is {canvasSize.width} width and {canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
           After that, navigate to other tile locations and create images there.
           For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
+
+          <br/>
+          UUID: {getUuid()}
         </p>
       </div>
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
