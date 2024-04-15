@@ -1256,7 +1256,7 @@ export const SonicTiles = () => {
 };
 
 const speakNoTileFocusedMessage = () => {
-  const message = "Please select a tile with an image on it.";
+  const message = "There is no image on this tile";
 
   // Check if the browser supports speech synthesis
   if ('speechSynthesis' in window) {
