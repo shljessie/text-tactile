@@ -505,7 +505,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               
             }else{
               playSpatialSound('left'); 
-              speakMessage(`left ${dx}`);
+              speakMessage(`left ${-dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
@@ -533,7 +533,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               outside = true;
             }else{
               playSpatialSound('up'); 
-              speakMessage(`up ${dy}`);
+              speakMessage(`up ${-dy}`);
               updateImagePosition(editingImageIndex, dx, dy);
               outside = false;
             }
@@ -1332,7 +1332,8 @@ const [isUpdating, setIsUpdating] = useState(false);
             });
 
             setlocationEditActive(true); 
-            playModeNotification("Location Edit.  Use arrow keys to edit the location. Press Shift to hear the coordiantes.");
+            const imageIndex = savedImages.findIndex(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
+            playModeNotification(`Location Edit.  Use arrow keys to edit the location. Press Shift to hear the coordinates. The image is located in ${savedImages[imageIndex].canvas.x} and ${savedImages[imageIndex].canvas.y} on the  ${canvasSize.width} by  ${canvasSize.height} canvas`);
 
             enterLocationEditMode(focusedIndex);
 
@@ -2052,7 +2053,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           className="rightContainer"
           aria-label="Right Portion of the Screen"
           >
-          <h4>Canvas</h4>
+          <h4>Canvas {canvasSize.width} x {canvasSize.height}</h4>
               <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
               {savedImages.map((image, index) => {
                 if (image.image_nbg !== '') { // Only render and log if image_nbg is not an empty string
