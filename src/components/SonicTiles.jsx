@@ -840,17 +840,26 @@ const [isUpdating, setIsUpdating] = useState(false);
     let scaleFactor = 1;
     console.log('Size Editing Index',editingSizeImageIndex);
 
+    // if original Width is not smaller than 50 and larger than canvasSize.width /2
+
     switch (e.key) {
       case 'ArrowUp':
-        scaleFactor = 1.1;
-        changedFrequency = changedFrequency - 30
-        
-        speakMessage('increase 10');
+        if(originalWidth >= canvasSize.width / 2){
+          speakMessage('Max Size Reached')
+        }else{
+          scaleFactor = 1.1;
+          changedFrequency = changedFrequency - 30
+          speakMessage('increase 10');
+        }
         break;
       case 'ArrowDown':
-        scaleFactor = 0.9;
-        changedFrequency = changedFrequency + 30
-        speakMessage('decrease 10');
+        if (originalWidth <= 50){
+          speakMessage('Min Size Reached')
+        } else{
+          scaleFactor = 0.9;
+          changedFrequency = changedFrequency + 30
+          speakMessage('decrease 10');
+        }
         break;
       case 'Shift':
         speakMessage(`The current size is ${savedImages[editingSizeImageIndex].sizeParts.width} by ${savedImages[editingSizeImageIndex].sizeParts.height}`);
