@@ -669,7 +669,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               console.log('savedImages Data', savedImages);
 
               originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, /
+                x: savedImages[editingImageIndex].canvas.x,
                 y: savedImages[editingImageIndex].canvas.y, 
               };
               
