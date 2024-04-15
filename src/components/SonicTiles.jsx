@@ -1527,8 +1527,8 @@ const [isUpdating, setIsUpdating] = useState(false);
     const script = `
       The image is called ${image.name}.
       ${image.descriptions}
-      It is located ${Math.round((image.coordinate.x / canvasSize.width)* 100) } and ${Math.round((image.coordinate.y / canvasSize.width)* 100 )} 
-      The size of the image is ${ Math.round((image.sizeParts.width/ canvasSize.width)* 100) }
+      It is located ${image.coordinate.x} and ${image.coordiante.y} 
+      The size of the image is ${image.sizeParts.width} in width and  ${image.sizeParts.height} in height
     `
 
     console.log('Read Info Script:', script)
