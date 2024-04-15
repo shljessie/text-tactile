@@ -1870,9 +1870,9 @@ const speakNoTileFocusedMessage = () => {
 
       <div style={{display: 'flex', flexDirection:'row', marginTop: '1rem'}}>
         <div>
-          <h1 id="mainHeader" style={{ width:'20%',fontSize: '1rem', marginTop: '1rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
+          <h1 id="mainHeader" style={{ width:'20%',fontSize: '1.2rem', marginTop: '1rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
         </div>
-        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'70%'}}>
+        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'70%', fontSize:'0.9rem'}}>
           <p>
           Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles. 
           Relative locations of images on the tiles reflect the relative locations of the canvas.
@@ -1882,7 +1882,7 @@ const speakNoTileFocusedMessage = () => {
 
           </p>
         </div>
-        <div style={{display: 'flex', flexDirection:'column', width:'11%'}}>
+        <div style={{display: 'flex', flexDirection:'column', width:'10%', marginLeft:'2rem'}}>
           <button  aria-label="Review Keyboard Shortcuts" aria-expanded="false" onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
             Keyboard Shortcuts
           </button>
