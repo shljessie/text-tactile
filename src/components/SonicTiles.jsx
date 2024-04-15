@@ -1255,26 +1255,6 @@ export const SonicTiles = () => {
     }
 };
 
-const speakNoTileFocusedMessage = () => {
-  const message = "There is no image on this tile";
-
-  // Check if the browser supports speech synthesis
-  if ('speechSynthesis' in window) {
-    // Create a new instance of SpeechSynthesisUtterance
-    const utterance = new SpeechSynthesisUtterance(message);
-
-    // Optional: Configure the utterance properties
-    utterance.lang = 'en-US'; // Set the language
-    utterance.rate = 1; // Set the speed, can be from 0.1 to 10
-    utterance.pitch = 1; // Set the pitch, can be from 0 to 2
-
-    // Speak the utterance
-    window.speechSynthesis.speak(utterance);
-  } else {
-    console.log("Speech synthesis not supported in this browser.");
-  }
-};
-
   const logEvent = (data) => {
     console.log('Logging event:', data);
     localStorage.setItem('lastKeyEvent', JSON.stringify(data)); // Store locally
@@ -1343,7 +1323,7 @@ const speakNoTileFocusedMessage = () => {
             setRadarActive(false);
         }, 3000); 
         } else {
-          speakNoTileFocusedMessage();
+          speakMessage('There is no image on this tile.');
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'L') {
@@ -1367,7 +1347,7 @@ const speakNoTileFocusedMessage = () => {
               setlocationEditActive(false);
             }, 3000); 
           } else {
-            speakNoTileFocusedMessage();
+            speakMessage('There is no image on this tile.');
             console.log("No tile is focused.");
           }
       } else if (e.shiftKey && e.key === 'S') {
@@ -1391,7 +1371,7 @@ const speakNoTileFocusedMessage = () => {
             setsizeEditActive(false);
           }, 3000); 
         } else {
-          speakNoTileFocusedMessage();
+          speakMessage('There is no image on this tile.');
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'I') {
@@ -1419,7 +1399,7 @@ const speakNoTileFocusedMessage = () => {
             setinfoActive(false);
           }, 3000); 
         } else {
-          speakNoTileFocusedMessage();
+          speakMessage('There is no image on this tile.');
           console.log("There is no image on this tile.");
         }
       }  else if (e.shiftKey && e.key === 'C') {
@@ -1447,7 +1427,7 @@ const speakNoTileFocusedMessage = () => {
             setchatActive(false);
           }, 3000); 
         } else {
-          speakNoTileFocusedMessage();
+          speakMessage('There is no image on this tile.');
           console.log("No tile is focused.");
         }
       } else if (e.shiftKey && e.key === 'G') {
