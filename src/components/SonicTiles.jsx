@@ -107,7 +107,8 @@ export const SonicTiles = () => {
     "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
     "Command Eight, Shift + D as in Dog: Render Final Canvas",
     "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
-    "Command Ten, Escape: Exit any mode"
+    "Command Ten, Shift + X as Xylophone: Delete Image,  
+    "Command Eleven, Escape: Exit any mode"
   ];
 
   let currentCommandIndex = 0;
@@ -950,12 +951,12 @@ export const SonicTiles = () => {
     ];
   
     const newTiles = positions.map((pos, index) => ({
-      id: tiles.length + index, // This might need adjustment if you're filtering out tiles
+      id: tiles.length + index,
       image: {},
       x: centralTile.x + pos.dx,
       y: centralTile.y + pos.dy,
     })).filter(newTile => 
-      // Check if a tile with the same x and y already exists
+
       !tiles.some(tile => tile.x === newTile.x && tile.y === newTile.y)
     );
   
@@ -1218,6 +1219,28 @@ export const SonicTiles = () => {
     }
   };
 
+  const deleteImage = (gridIndex) => {
+    if (gridIndex !== -1) {
+      const tileX = tiles[gridIndex].x;
+      const tileY = tiles[gridIndex].y;
+  
+      // Update tiles to remove the image reference
+      setTiles((prevTiles) => {
+        const newTiles = [...prevTiles];
+        newTiles[gridIndex] = { ...newTiles[gridIndex], image: {} };
+        return newTiles;
+      });
+  
+      // Filter out the image from savedImages
+      setSavedImages((prevImages) => {
+        return prevImages.filter(image =>
+          image.coordinate.x !== tileX || image.coordinate.y !== tileY
+        );
+      });
+    }
+  };
+  
+
   const enterSizeEditMode = (gridIndex) => {
 
     console.log('Size Edit grid index', gridIndex);
@@ -1335,8 +1358,6 @@ const speakNoTileFocusedMessage = () => {
               focusedIndex: focusedIndex,
             });
 
-            
-            
             setlocationEditActive(true); 
             playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press the Escape Key to exit the mode.");
 
@@ -1439,6 +1460,18 @@ const speakNoTileFocusedMessage = () => {
           focusedIndex: focusedIndex,
         });
         console.log(`${currentTime}: Global Information - Focused Index: ${focusedIndex}`);
+      }
+      else if (e.shiftKey && e.key === 'X') {
+        speakMessage('Deleted Image on Tile.')
+        deleteImage(focusedIndex)
+
+        logEvent({
+          time: currentTime,
+          action: 'delete_image',
+          focusedIndex: focusedIndex,
+        });
+        
+        console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
     };
 
@@ -2116,6 +2149,9 @@ const speakNoTileFocusedMessage = () => {
             </li>
             <li style={{marginBottom: '2%'}} role="listitem">
               <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
+            </li>
+            <li style={{marginBottom: '2%'}} role="listitem">
+              <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Press Shift+X to delete an Image
             </li>
             <li style={{marginBottom: '2%'}} role="listitem">
               <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
