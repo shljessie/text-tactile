@@ -134,7 +134,7 @@ export const SonicTiles = () => {
     } 
     
     if(keyOptions){
-       gif (event.keyCode === 38) { // Up arrow key
+       if (event.keyCode === 38) { // Up arrow key
         console.log('Up pressed');
         currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
         speakMessage(commands[currentCommandIndex]);
