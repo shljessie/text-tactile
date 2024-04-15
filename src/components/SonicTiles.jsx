@@ -1868,29 +1868,30 @@ const speakNoTileFocusedMessage = () => {
   return (
     <div id='imageGeneration'>
 
-      <div style={{display: 'flex', flexDirection:'row', marginTop: '1rem'}}>
-        <div>
-          <h1 id="mainHeader" style={{ width:'20%',fontSize: '1.2rem', marginTop: '1rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
-        </div>
-        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'70%', fontSize:'0.9rem'}}>
-          <p>
-          Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles. 
-          Relative locations of images on the tiles reflect the relative locations of the canvas.
-          The size of the canvas is 100 width and 100 height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep. 
-          After that navigate to other tile locations and create images there. 
-          For more commands, press Shift+K to learn about the keyboard options.
-
-          </p>
-        </div>
-        <div style={{display: 'flex', flexDirection:'column', width:'10%', marginLeft:'2rem'}}>
-          <button  aria-label="Review Keyboard Shortcuts" aria-expanded="false" onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
-            Keyboard Shortcuts
-          </button>
-          <button aria-label="Render Canvas After you have made the Image" className='renderButton' onClick={handleButtonClick} style={{padding :'0.5rem', fontWeight:'800' }}>
-              Render Canvas
-          </button>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '1rem', alignItems: 'center' }}>
+      <div style={{ flexGrow: 1, marginLeft: '2%' }}>
+        <h1 id="mainHeader" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
       </div>
+      <div aria-live="polite" style={{ flexGrow: 3, backgroundColor: 'aliceblue', padding: '1rem', margin: '0 1rem', fontSize: '0.9rem' }}>
+        <p>
+          Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles.
+          Relative locations of images on the tiles reflect the relative locations of the canvas.
+          The size of the canvas is 100 width and 100 height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
+          After that, navigate to other tile locations and create images there.
+          For more commands, press Shift+K to learn about the keyboard options.
+        </p>
+      </div>
+      <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
+        <button aria-label="Review keyboard shortcuts" aria-expanded="false" onClick={toggleInstructions}>
+          Keyboard Shortcuts
+        </button>
+        <button aria-label="Render canvas after you have made the image" className='renderButton' onClick={handleButtonClick}>
+          Render Canvas
+        </button>
+      </div>
+    </div>
+  
+
 
 
       <div className='mainContainer'>
