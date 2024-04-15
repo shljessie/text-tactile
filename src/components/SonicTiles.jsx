@@ -1332,7 +1332,7 @@ const [isUpdating, setIsUpdating] = useState(false);
             });
 
             setlocationEditActive(true); 
-            playModeNotification("Location Edit Mode. Press the arrow keys to edit the location of the object. Press Shift to hear the coordiantes. Press the Escape Key to exit the mode.");
+            playModeNotification("Location Edit.  Use arrow keys to edit the location. Press Shift to hear the coordiantes.");
 
             enterLocationEditMode(focusedIndex);
 
@@ -1356,7 +1356,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           });
           
           setsizeEditActive(true); 
-          playModeNotification("Size Edit Mode. Press the up down arrow keys to edit the size of the object. Press Shift to hear the size. Press the Escape Key to exit the mode");
+          playModeNotification("Size Edit. Use up down arrow keys to edit the size. Press Shift to hear size Info.");
 
           enterSizeEditMode(focusedIndex);
 
