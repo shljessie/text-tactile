@@ -35,7 +35,7 @@ export const RenderCanvas = () => {
       <div>
         <button style={{ marginBottom: '10px', padding: '0.5rem', fontWeight: '200' }} onClick={handlePrint}>Print Final Image</button>
       </div>
-        <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
+        <div id="canvas" ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: 'none', boxShadow: 'none' }} tabIndex={0}>
         <div id="printablearea">
           {savedImages.map((image, index) => (
             <div key={index} style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }} tabIndex={0}>
