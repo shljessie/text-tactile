@@ -1870,7 +1870,7 @@ const speakNoTileFocusedMessage = () => {
 
       <div style={{display: 'flex', flexDirection:'row', marginTop: '1rem'}}>
         <div>
-          <h1 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', marginLeft:'3rem', color:'#1E90FF'}}>SONICTILES</h1>
+          <h1 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
         </div>
         <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'60%'}}>
           <p>
