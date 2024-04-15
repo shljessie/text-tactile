@@ -1798,9 +1798,9 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create ONLY ONE of a SIMPLE ZOOMED OUT ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          prompt: `Create ONLY ONE of a SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
           This type of drawing is often used in COLORING BOOK or instructional material. There should be NO DETAILS or SHADING in the drawing.
-          use VERY THICK OUTLINES and the image is ZOOMED OUT. Create ONLY ONE of ${voiceText}
+          use VERY THICK OUTLINES and REMOVE DETAILS. Create ONLY ONE of ${voiceText}
           `,
           n: 1,
         });
