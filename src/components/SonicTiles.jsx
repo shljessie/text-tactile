@@ -990,8 +990,6 @@ const [isUpdating, setIsUpdating] = useState(false);
   };
 
   const pushImage = (movingTile, newX, newY) => {
-    console.log('movingTile', movingTile)
-    console.log('movingTileX', movingTile.x)
 
     console.log('pushImage is calling add syrroudning')
     addSurroundingTiles(movingTile);
@@ -1016,7 +1014,7 @@ const [isUpdating, setIsUpdating] = useState(false);
     let newIndex, direction,imageMatch, distance;
     let newX = tiles[index].x;
     let newY = tiles[index].y;
-    let movingIndex;
+    let movingIndex, targetTile;
 
     let x1,x2,y1,y2;
     const currentTime = getFormattedTimestamp();
@@ -1024,65 +1022,88 @@ const [isUpdating, setIsUpdating] = useState(false);
     if (event.shiftKey) {
       switch (event.key) {
         case 'ArrowUp':
+
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y - tileSize;
-          console.log(`${currentTime}: Pushing Up - Moving Index:${index} To Index: ${movingIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'pushup',
-            focusedIndex: movingIndex,
-          });
-          
-          console.log('movingIndex Up',movingIndex)
-          pushImage(tiles[movingIndex], newX, newY);
+          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          console.log('targetTile',targetTile);
+          if(targetTile){
+            speakMessage('There is an image in the tile above. Push the Image above first.')
+          }else{
+            console.log('movingIndex up',movingIndex)
+            pushImage(tiles[movingIndex], newX, newY);
+            console.log(`${currentTime}: Pushing UP - Moving Index: ${movingIndex}`);
+            
+            logEvent({
+              time: currentTime,
+              action: 'pushup',
+              focusedIndex: movingIndex,
+            });
+          }
+
           break;
+          
 
         case 'ArrowDown':
 
+
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newY =  tiles[index].y + tileSize;
-          console.log('movingIndex Down',movingIndex)
-          pushImage(tiles[movingIndex], newX, newY);
-          console.log(`${currentTime}: Pushing Down - Moving Index:${index} To Index: ${movingIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'pushdown',
-            focusedIndex: movingIndex,
-          });
+          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          console.log('targetTile',targetTile);
+          if(targetTile){
+            speakMessage('There is an image in the tile below. Push the Image below first.')
+          }else{
+            pushImage(tiles[movingIndex], newX, newY);
+            console.log(`${currentTime}: Pushing DOwn - Moving Index: ${movingIndex}`);
+            
+            logEvent({
+              time: currentTime,
+              action: 'pushdown',
+              focusedIndex: movingIndex,
+            });
+          }
 
           break;
+
+
         case 'ArrowLeft':
 
-      
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
           newX =  tiles[index].x - tileSize;
-          console.log('movingIndex Left',movingIndex)
-          pushImage(tiles[movingIndex], newX, newY);
-          // Implement the desired Shift+ArrowLeft behavior
-          console.log(`${currentTime}: Pushing Left - Moving Index:${index} To Index: ${movingIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'pushleft',
-            focusedIndex: movingIndex,
-          });
+          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          if(targetTile){
+            speakMessage('There is an image in the tile to the left. Push the Image left first.')
+          }
+          else{
+            pushImage(tiles[movingIndex], newX, newY);
+            console.log(`${currentTime}: Pushing left - Moving Index: ${movingIndex}`);
+            logEvent({
+              time: currentTime,
+              action: 'pushleft',
+              focusedIndex: movingIndex,
+            });
+          }
           break;
+
+
         case 'ArrowRight':
 
-      
           movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
-          newX = tiles[index].x + tileSize;
-          console.log('movingIndex Right',movingIndex)
-          pushImage(tiles[movingIndex], newX, newY);
-          console.log(`${currentTime}: Pushing Right - Moving Index:${index} To Index: ${movingIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'pushright',
-            focusedIndex: movingIndex,
-          });
+          newX =  tiles[index].x + tileSize;
+          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
+          if(targetTile){
+            speakMessage('There is an image in the tile to the right. Push the Image right first.')
+          }
+          else{
+            pushImage(tiles[movingIndex], newX, newY);
+            console.log(`${currentTime}: Pushing Right - Moving Index: ${movingIndex}`);
+            logEvent({
+              time: currentTime,
+              action: 'pushright',
+              focusedIndex: movingIndex,
+            });
+          }
           break;
 
       }
