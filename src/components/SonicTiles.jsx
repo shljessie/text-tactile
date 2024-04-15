@@ -336,6 +336,7 @@ export const SonicTiles = () => {
       const configuration = new Configuration({
         "model": "dall-e-3",
         apiKey: apiKey,
+        "style": 'natural',
         "size": "1024x1024"
       });
       setOpenai(new OpenAIApi(configuration));
