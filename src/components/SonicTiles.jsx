@@ -1870,17 +1870,19 @@ const speakNoTileFocusedMessage = () => {
 
       <div style={{display: 'flex', flexDirection:'row', marginTop: '1rem'}}>
         <div>
-          <h1 id="mainHeader" style={{fontSize: '1.5rem', marginTop: '1rem', marginRight:'2rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
+          <h1 id="mainHeader" style={{ width:'20%',fontSize: '1rem', marginTop: '1rem', marginLeft:'3rem', color:'#1E90FF'}}>ALT-CANVAS</h1>
         </div>
-        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'60%'}}>
+        <div aria-live="polite" style={{backgroundColor:'aliceblue', padding:'1rem', width:'70%'}}>
           <p>
-            Welcome to AltCanvas! Here you can create desired images using a tilegrid layout.
-            You are currently focused on the first tile. Press Enter to record a prompt to generate an image.
-            As images are generated, they will be placed on the tile. The tile locations represent the relative locations on the canvas.
-            The size of the canvas is 100 x 100
+          Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles. 
+          Relative locations of images on the tiles reflect the relative locations of the canvas.
+          The size of the canvas is 100 width and 100 height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep. 
+          After that navigate to other tile locations and create images there. 
+          For more commands, press Shift+K to learn about the keyboard options.
+
           </p>
         </div>
-        <div style={{display: 'flex', flexDirection:'column', marginLeft:'3rem'}}>
+        <div style={{display: 'flex', flexDirection:'column', width:'11%'}}>
           <button  aria-label="Review Keyboard Shortcuts" aria-expanded="false" onClick={toggleInstructions} style={{ padding :'0.5rem', fontWeight:'800' }}>
             Keyboard Shortcuts
           </button>
