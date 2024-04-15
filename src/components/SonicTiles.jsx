@@ -492,21 +492,17 @@ const [isUpdating, setIsUpdating] = useState(false);
         const editingImage = savedImages[editingImageIndex];
         let dx = 0, dy = 0;
         let moveDistance = 50;
-        
-        console.log('move Distance', moveDistance)
-        console.log('relative Image Size', Math.round((savedImages[editingImageIndex].sizeParts.width)/ canvasSize.width) * 100);
-        const imageWidth =  Math.round((savedImages[editingImageIndex].sizeParts.width)/ canvasSize.width) * 100;
         const currentTime = getFormattedTimestamp()
         
         switch(e.key) {
           case 'ArrowLeft': 
             dx = - moveDistance;
             isOverlapping(savedImages[editingImageIndex],editingImageIndex);
-            let newLeftPosition = savedImages[editingImageIndex].canvas.x + dx;
-            if (newLeftPosition <= 10) {
+
+            if (savedImages[editingImageIndex].canvas.x <= moveDistance / 2) {
               thumpRef.current.start();
-              savedImages[editingImageIndex].canvas.x = savedImages[editingImageIndex].sizeParts.width / 2;
               outside = true;
+              
             }else{
               playSpatialSound('left'); 
               speakMessage(`left ${dx}`);
@@ -518,11 +514,8 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowRight':
             dx = moveDistance;
             isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-            let newRightPosition = savedImages[editingImageIndex].canvas.x + dx + (savedImages[editingImageIndex].sizeParts.width / 2);
-            if (newRightPosition > canvasSize.width) {
+            if (savedImages[editingImageIndex].canvas.x >= canvasSize.width - (moveDistance)) {
               thumpRef.current.start();
-              // Place the image right on the right edge.
-              savedImages[editingImageIndex].canvas.x = canvasSize.width - (savedImages[editingImageIndex].sizeParts.width / 2);
               outside = true;
             }else{
               playSpatialSound('right');
@@ -535,11 +528,8 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowUp': 
             dy = -moveDistance; 
             isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-            let newTopPosition = savedImages[editingImageIndex].canvas.y + dy - (savedImages[editingImageIndex].sizeParts.height / 2);
-            if (newTopPosition < 0) {
+            if (savedImages[editingImageIndex].canvas.y <= moveDistance * 2) {
               thumpRef.current.start();
-              // Place the image right on the top edge.
-              savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].sizeParts.height / 2;
               outside = true;
             }else{
               playSpatialSound('up'); 
@@ -552,11 +542,8 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowDown': 
             dy = moveDistance;
             isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-            let newBottomPosition = savedImages[editingImageIndex].canvas.y + dy + (savedImages[editingImageIndex].sizeParts.height / 2);
-            if (newBottomPosition > canvasSize.height) {
+            if (savedImages[editingImageIndex].canvas.y >= canvasSize.height) {
               thumpRef.current.start();
-              // Place the image right on the bottom edge.
-              savedImages[editingImageIndex].canvas.y = canvasSize.height - (savedImages[editingImageIndex].sizeParts.height / 2);
               outside = true;
             }else{
               playSpatialSound('down');
@@ -571,8 +558,8 @@ const [isUpdating, setIsUpdating] = useState(false);
               console.log('currentY',(savedImages[editingImageIndex].canvas.y / canvasSize.width)*100 )
               speakMessage(
                 `The current image position is 
-                ${Math.round((savedImages[editingImageIndex].canvas.x / canvasSize.width)*100)} 
-                and ${Math.round((savedImages[editingImageIndex].canvas.y / canvasSize.width)*100)}`);
+                ${savedImages[editingImageIndex].canvas.x} 
+                and ${savedImages[editingImageIndex].canvas.y}`);
 
                 console.log(`${currentTime}: Checking Location Coordinate- ${focusedIndex}`);
           
@@ -2059,9 +2046,9 @@ const [isUpdating, setIsUpdating] = useState(false);
               {savedImages.map((image, index) => {
                 if (image.image_nbg !== '') { // Only render and log if image_nbg is not an empty string
                     // Log the image URL here, before returning the JSX
-                    console.log(`Image for index ${index}:`, image);
-                    console.log(`Image for index ${index}:`, image.image_nbg);
-                    console.log(`Image URL for index ${index}:`, image['image_nbg']);
+                    // console.log(`Image for index ${index}:`, image);
+                    // console.log(`Image for index ${index}:`, image.image_nbg);
+                    // console.log(`Image URL for index ${index}:`, image['image_nbg']);
             
                     // Now return your JSX
                     return (
