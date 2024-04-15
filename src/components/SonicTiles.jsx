@@ -107,7 +107,7 @@ export const SonicTiles = () => {
     "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
     "Command Eight, Shift + D as in Dog: Render Final Canvas",
     "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
-    "Command Ten, Shift + X as Xylophone: Delete Image,  
+    "Command Ten, Shift + X as Xylophone: Delete Image",  
     "Command Eleven, Escape: Exit any mode"
   ];
 
