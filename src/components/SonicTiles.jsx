@@ -637,58 +637,47 @@ const [isUpdating, setIsUpdating] = useState(false);
           const otherY = otherImage.canvas.y;
   
           if (originalPosition) {
+            // Check for the x-axis
             if (editedX < otherX && originalPosition.x >= otherX) {
-              savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x - tileSize;
-
-              originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x,
-                y: savedImages[editingImageIndex].canvas.y,
-              };
-              
-              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
+              const potentialNewX = savedImages[index].coordinate.x - tileSize;
+              // Check if potential coordinate is already occupied
+              if (!savedImages.some(img => img.coordinate.x === potentialNewX && img.coordinate.y === savedImages[editingImageIndex].coordinate.y)) {
+                savedImages[editingImageIndex].coordinate.x = potentialNewX;
+                console.log('updated coordinate.x to', potentialNewX);
+              }
             }
             if (editedX > otherX && originalPosition.x <= otherX) {
-              console.log('savedImages before grid edit', savedImages[editingImageIndex].coordinate.x);
-              savedImages[editingImageIndex].coordinate.x = savedImages[index].coordinate.x + tileSize;
-              originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, 
-                y: savedImages[editingImageIndex].canvas.y,
-              };
-              
-              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
+              const potentialNewX = savedImages[index].coordinate.x + tileSize;
+              // Check if potential coordinate is already occupied
+              if (!savedImages.some(img => img.coordinate.x === potentialNewX && img.coordinate.y === savedImages[editingImageIndex].coordinate.y)) {
+                savedImages[editingImageIndex].coordinate.x = potentialNewX;
+                console.log('updated coordinate.x to', potentialNewX);
+              }
             }
-
+  
+            // Check for the y-axis
             if (editedY < otherY && originalPosition.y >= otherY) {
-              console.log(`----------------------------------`);
-              console.log(`Image ${editingImageIndex} moved above image ${index}.`);
-              console.log('savedImages before grid edit',savedImages[editingImageIndex].coordinate.y);
-              savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y - tileSize;
-              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
-              console.log('savedImages Data', savedImages);
-
-              originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x, 
-                y: savedImages[editingImageIndex].canvas.y,
-              };
-              
-              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
+              const potentialNewY = savedImages[index].coordinate.y - tileSize;
+              // Check if potential coordinate is already occupied
+              if (!savedImages.some(img => img.coordinate.y === potentialNewY && img.coordinate.x === savedImages[editingImageIndex].coordinate.x)) {
+                savedImages[editingImageIndex].coordinate.y = potentialNewY;
+                console.log('updated coordinate.y to', potentialNewY);
+              }
             }
-
             if (editedY > otherY && originalPosition.y <= otherY) {
-              console.log(`----------------------------------`);
-              console.log(`Image ${editingImageIndex} moved below image ${index}.`);
-              console.log('savedImages before grid edit',savedImages[editingImageIndex].coordinate.y);
-              savedImages[editingImageIndex].coordinate.y = savedImages[index].coordinate.y + tileSize
-              console.log('savedImages after grid edit', savedImages[editingImageIndex].coordinate.y);
-              console.log('savedImages Data', savedImages);
-
-              originalPositionsRef.current[editingImageIndex] = {
-                x: savedImages[editingImageIndex].canvas.x,
-                y: savedImages[editingImageIndex].canvas.y, 
-              };
-              
-              console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
+              const potentialNewY = savedImages[index].coordinate.y + tileSize;
+              // Check if potential coordinate is already occupied
+              if (!savedImages.some(img => img.coordinate.y === potentialNewY && img.coordinate.x === savedImages[editingImageIndex].coordinate.x)) {
+                savedImages[editingImageIndex].coordinate.y = potentialNewY;
+                console.log('updated coordinate.y to', potentialNewY);
+              }
             }
+  
+            originalPositionsRef.current[editingImageIndex] = {
+              x: savedImages[editingImageIndex].canvas.x, 
+              y: savedImages[editingImageIndex].canvas.y,
+            };
+            console.log('updated originalPositionsRef for', editingImageIndex, originalPositionsRef.current[editingImageIndex]);
           }
         }
       });
@@ -696,6 +685,8 @@ const [isUpdating, setIsUpdating] = useState(false);
       setSaveCompleted(false);
     }
   }, [saveCompleted, savedImages, editingImageIndex]);
+  
+
   
 
   useEffect(() => {
