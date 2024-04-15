@@ -117,28 +117,28 @@ const Onboarding = () => {
     <div className="onboarding-container"  aria-labelledby="mainHeader" style={{ paddingTop: '2rem', textAlign: 'start' }}>
   
     <header className='header'>
-        <h3 id="mainHeader"  aria-label="SonicTiles Study Onboarding"  style={{fontSize: '1.5rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> ALT CANVAS </h3>
+        <h3 id="mainHeader"  aria-label="AltCanvas Study Onboarding"  style={{fontSize: '1.5rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> ALT CANVAS </h3>
     </header>
 
     <main>
 
-        <h2>Onboarding System Check</h2>
-        <p>Go through the sections below to make sure the system audio and recording work.</p>
+        <h2 aria-labelledby="Onboarding System Check">Onboarding System Check</h2>
+        <p aria-labelledby="Go through the 2 sections below to make sure the system audio and recording work">Go through the 2 sections below to make sure the system audio and recording work.</p>
         
-      <section className="spatial-sound-test" aria-labelledby="soundTestHeader">
-        <h3>Test Spatial Sound</h3>
+      <section className="spatial-sound-test" aria-labelledby="sound Test section">
+        <h3 aria-labelledby="sound Test section">Test Spatial Sound</h3>
         <p>Press the buttons below to test spatial sounds.</p>
         <div aria-labelledby="soundTestButtons">
-          <button aria-label="Test sound from the left" onClick={() => playSpatialSound('left')}>Left</button>
-          <button aria-label="Test sound from the right" onClick={() => playSpatialSound('right')}>Right</button>
-          <button aria-label="Test sound from the top" onClick={() => playSpatialSound('up')}>Top</button>
-          <button aria-label="Test sound from the bottom" onClick={() => playSpatialSound('down')}>Bottom</button>
+          <button aria-label="Left Sound" onClick={() => playSpatialSound('left')}>Left</button>
+          <button aria-label="Right Sound" onClick={() => playSpatialSound('right')}>Right</button>
+          <button aria-label="Top Sound" onClick={() => playSpatialSound('up')}>Top</button>
+          <button aria-label="Bottom Sound" onClick={() => playSpatialSound('down')}>Bottom</button>
         </div>
       </section>
 
-      <section className="audio-recording-test" aria-labelledby="speechTestHeader">
-        <h3>Test Audio Recording and System Speech</h3>
-        <p>Click the button below to start or stop audio recording.</p>
+      <section className="audio-recording-test" aria-labelledby="speech Test section">
+        <h3 aria-labelledby="speech Test section">Test Audio Recording and System Speech</h3>
+        <p>Click the button below to start audio recording. Speak any prompt then press the same button again to stop. You can read the text below to confirm that the system has understood you or hear the computer speaking.</p>
         {isRecording ? (
           <button aria-label="Stop recording" onClick={stopRecording}>Stop Recording</button>
         ) : (
@@ -148,7 +148,7 @@ const Onboarding = () => {
       </section>
 
       <section className="screen-reader-check" aria-labelledby="screenReaderCheckHeader">
-        <h3 id="screenReaderCheckHeader">Screen Reader Check</h3>
+        <h3 id="screenReaderCheckHeader" aria-labelledby="screen reader section">Screen Reader Check</h3>
         <p>After pressing the start study button below, please turn off your screen reader.</p>
       </section>
 
