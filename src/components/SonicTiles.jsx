@@ -185,8 +185,16 @@ export const SonicTiles = () => {
 
   const navigate = useNavigate();
 
+  const saveToSessionStorage = () => {
+    if (savedImages.length > 0) {
+      localStorage.setItem('savedImages', JSON.stringify(savedImages));
+      console.log('Images saved to local storage', localStorage)
+    }
+  };
+
   const renderCanvas = () => {
     console.log('SavedImages',savedImages)
+    saveToSessionStorage();
     speakMessage('Going to Render Canvas')
     navigate('/render', { state: { savedImages, canvasSize } });
   };
@@ -317,7 +325,7 @@ export const SonicTiles = () => {
   useEffect(() => {
     if (apiKey) {
       const configuration = new Configuration({
-        "model": "dall-e-3",
+        "model": "gpt-4-turbo",
         apiKey: apiKey,
         "style": 'natural',
         "size": "1024x1024"
@@ -725,46 +733,48 @@ const [isUpdating, setIsUpdating] = useState(false);
     }
   };
   
-  const startLoadingSound = async (voiceText) => {
+// Global variable to store the Audio object
+let loadingSound;
+
+// Function to start playing the loading sound
+const startLoadingSound = async (voiceText) => {
+  try {
+    await Tone.start();
+    console.log('Tone started');
+    isGeneratingImage = true;
+
     try {
-      await Tone.start();
-      console.log('Tone started');
-      isGeneratingImage = true;
-  
-      try {
-        const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
-        console.log('Tone utterance', utterance);
-        utterance.pitch = 1;
-        utterance.rate = 1;
-        utterance.volume = 1;
-  
-        utterance.onend = () => {
-          // if(isGeneratingImage){
-          //   playNotes();
-          // }
-        };
+      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
+      console.log('Tone utterance', utterance);
+      utterance.pitch = 1;
+      utterance.rate = 1;
+      utterance.volume = 1;
 
-        window.speechSynthesis.speak(utterance);
-      } catch (innerError) {
-        console.error('Error speaking the utterance:', innerError);
-      }
-    } catch (error) {
-      console.error('Error starting Tone.js:', error);
+      utterance.onend = () => {
+        // if(isGeneratingImage){
+        //   playNotes();
+        // }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (innerError) {
+      console.error('Error speaking the utterance:', innerError);
     }
-  };
-  
- 
-  
-
-
-  function stopLoadingSound() {
-      if (loadingSoundSource) {
-          loadingSoundSource.stop();
-          loadingSoundSource = null;
-      }
+  } catch (error) {
+    console.error('Error starting Tone.js:', error);
   }
-
-  //  ==============================
+};
+const stopLoadingSound = () => {
+  try {
+      if (loadingSound) {
+          loadingSound.pause(); // Pause the sound
+          loadingSound.currentTime = 0; // Reset the playback position to the start
+          console.log('Loading sound has been stopped and reset.');
+      }
+  } catch (error) {
+      console.error('Error stopping the audio:', error);
+  }
+};
 
 
   const playTone = (frequency) => {
@@ -1792,9 +1802,14 @@ const [isUpdating, setIsUpdating] = useState(false);
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create ONLY ONE of a VERY SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
-          This type of drawing is often used in COLORING BOOK or instructional material. There should be NO DETAILS or SHADING in the drawing.
-          use VERY THICK OUTLINES and REMOVE DETAILS. Create ONLY ONE of ${voiceText}
+          prompt: `Create ONLY ONE of a VERY SIMPLE and VERY SMALL MINI${voiceText} ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          This type of drawing is often used in COLORING BOOK or instructional material. 
+          There should be NO DETAILS or SHADING in the drawing.
+          Use VERY THICK OUTLINES and REMOVE DETAILS. 
+          All of the ENTIRE image should be shown and the image should only take HALF of the SCREEN.
+          The image should be SMALL and located in the CENTER.
+          The image should take up half of the space and the other half should be empty.
+          Create ONLY ONE of a ZOOMED OUT ${voiceText}
           `,
           n: 1,
         });
@@ -1828,8 +1843,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           imageObject.descriptions = description;
           imageObject.name = name;
         }
-  
-        stopLoadingSound();
+
 
         let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}.`;
         
@@ -1997,7 +2011,7 @@ const [isUpdating, setIsUpdating] = useState(false);
                 aria-live="polite"
                 autoFocus
                 ref={(el) => tileRefs.current[index] = el}
-                key={tile.id}
+                key={index}
                 onKeyDown={(event) => {
                   setFocusedIndex(index);
                   if(tiles>1){
