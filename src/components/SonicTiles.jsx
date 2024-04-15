@@ -1769,14 +1769,6 @@ const speakNoTileFocusedMessage = () => {
     setLoading(true);
     setActiveIndex(index);
 
-    const notes = [
-      'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
-      'C#4', 'D#4', 'F#4', 'G#4', 'A#4',
-      'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5',
-      'C#5', 'D#5', 'F#5', 'G#5', 'A#5',
-      'C6'
-    ];
-
     let centerX, centerY;
     centerX = tiles[index].x;
     centerY = tiles[index].y;
@@ -1799,7 +1791,7 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create ONLY ONE of a SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          prompt: `Create ONLY ONE of a VERY SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
           This type of drawing is often used in COLORING BOOK or instructional material. There should be NO DETAILS or SHADING in the drawing.
           use VERY THICK OUTLINES and REMOVE DETAILS. Create ONLY ONE of ${voiceText}
           `,
@@ -1811,8 +1803,6 @@ const speakNoTileFocusedMessage = () => {
 
   
         const lengthImages = savedImages.length;
-        const noteIndex = lengthImages % notes.length;
-        const note = notes[noteIndex];
         const imageSize = tileSize * 2;
 
         console.log('image size', imageSize)
@@ -1826,20 +1816,14 @@ const speakNoTileFocusedMessage = () => {
           coordinate: { x: centerX, y: centerY },
           canvas: {x: centerX, y: centerY},
           sizeParts: { width: imageSize  , height: imageSize},
-          sound: note
         }));
 
-        
 
-  
         for (let imageObject of imageObjects) {
           const imageURL = imageObject.url;
-          console.log('imageURL', imageURL)
           const nbg = await removeBackground(imageURL, imageObject);
           const name = await fetchImageName(imageURL);
           const description = await fetchImageDescription(imageURL);
-          console.log("Remove Background RESULT",imageObject)
-          // imageObject.image_nbg = nbg;
           imageObject.descriptions = description;
           imageObject.name = name;
         }
@@ -2074,7 +2058,7 @@ const speakNoTileFocusedMessage = () => {
                     // Now return your JSX
                     return (
                         <div key={index} 
-                             style={{ position: 'absolute', left: `${image.canvas.x}px`, top: `${image.canvas.y}px` }} 
+                             style={{ position: 'absolute', left: `${image.canvas.x - ( image.sizeParts.width / 2 ) }px`, top: `${image.canvas.y  - ( image.sizeParts.width / 2 )}px` }} 
                              tabIndex={0}>
                             <img
                                 src={image.image_nbg}
