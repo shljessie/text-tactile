@@ -131,7 +131,7 @@ export const SonicTiles = () => {
         console.log('ESC pressed');
         keyOptions = false
         console.log('keyOptions', keyOptions);
-      } 
+      }
 
     }
     
@@ -364,6 +364,8 @@ export const SonicTiles = () => {
   const toggleInstructions = (event) => {
     setShowInstructions(prevState => !prevState);
     setShowInstructions(!showInstructions);
+    keyOptions = !keyOptions
+    console.log('Toggle keyOptions', !keyOptions)
   };
 
   
@@ -1188,7 +1190,7 @@ const [isUpdating, setIsUpdating] = useState(false);
 
     if (imageObject !== -1 || tiles.length == 1) {
       console.log('Only One tile')
-      if(!savedImages[imageObject]){
+      if(!savedImages[imageObject] && !keyOptions){
         speakMessage('Press enter to generate the first image.')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
