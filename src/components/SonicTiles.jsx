@@ -123,7 +123,7 @@ export const SonicTiles = () => {
       speakMessage('Keyboard Instructions.');
       speakMessage('To Navigate through the Options use Up and Down arrow keys. There are a total of 10 commands. Press the escape key Twice to exit the mode.');
       displayCurrentCommand();
-    } else if (event.shiftKey && event.key === 'S') {
+    } else if (event.shiftKey && event.key === 'D') {
       console.log('Shift+S pressed');
       renderCanvas();
     } else if (event.keyCode === 38) { // Up arrow key
@@ -319,8 +319,9 @@ export const SonicTiles = () => {
   useEffect(() => {
     if (apiKey) {
       const configuration = new Configuration({
-        "model": "dall-e-3",
+        "model": "dall-e-2",
         apiKey: apiKey,
+        "size": "1024x1024"
       });
       setOpenai(new OpenAIApi(configuration));
     }
@@ -1778,9 +1779,9 @@ const speakNoTileFocusedMessage = () => {
         
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create an image of a SIMPLE ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          prompt: `Create ONLY ONE of a SIMPLE ZOOMED OUT ${voiceText} graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
           This type of drawing is often used in COLORING BOOK or instructional material. There should be NO DETAILS or SHADING in the drawing.
-          use VERY THICK OUTLINES and NO CUTOFF. Create ONLY ONE of ${voiceText}
+          use VERY THICK OUTLINES and the image is ZOOMED OUT. Create ONLY ONE of ${voiceText}
           `,
           n: 1,
         });
