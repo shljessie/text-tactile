@@ -1502,9 +1502,9 @@ const stopLoadingSound = () => {
 
     const script = `
       The image is called ${image.name}.
-      ${image.descriptions}
       It is located ${image.coordinate.x} and ${image.coordinate.y} 
       The size of the image is ${image.sizeParts.width} in width and  ${image.sizeParts.height} in height
+      ${image.descriptions}
     `
 
     console.log('Read Info Script:', script)
