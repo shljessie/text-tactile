@@ -310,6 +310,12 @@ export const SonicTiles = () => {
           if (existingTileIndex == -1) {
             return
           } else if (isEditingLocation) {
+            console.log('Editing Image', savedImages[editingImageIndex])
+            const newTile = tiles.findIndex(tile => tile.x == savedImages[editingImageIndex].coordinate.x && tile.y == savedImages[editingImageIndex].coordinate.y);
+            console.log('New tile the iamge has moved to ', newTile)
+            const centralTile = tiles[newTile];
+            console.log('centralTile', centralTile);
+            addSurroundingTiles(centralTile);
 
           } else if (isEditingSize) {
 
