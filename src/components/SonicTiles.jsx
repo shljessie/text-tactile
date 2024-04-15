@@ -66,13 +66,78 @@ export const SonicTiles = () => {
 
     // Add event listener for beforeunload when the component mounts
     window.addEventListener('beforeunload', performRefreshAction);
+    window.addEventListener('keydown', defaultKeyOptions);
 
     // Remove event listener when the component unmounts
     return () => {
       window.removeEventListener('beforeunload', performRefreshAction);
+      window.removeEventListener('keydown', defaultKeyOptions);
     };
 
   }, []);
+
+  const handleKeyInstructionPress = (event) => {
+    console.log('ENTERED MODE')
+    switch (event.key) {
+      case 'Enter':
+        console.log('ASK QUESTION')
+        speakMessage('Ask a question');
+        break;
+      case 'R':
+        speakMessage('Reading Instructions');
+        console.log('Read instructions');
+        break;
+      case 'Escape':
+        setShowInstructions(!showInstructions);
+        console.log('Exit instructions');
+        break;
+      default:
+        // Handle other keys or do nothing
+        break;
+      }
+  };
+
+  const commands = [
+    "Command One,  Enter: Generate/regenerate image on a tile",
+    "Command Two, Shift + G as in Global: Hear the global description of the canvas with all the images on it",
+    "Command Three, Shift + I as in Information: Hear the local information about selected item on the tile",
+    "Command Four, Shift + C as in Chat: Ask a question about the iamge on the tile",
+    "Command Five, Shift + L as in Location: Enter Location Edit Mode",
+    "Command Six, Shift + S as in Size: Enter Size Edit Mode",
+    "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
+    "Command Eight, Shift + D as in Dog: Render Final Canvas",
+    "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
+    "Command Ten, Escape: Exit any mode"
+  ];
+
+  let currentCommandIndex = 0;
+
+  function displayCurrentCommand() {
+    console.log(`Current Command: ${commands[currentCommandIndex]}`);
+  }
+  
+  function defaultKeyOptions(event) {
+    if (event.shiftKey && event.key === 'K') {
+      console.log('Shift+K pressed');
+      toggleInstructions();
+      speakMessage('Keyboard Instructions.');
+      speakMessage('To Navigate through the Options use Up and Down arrow keys. There are a total of 10 commands. Press the escape key Twice to exit the mode.');
+      displayCurrentCommand();
+    } else if (event.shiftKey && event.key === 'S') {
+      console.log('Shift+S pressed');
+      renderCanvas();
+    } else if (event.keyCode === 38) { // Up arrow key
+      console.log('Up pressed');
+      currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
+      speakMessage(commands[currentCommandIndex]);
+      displayCurrentCommand();
+    } else if (event.keyCode === 40) { // Down arrow key
+      console.log('Down pressed');
+      currentCommandIndex = (currentCommandIndex + 1) % commands.length;
+      speakMessage(commands[currentCommandIndex]);
+      displayCurrentCommand();
+    } 
+  }
 
   function performRefreshAction(event) {
     // Prevent the default dialog to show up if not necessary
@@ -121,8 +186,9 @@ export const SonicTiles = () => {
 
   const navigate = useNavigate();
 
-  const handleButtonClick = () => {
+  const renderCanvas = () => {
     console.log('SavedImages',savedImages)
+    speakMessage('Going to Render Canvas')
     navigate('/render', { state: { savedImages, canvasSize } });
   };
 
@@ -295,9 +361,12 @@ export const SonicTiles = () => {
     savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].canvas.y + dy
   }
 
-  const toggleInstructions = () => {
+  const toggleInstructions = (event) => {
+    setShowInstructions(prevState => !prevState);
     setShowInstructions(!showInstructions);
   };
+
+  
 
   useEffect(() => {
     const items = [];
@@ -1878,14 +1947,14 @@ const speakNoTileFocusedMessage = () => {
           Relative locations of images on the tiles reflect the relative locations of the canvas.
           The size of the canvas is 100 width and 100 height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
           After that, navigate to other tile locations and create images there.
-          For more commands, press Shift+K to learn about the keyboard options.
+          For more commands, press Shift+K to learn about the keyboard options and press Shift+S to go to the Render Canvas.
         </p>
       </div>
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
         <button aria-label="Review keyboard shortcuts" aria-expanded="false" onClick={toggleInstructions}>
           Keyboard Shortcuts
         </button>
-        <button aria-label="Render canvas after you have made the image" className='renderButton' onClick={handleButtonClick}>
+        <button aria-label="Render canvas after you have made the image" className='renderButton' onClick={renderCanvas}>
           Render Canvas
         </button>
       </div>
