@@ -499,7 +499,7 @@ const [isUpdating, setIsUpdating] = useState(false);
             dx = - moveDistance;
             isOverlapping(savedImages[editingImageIndex],editingImageIndex);
 
-            if (savedImages[editingImageIndex].canvas.x <= moveDistance / 2) {
+            if (savedImages[editingImageIndex].canvas.x <= moveDistance) {
               thumpRef.current.start();
               outside = true;
               
@@ -528,7 +528,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowUp': 
             dy = -moveDistance; 
             isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.y <= moveDistance * 2) {
+            if (savedImages[editingImageIndex].canvas.y <= moveDistance ) {
               thumpRef.current.start();
               outside = true;
             }else{
@@ -542,7 +542,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowDown': 
             dy = moveDistance;
             isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-            if (savedImages[editingImageIndex].canvas.y >= canvasSize.height) {
+            if (savedImages[editingImageIndex].canvas.y >= canvasSize.height - moveDistance) {
               thumpRef.current.start();
               outside = true;
             }else{
