@@ -978,6 +978,8 @@ const stopLoadingSound = () => {
 
     addSurroundingTiles(centralTile)
 
+    speakMessage(`Pushed Image ${savedImages[findImageIndex].name}`)
+
     console.log('pushImage', pushImage);
   }
 
