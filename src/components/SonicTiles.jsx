@@ -458,7 +458,7 @@ export const SonicTiles = () => {
 
     const currLeft = currX - currWidth / 2 - tolerance;
     const currRight = currX + currWidth / 2 + tolerance;
-    const currTop = currY - currHeight / 2 - tolerance;
+    const currTop = currY - currHeight / 2 - tolerance ;
     const currBottom = currY + currHeight / 2 + tolerance;
 
     const otherImages = savedImages.filter((_, index) => index !== editingImageIndex);
@@ -501,7 +501,7 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'ArrowLeft': 
             dx = - moveDistance;
 
-            if (savedImages[editingImageIndex].canvas.x <= moveDistance) {
+            if (savedImages[editingImageIndex].canvas.x  - (savedImages[editingImageIndex].sizeParts.width / 2) <= moveDistance) {
               thumpRef.current.start();
               outside = true;
               
@@ -516,7 +516,7 @@ const [isUpdating, setIsUpdating] = useState(false);
             
           case 'ArrowRight':
             dx = moveDistance;
-            if (savedImages[editingImageIndex].canvas.x >= canvasSize.width - (moveDistance)) {
+            if (savedImages[editingImageIndex].canvas.x + (savedImages[editingImageIndex].sizeParts.width / 2) >= canvasSize.width - (moveDistance)) {
               thumpRef.current.start();
               outside = true;
             }else{
@@ -530,7 +530,7 @@ const [isUpdating, setIsUpdating] = useState(false);
 
           case 'ArrowUp': 
             dy = -moveDistance; 
-            if (savedImages[editingImageIndex].canvas.y <= moveDistance ) {
+            if (savedImages[editingImageIndex].canvas.y - (savedImages[editingImageIndex].sizeParts.height / 2)<= moveDistance ) {
               thumpRef.current.start();
               outside = true;
             }else{
@@ -1560,12 +1560,13 @@ const stopLoadingSound = () => {
 
     globalDescriptionPrompt =  `
     You are describing and image to a Visually Impaired User.
+    Give a one line brief description of what the image looks like
     Describe the layout of the following images 
     on a canvas based on their coordinates and sizes in a verbal way with out 
     using exact numbers descriptions: ${descriptions}. 
     DO NOT say that it is a square shape. Keep the description short within a paragraph. 
     Describe the relative locations of the images and the size.
-    If one image is on top of the other image say it is if not, say it is not.`;
+    Considering that there are spaces above and below the iamge, describe whether or not one image looks like it is placed on top of the other`;
   };
 
 
