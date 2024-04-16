@@ -51,11 +51,25 @@ export const SonicTiles = () => {
   });
   
   const tileSize = Math.round(canvasSize['width'] / 10);
+  const [messagePlayed, setMessagePlayed] = useState(false)
 
   useEffect(() => {
 
     sendUuidToServer();
     const uuid=  localStorage.getItem('uuid');
+
+    setTimeout(() => {
+      if (!messagePlayed) {
+          speakMessage(`Welcome to AltCanvas, an image editor for blind users! 
+            The left section is the tiles. The right section is the Canvas.
+            You are currently focused on the first tile. 
+            The canvas is ${canvasSize.width} width and ${canvasSize.height} height.
+            Press Enter and Record a prompt to generate an image on the Canvas.`);
+            setMessagePlayed(true); 
+            localStorage.setItem('messagePlayed', 'true');
+      }
+    }, 10000);
+
 
     console.log(
       `
@@ -166,10 +180,6 @@ export const SonicTiles = () => {
         console.log('DaTA', data)
         console.log('Image URL:', data.imageUrl);
         imageObject.image_nbg = data.imageUrl;
-        // const imageElement = document.createElement('img');
-        // imageElement.src = data.imageUrl;
-        // document.body.appendChild(imageElement);
-        // return data.imageUrl;
     })
     .catch(error => {
         console.error('Error:', error);
@@ -284,7 +294,6 @@ export const SonicTiles = () => {
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
     const currentTime = getFormattedTimestamp();
-
     window.speechSynthesis.speak(utterance);
     utterance.rate = 0.9; 
   
@@ -1502,7 +1511,7 @@ const stopLoadingSound = () => {
 
     const script = `
       The image is called ${image.name}.
-      It is located ${image.coordinate.x} and ${image.coordinate.y} 
+      It is located x coordinate ${image.coordinate.x} and y coordinate ${image.coordinate.y} 
       The size of the image is ${image.sizeParts.width} in width and  ${image.sizeParts.height} in height
       ${image.descriptions}
     `
@@ -1956,16 +1965,17 @@ const stopLoadingSound = () => {
 
     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '1rem', alignItems: 'center' }}>
       <div style={{ flexGrow: 1, marginLeft: '2%' }}>
-        <h1 id="mainHeader" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
+        <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
       </div>
-      <div aria-live="polite" style={{ flexGrow: 3, backgroundColor: 'aliceblue', padding: '1rem', margin: '0 1rem', fontSize: '0.9rem' }}>
+      <div role="banner" aria-labelledby="mainHeader" aria-label="Welcome to AltCanvas an Image Editor for blind users!" style={{ flexGrow: 3, backgroundColor: 'aliceblue', padding: '1rem', margin: '0 1rem', fontSize: '0.9rem' }}>
         <p>
-          Welcome to AltCanvas! In AltCanvas, you create images one by one using tiles.
+          Welcome to AltCanvas an Image Editor for blind users! In AltCanvas, you create images one by one using tiles.
           Relative locations of images on the tiles reflect the relative locations of the canvas.
           The size of the canvas is {canvasSize.width} width and {canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
           After that, navigate to other tile locations and create images there.
           For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
           <br/>
+          <p style={{fontSize:'0.7rem', textAlign:'right'}}>messagePlayed: {messagePlayed.toString()}</p>
           <p style={{fontSize:'0.7rem', textAlign:'right'}}>UUID: {getUuid()}</p>
         </p>
       </div>
@@ -1989,7 +1999,7 @@ const stopLoadingSound = () => {
           aria-label="Left Portion of the Screen"
           >
           <div 
-            aria-label="Tiles Container"
+            aria-label="Left Portion of Screen Tiles Container"
             id="tileContainer" 
             ref={canvasRef} 
             style={{ 

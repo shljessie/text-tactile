@@ -11,10 +11,36 @@ const Onboarding = () => {
   const [transcript, setTranscript] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
   const [recognition, setRecognition] = useState(null);
+  const [canvasSize, setCanvasSize] = useState({
+    width:  roundToNearest100(window.innerWidth * 0.35)+ 100,
+    height: roundToNearest100(window.innerWidth * 0.35)+ 100,
+  });
+
+  function roundToNearest100(x) {
+    return Math.round(x / 100) * 100;
+  }
+
+  const speakMessage = (message) => {
+    const utterance = new SpeechSynthesisUtterance(message);
+
+    window.speechSynthesis.speak(utterance);
+    utterance.rate = 0.9; 
+  
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        window.speechSynthesis.cancel();
+        document.removeEventListener("keydown", handleEscape);
+        
+      }
+    };
+  
+    document.addEventListener("keydown", handleEscape);
+  };
 
   const navigate = useNavigate();
 
   const handleButtonClick = () => {
+    // speakMessage(`Welcome to Alt Canvas, an image editor for BVI users! In AltCanvas, you create images one by one using tiles. Relative locations of images on the tiles reflect the relative locations of the canvas. The size of the canvas is ${canvasSize.width} width and ${canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.`)
     navigate('/sonic');
   };
 
@@ -126,7 +152,7 @@ const Onboarding = () => {
         <p aria-labelledby="Go through the 2 sections below to make sure the system audio and recording work">Go through the 2 sections below to make sure the system audio and recording work.</p>
         
       <section className="spatial-sound-test" aria-labelledby="sound Test section">
-        <h3 aria-labelledby="sound Test section">Test Spatial Sound</h3>
+        <h3 aria-labelledby="sound Test section">Section 1 : Test Spatial Sound</h3>
         <p>Press the buttons below to test spatial sounds.</p>
         <div aria-labelledby="soundTestButtons">
           <button aria-label="Left Sound" onClick={() => playSpatialSound('left')}>Left</button>
@@ -137,7 +163,7 @@ const Onboarding = () => {
       </section>
 
       <section className="audio-recording-test" aria-labelledby="speech Test section">
-        <h3 aria-labelledby="speech Test section">Test Audio Recording and System Speech</h3>
+        <h3 aria-labelledby="speech Test section"> Section 2 : Test Audio Recording and System Speech</h3>
         <p>Click the button below to start audio recording. Speak any prompt then press the same button again to stop. You can read the text below to confirm that the system has understood you or hear the computer speaking.</p>
         {isRecording ? (
           <button aria-label="Stop recording" onClick={stopRecording}>Stop Recording</button>
