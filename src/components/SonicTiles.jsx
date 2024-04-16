@@ -58,17 +58,17 @@ export const SonicTiles = () => {
     sendUuidToServer();
     const uuid=  localStorage.getItem('uuid');
 
-    setTimeout(() => {
-      if (!messagePlayed) {
-          speakMessage(`Welcome to AltCanvas, an image editor for blind users! 
-            The left section is the tiles. The right section is the Canvas.
-            You are currently focused on the first tile. 
-            The canvas is ${canvasSize.width} width and ${canvasSize.height} height.
-            Press Enter and Record a prompt to generate an image on the Canvas.`);
-            setMessagePlayed(true); 
-            localStorage.setItem('messagePlayed', 'true');
-      }
-    }, 10000);
+    // setTimeout(() => {
+    //   if (!messagePlayed) {
+    //       speakMessage(`Welcome to AltCanvas, an image editor for blind users! 
+    //         The left section is the tiles. The right section is the Canvas.
+    //         You are currently focused on the first tile. 
+    //         The canvas is ${canvasSize.width} width and ${canvasSize.height} height.
+    //         Press Enter and Record a prompt to generate an image on the Canvas.`);
+    //         setMessagePlayed(true); 
+    //         localStorage.setItem('messagePlayed', 'true');
+    //   }
+    // }, 10000);
 
 
     console.log(
@@ -750,7 +750,7 @@ const startLoadingSound = async (voiceText) => {
     isGeneratingImage = true;
 
     try {
-      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
+      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created. Press the escape key to stop generation`);
       console.log('Tone utterance', utterance);
       utterance.pitch = 1;
       utterance.rate = 1;
@@ -1531,7 +1531,13 @@ const stopLoadingSound = () => {
       return `Image ${index + 1} named "${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
     }).join(" ");
 
-    globalDescriptionPrompt =  `Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out using exact numbers descriptions: ${descriptions}.`;
+    globalDescriptionPrompt =  `
+    You are describing and image to a Visually Impaired User.
+    Describe the layout of the following images 
+    on a canvas based on their coordinates and sizes in a verbal way with out 
+    using exact numbers descriptions: ${descriptions}. 
+    DO NOT say that it is a square shape. Keep the description short within a paragraph. 
+    Describe the relative locations of the images and the size.`;
   };
 
 
@@ -1599,8 +1605,9 @@ const stopLoadingSound = () => {
 
     let customPrompt = `
     You are describing an image to a Visually Impaired Person.
+    Keep the description brief and straightforward.
     Generate the given image description according to the following criteria:
-    Briefly describe the primary subject or focus of the image in one sentence. ${voiceText}
+    ${voiceText}
   `;
 
     const payload = {
@@ -1782,9 +1789,18 @@ const stopLoadingSound = () => {
     }
   };
 
+
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
+    let shouldCancel = false;
+
+    const keydownListener = (event) => {
+      if (event.key === 'Escape') {
+        let shouldCancel = true;
+        console.log("Generation cancellation requested.");
+      }
+    };
 
     let centerX, centerY;
     centerX = tiles[index].x;
@@ -1799,13 +1815,13 @@ const stopLoadingSound = () => {
       const voiceText = await startListening();
       setPromptText(voiceText);
       console.log('voiceText:' , voiceText)
+
+      document.addEventListener('keydown', keydownListener);
   
       if (voiceText) {
         console.log('OpenAI', openai);
-
         startLoadingSound(voiceText);
-        
-        
+
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
           prompt: `Create ONLY ONE of a VERY SIMPLE and VERY SMALL MINI${voiceText} ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
@@ -1818,16 +1834,19 @@ const stopLoadingSound = () => {
           Create ONLY ONE of a ZOOMED OUT ${voiceText}
           `,
           n: 1,
-        });
-  
+          });
+
+          if (shouldCancel) {
+            console.log("Generation cancelled after image request.");
+            speakMessage('Canceled Image Generation')
+            return;  // Stop processing as cancellation request came during image generation
+          }
+
         console.log('OpenAI Image Response', response);
+        
 
-
-  
         const lengthImages = savedImages.length;
         const imageSize = 100;
-
-        console.log('image size', imageSize)
   
         const imageObjects = response.data.data.map(img => ({
           prompt: voiceText,
@@ -1851,7 +1870,7 @@ const stopLoadingSound = () => {
         }
 
 
-        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}.`;
+        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The image is located in ${imageObjects[0].canvas.x} and ${imageObjects[0].canvas.y}. It is ${imageObjects[0].sizeParts.width} in width and ${imageObjects[0].sizeParts.height} in height `;
         
         let utterance = new SpeechSynthesisUtterance(imageDescription);
         utterance.rate = 1;
@@ -1975,8 +1994,7 @@ const stopLoadingSound = () => {
           After that, navigate to other tile locations and create images there.
           For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
           <br/>
-          <p style={{fontSize:'0.7rem', textAlign:'right'}}>messagePlayed: {messagePlayed.toString()}</p>
-          <p style={{fontSize:'0.7rem', textAlign:'right'}}>UUID: {getUuid()}</p>
+          <p style={{fontSize:'0.7rem', textAlign:'right'}}>messagePlayed: {messagePlayed.toString()} | UUID: {getUuid()}</p>
         </p>
       </div>
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
