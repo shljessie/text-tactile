@@ -881,8 +881,8 @@ const stopLoadingSound = () => {
 
     console.log(changedFrequency);
     playTone(changedFrequency);
-    savedImages[editingSizeImageIndex].sizeParts.width = Math.round(originalWidth * scaleFactor);
-    savedImages[editingSizeImageIndex].sizeParts.height = Math.round(originalHeight * scaleFactor);
+    savedImages[editingSizeImageIndex].sizeParts.width = Math.round(originalWidth + ((scaleFactor - 1.0)* 100));
+    savedImages[editingSizeImageIndex].sizeParts.height = Math.round(originalHeight + ((scaleFactor - 1.0)* 100));
   
   
     // Adjust size with aspect ratio maintenance
@@ -892,8 +892,8 @@ const stopLoadingSound = () => {
         const originalWidth = img.sizeParts.width;
         const originalHeight = img.sizeParts.height;
 
-        const newWidth = Math.round(originalWidth * scaleFactor);
-        const newHeight = Math.round(originalHeight * scaleFactor);
+        const newWidth = Math.round( originalWidth + ((scaleFactor - 1.0)* 100));
+        const newHeight = Math.round(originalHeight + ((scaleFactor - 1.0)* 100));
   
         // Update the image object with the new size
         return {
