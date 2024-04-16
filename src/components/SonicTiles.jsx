@@ -979,6 +979,20 @@ const stopLoadingSound = () => {
     const findImageIndex = savedImages.findIndex(image => image.coordinate.x == movingTile.x && image.coordinate.y == movingTile.y);
     const pushImage = savedImages[findImageIndex];
 
+    
+    let direction;
+    if (newX > movingTile.x) {
+        direction = "right";
+    } else if (newX < movingTile.x) {
+        direction = "left";
+    } else if (newY > movingTile.y) {
+        direction = "down";
+    } else if (newY < movingTile.y) {
+        direction = "up";
+    } else {
+        direction = "the same place";  // In case there is no change in position
+    }
+
     pushImage.coordinate.x = newX;
     pushImage.coordinate.y = newY;
 
@@ -986,8 +1000,10 @@ const stopLoadingSound = () => {
 
     addSurroundingTiles(centralTile)
 
-    speakMessage(`Pushed Image ${savedImages[findImageIndex].name}`)
+    // Speak message with direction
+    speakMessage(`Pushed Image ${savedImages[findImageIndex].name} ${direction}`);
 
+    // Log the updated image details
     console.log('pushImage', pushImage);
   }
 
