@@ -297,16 +297,24 @@ export const SonicTiles = () => {
     window.speechSynthesis.speak(utterance);
     utterance.rate = 0.9; 
   
+  };
+
+  useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === "Escape") {
+      // Check if the escape key is pressed and neither location nor size is being edited
+      if (event.key === "Escape" && !isEditingLocation && !isEditingSize) {
+        console.log("Handling escape: Cancelling operations and speech synthesis.");
         window.speechSynthesis.cancel();
-        document.removeEventListener("keydown", handleEscape);
-        
       }
     };
-  
+
+    // Attach the keydown event listener
     document.addEventListener("keydown", handleEscape);
-  };
+    return () => {
+      // Remove the keydown event listener when the component unmounts
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isEditingLocation, isEditingSize]);  
 
   useEffect(() => {
         if (savedImages.length > 0) {
@@ -750,7 +758,7 @@ const startLoadingSound = async (voiceText) => {
     isGeneratingImage = true;
 
     try {
-      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created. Press the escape key to stop generation`);
+      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
       console.log('Tone utterance', utterance);
       utterance.pitch = 1;
       utterance.rate = 1;
@@ -1345,7 +1353,7 @@ const stopLoadingSound = () => {
 
             setlocationEditActive(true); 
             const imageIndex = savedImages.findIndex(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
-            playModeNotification(`Location Edit.  Use arrow keys to edit the location. Press Shift to hear the coordinates. The image is located in ${savedImages[imageIndex].canvas.x} and ${savedImages[imageIndex].canvas.y} on the  ${canvasSize.width} by  ${canvasSize.height} canvas`);
+            playModeNotification(`Location Edit.  Press Shift to hear the coordinates. The image is located in ${savedImages[imageIndex].canvas.x} and ${savedImages[imageIndex].canvas.y} on the  ${canvasSize.width} by  ${canvasSize.height} canvas`);
 
             enterLocationEditMode(focusedIndex);
 
