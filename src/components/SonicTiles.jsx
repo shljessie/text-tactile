@@ -494,7 +494,7 @@ const [isUpdating, setIsUpdating] = useState(false);
       if (isEditingLocation && editingImageIndex !== null) {
         const editingImage = savedImages[editingImageIndex];
         let dx = 0, dy = 0;
-        let moveDistance = 50;
+        let moveDistance = 20;
         const currentTime = getFormattedTimestamp()
         
         switch(e.key) {
@@ -544,7 +544,8 @@ const [isUpdating, setIsUpdating] = useState(false);
             
           case 'ArrowDown': 
             dy = moveDistance;
-            if (savedImages[editingImageIndex].canvas.y >= canvasSize.height - moveDistance) {
+            console.log('savedImages[editingImageIndex].canvas.y + height', savedImages[editingImageIndex].canvas.y +  (savedImages[editingImageIndex].sizeParts.height / 2))
+            if (savedImages[editingImageIndex].canvas.y + (savedImages[editingImageIndex].sizeParts.height / 2) >= canvasSize.height - moveDistance ) {
               thumpRef.current.start();
               outside = true;
             }else{
@@ -558,9 +559,9 @@ const [isUpdating, setIsUpdating] = useState(false);
 
           case 'Shift': 
               speakMessage(
-                `The current image position is 
+                `The coordinates are
                 ${savedImages[editingImageIndex].canvas.x} 
-                and ${savedImages[editingImageIndex].canvas.y}
+                by ${savedImages[editingImageIndex].canvas.y}
                 
                 `);
 
@@ -1563,7 +1564,8 @@ const stopLoadingSound = () => {
     on a canvas based on their coordinates and sizes in a verbal way with out 
     using exact numbers descriptions: ${descriptions}. 
     DO NOT say that it is a square shape. Keep the description short within a paragraph. 
-    Describe the relative locations of the images and the size.`;
+    Describe the relative locations of the images and the size.
+    If one image is on top of the other describe that relationship clearly.`;
   };
 
 
@@ -1850,9 +1852,9 @@ const stopLoadingSound = () => {
 
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
         const response = await openai.createImage({
-          prompt: `Create ONLY ONE of a VERY SIMPLE and VERY SMALL MINI${voiceText} ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
+          prompt: `Create ONLY ONE of a VERY SIMPLE ${voiceText} with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
           This type of drawing is often used in COLORING BOOK or instructional material. 
-          There should be NO DETAILS or SHADING in the drawing.
+          There should be NO DETAILS and NO SHADING in the drawing.
           Use VERY THICK OUTLINES and REMOVE DETAILS. 
           All of the ENTIRE image should be shown and the image should only take HALF of the SCREEN.
           The image should be SMALL and located in the CENTER.
