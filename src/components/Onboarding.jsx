@@ -140,7 +140,7 @@ const Onboarding = () => {
   };
   
   return (
-    <div className="onboarding-container"  aria-labelledby="mainHeader" style={{ paddingTop: '2rem', textAlign: 'start' }}>
+    <div className="onboarding-container"  aria-labelledby="mainHeader" style={{ padding: '2rem', margin:'auto', marginTop:'2rem', textAlign: 'start',  boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }}>
   
     <header className='header'>
         <h3 id="mainHeader"  aria-label="AltCanvas Study Onboarding"  style={{fontSize: '1.5rem',  margin: '2rem',   marginLeft: '1rem'}}> <b> </b> ALT CANVAS </h3>

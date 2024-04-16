@@ -127,7 +127,7 @@ export const SonicTiles = () => {
       displayCurrentCommand();
     } else if (event.shiftKey && event.key === 'D') {
       console.log('Shift+S pressed');
-      renderCanvas();
+      renderCanvas(savedImages);
     } 
     
     if(keyOptions){
@@ -2115,7 +2115,7 @@ const stopLoadingSound = () => {
           aria-label="Right Portion of the Screen"
           >
           <h4>Canvas {canvasSize.width} x {canvasSize.height}</h4>
-              <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, border: '4px solid gray', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
+              <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
               {savedImages.map((image, index) => {
                 if (image.image_nbg !== '') { // Only render and log if image_nbg is not an empty string
                     // Log the image URL here, before returning the JSX
