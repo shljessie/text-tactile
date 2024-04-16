@@ -544,7 +544,6 @@ const [isUpdating, setIsUpdating] = useState(false);
             
           case 'ArrowDown': 
             dy = moveDistance;
-            console.log('savedImages[editingImageIndex].canvas.y + height', savedImages[editingImageIndex].canvas.y +  (savedImages[editingImageIndex].sizeParts.height / 2))
             if (savedImages[editingImageIndex].canvas.y + (savedImages[editingImageIndex].sizeParts.height / 2) >= canvasSize.height - moveDistance ) {
               thumpRef.current.start();
               outside = true;
