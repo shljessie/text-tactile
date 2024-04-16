@@ -1565,7 +1565,7 @@ const stopLoadingSound = () => {
     using exact numbers descriptions: ${descriptions}. 
     DO NOT say that it is a square shape. Keep the description short within a paragraph. 
     Describe the relative locations of the images and the size.
-    If one image is on top of the other describe that relationship clearly.`;
+    If one image is on top of the other image say it is if not, say it is not.`;
   };
 
 
