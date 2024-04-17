@@ -1506,6 +1506,10 @@ const stopLoadingSound = () => {
       recognition.onstart = () => {
         console.log('Speech recognition started');
         setIsListening(true);
+
+        setTimeout(() => {
+          recognition.stop(); 
+        }, 7000);
       };
   
       recognition.onresult = (event) => {
@@ -1850,16 +1854,16 @@ const stopLoadingSound = () => {
         console.log('OpenAI', openai);
         startLoadingSound(voiceText);
 
+        // ${voiceText}
         // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
+        // Create ONLY ONE of a VERY SIMPLE dog with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
+        //   This type of drawing is often used in COLORING BOOK or instructional material. 
+        //   There should be NO DETAILS and NO SHADING in the drawing.
+        //   Use VERY THICK OUTLINES and REMOVE DETAILS. 
+        //   Create ONLY ONE of a ZOOMED OUT 
         const response = await openai.createImage({
-          prompt: `Create ONLY ONE of a VERY SIMPLE ${voiceText} with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK. Only draw the OUTER SHAPE with NO details
-          This type of drawing is often used in COLORING BOOK or instructional material. 
-          There should be NO DETAILS and NO SHADING in the drawing.
-          Use VERY THICK OUTLINES and REMOVE DETAILS. 
-          All of the ENTIRE image should be shown and the image should only take HALF of the SCREEN.
-          The image should be SMALL and located in the CENTER.
-          The image should take up half of the space and the other half should be empty.
-          Create ONLY ONE of a ZOOMED OUT ${voiceText}
+          prompt: `
+          Create an image of a ${voiceText} with very thick black outlines. 
           `,
           n: 1,
           });
