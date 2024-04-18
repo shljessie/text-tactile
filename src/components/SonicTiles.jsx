@@ -782,34 +782,42 @@ const [isUpdating, setIsUpdating] = useState(false);
 // Global variable to store the Audio object
 let loadingSound;
 
-// Function to start playing the loading sound
 const startLoadingSound = async (voiceText) => {
   try {
     await Tone.start();
     console.log('Tone started');
-    isGeneratingImage = true;
 
-    try {
-      const utterance = new SpeechSynthesisUtterance(`Please wait a moment. Generating image based on prompt: ${voiceText}. I will read the description of the image once it is created.`);
-      console.log('Tone utterance', utterance);
+    const utterance = new SpeechSynthesisUtterance(`Detected: ${voiceText}. Press Enter to Confirm. Press the escape key to cancel`);
+    console.log('Tone utterance', utterance);
       utterance.pitch = 1;
       utterance.rate = 1;
       utterance.volume = 1;
-
-      utterance.onend = () => {
-        if(isGeneratingImage){
-          playNotes();
-        }
-      };
-
+  
       window.speechSynthesis.speak(utterance);
-    } catch (innerError) {
-      console.error('Error speaking the utterance:', innerError);
+  
+      // Wait for the key press event to complete
+      const isConfirmed = await new Promise((resolve) => {
+        // Set up the key press event listener inside the Promise
+        function keyPressHandler(event) {
+          document.removeEventListener('keydown', keyPressHandler);
+          if (event.key === "Enter") {
+            speakMessage('Enter pressed, image generation starting.');
+            isGeneratingImage = true;
+            playNotes();
+            resolve(true);
+          } else if (event.key === "Escape") {
+            resolve(false);
+          }
+        }
+        document.addEventListener('keydown', keyPressHandler);
+      });
+  
+      return isConfirmed;
+    } catch (error) {
+      console.error('Error starting Tone.js or speech synthesis:', error);
     }
-  } catch (error) {
-    console.error('Error starting Tone.js:', error);
-  }
-};
+  };
+
 const stopLoadingSound = () => {
   try {
       if (loadingSound) {
@@ -1885,8 +1893,9 @@ const stopLoadingSound = () => {
   
       if (voiceText) {
         console.log('OpenAI', openai);
-        startLoadingSound(voiceText);
+        const correctCall = await startLoadingSound(voiceText);
 
+        if(correctCall) {
         const response = await openai.createImage({
           prompt: `
           You are a children's COLORING BOOK GRAPHIC DESIGNER. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
@@ -1964,7 +1973,13 @@ const stopLoadingSound = () => {
           };
           setFocusedIndex(index);
         }
+      }else{
+        speakMessage('Image Generation Cancelled')
+      }
+
+
       } else {
+
         console.log("Voice text is empty.");
       }
     } catch (err) {
