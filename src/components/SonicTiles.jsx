@@ -1892,17 +1892,10 @@ const stopLoadingSound = () => {
         console.log('OpenAI', openai);
         startLoadingSound(voiceText);
 
-        // ${voiceText}
-        // You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
-        // Create ONLY ONE of a VERY SIMPLE dog with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
-        //   This type of drawing is often used in COLORING BOOK or instructional material. 
-        //   There should be NO DETAILS and NO SHADING in the drawing.
-        //   Use VERY THICK OUTLINES and REMOVE DETAILS. 
-        //   Create ONLY ONE of a ZOOMED OUT 
         const response = await openai.createImage({
           prompt: `
           You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
-          Create ONLY ONE of a VERY SIMPLE dog with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
+          Create ONLY ONE of a VERY SIMPLE  ${voiceText} with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
           This type of drawing is often used in COLORING BOOK or instructional material. 
           There should be NO DETAILS and NO SHADING in the drawing.
           Use VERY THICK OUTLINES and REMOVE DETAILS. 
