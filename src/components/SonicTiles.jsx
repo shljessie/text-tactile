@@ -1579,6 +1579,7 @@ const stopLoadingSound = () => {
 
           playModeNotification("Ask a question about the image on this tile and I will answer", () => {
             setFocusedIndex(focusedIndex);
+            playNotificationSound();
             imageChat(focusedIndex);
           });
           if (tileRefs.current[focusedIndex]) {
