@@ -578,9 +578,10 @@ const [isUpdating, setIsUpdating] = useState(false);
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
-            setFocusedIndex(focusedIndex);
-            if (tileRefs.current[focusedIndex]) {
-              tileRefs.current[focusedIndex].focus();
+            const newIndex = tiles.findIndex(tile => tile.x == savedImages[editingImageIndex].coordinate.x && tile.y == savedImages[editingImageIndex].coordinate.y )
+            setFocusedIndex(newIndex);
+            if (tileRefs.current[newIndex]) {
+              tileRefs.current[newIndex].focus();
             }
             speakMessage("Location mode exited");
             readLocationEdit(focusedIndex)
