@@ -58,19 +58,6 @@ export const SonicTiles = () => {
     sendUuidToServer();
     const uuid=  localStorage.getItem('uuid');
 
-    // setTimeout(() => {
-    //   if (!messagePlayed) {
-    //       speakMessage(`Welcome to AltCanvas, an image editor for blind users! 
-    //         The left section is the tiles. The right section is the Canvas.
-    //         You are currently focused on the first tile. 
-    //         The canvas is ${canvasSize.width} width and ${canvasSize.height} height.
-    //         Press Enter and Record a prompt to generate an image on the Canvas.`);
-    //         setMessagePlayed(true); 
-    //         localStorage.setItem('messagePlayed', 'true');
-    //   }
-    // }, 10000);
-
-
     console.log(
       `
       Loading Check
@@ -81,7 +68,10 @@ export const SonicTiles = () => {
     )
 
     tileRefs.current[0].focus()
+    speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
+   
 
+    // Add event listeners
     window.addEventListener('beforeunload', performRefreshAction);
     window.addEventListener('keydown', defaultKeyOptions);
 
@@ -1252,8 +1242,10 @@ const stopLoadingSound = () => {
 
     if (imageObject !== -1 || tiles.length == 1) {
       console.log('Only One tile')
+      tileRefs.current[focusedIndex].focus();
       if(!savedImages[imageObject] && !keyOptions){
-        speakMessage('You are currently focused on the first tile. Press enter to generate the first image.')
+       
+        speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
       }
