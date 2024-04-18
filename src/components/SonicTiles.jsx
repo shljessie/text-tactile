@@ -1253,7 +1253,7 @@ const stopLoadingSound = () => {
     if (imageObject !== -1 || tiles.length == 1) {
       console.log('Only One tile')
       if(!savedImages[imageObject] && !keyOptions){
-        speakMessage('Press enter to generate the first image.')
+        speakMessage('You are currently focused on the first tile. Press enter to generate the first image.')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
       }
