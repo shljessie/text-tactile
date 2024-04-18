@@ -272,6 +272,7 @@ export const SonicTiles = () => {
   const playerLRRef = useRef(null);
   const playerURef = useRef(null);
   const playerDRef = useRef(null);
+  const loadingPlayerRef = useRef(null);
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [editingImageIndex, setEditingImageIndex] = useState(null);
@@ -734,18 +735,55 @@ const [isUpdating, setIsUpdating] = useState(false);
   const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
   let currentNote = 0;
 
+  const note_url = "https://texttactile.s3.amazonaws.com/generating.mp3";
+
+  const loadingPlayer = new Tone.Player().toDestination();
+  loadingPlayer.load(note_url).then(() => {
+    loadingPlayerRef.current = loadingPlayer;
+  });
+
+
   const playNotes = () => {
-    if (!isGeneratingImage) return;
-
-    if(isGeneratingImage){
-      // Play the current note and schedule the next note
-      synth.triggerAttackRelease(notes[currentNote], '8n');
-      currentNote = (currentNote + 1) % notes.length; // Cycle through the notes
-
-      // Call playNotes again after a short delay
-      setTimeout(playNotes, 1000); 
+    if (!isGeneratingImage) {
+      console.log('Not playing because isGeneratingImage is false');
+      return;
     }
+  
+    console.log('In play');
+    const panner = new Tone.Panner3D({
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+    }).toDestination();
+  
+    const playSound = () => {
+      if (isGeneratingImage) {
+        console.log('Playing Notes');
+        if (loadingPlayerRef.current.state !== "started") {
+          loadingPlayerRef.current.disconnect();
+          loadingPlayerRef.current.chain(panner, Tone.Destination);
+          loadingPlayerRef.current.start();
+        }
+      } else {
+        console.log('Stopping Notes');
+        loadingPlayerRef.current.stop();
+      }
+    };
+  
+    // Start playing sound and set an interval to check if isGeneratingImage changes
+    playSound();
+    const checkInterval = setInterval(() => {
+      playSound(); // Ensure continuous check and action based on isGeneratingImage
+      if (!isGeneratingImage) {
+        loadingPlayerRef.current.stop();
+        clearInterval(checkInterval);
+        console.log('Stopping Notes due to isGeneratingImage becoming false');
+      }
+    }, 1000); // Check every second
   };
+  
+  
+  
   
 // Global variable to store the Audio object
 let loadingSound;
@@ -765,9 +803,9 @@ const startLoadingSound = async (voiceText) => {
       utterance.volume = 1;
 
       utterance.onend = () => {
-        // if(isGeneratingImage){
-        //   playNotes();
-        // }
+        if(isGeneratingImage){
+          playNotes();
+        }
       };
 
       window.speechSynthesis.speak(utterance);
@@ -1863,7 +1901,12 @@ const stopLoadingSound = () => {
         //   Create ONLY ONE of a ZOOMED OUT 
         const response = await openai.createImage({
           prompt: `
-          Create an image of a ${voiceText} with very thick black outlines. 
+          You are a children's cartoon graphic designer. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
+          Create ONLY ONE of a VERY SIMPLE dog with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
+          This type of drawing is often used in COLORING BOOK or instructional material. 
+          There should be NO DETAILS and NO SHADING in the drawing.
+          Use VERY THICK OUTLINES and REMOVE DETAILS. 
+          Create ONLY ONE of a ZOOMED OUT ${voiceText}
           `,
           n: 1,
           });
@@ -1922,10 +1965,10 @@ const stopLoadingSound = () => {
           setFocusedIndex(index);
 
         } else {
+          isGeneratingImage = false;
           const updatedSavedImages = [...savedImages, ...imageObjects];
           setSavedImages(updatedSavedImages);
           speechSynthesis.speak(utterance);
-          isGeneratingImage = false;
 
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
