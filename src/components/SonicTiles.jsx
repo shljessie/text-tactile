@@ -479,104 +479,6 @@ export const SonicTiles = () => {
 
 const [isUpdating, setIsUpdating] = useState(false);
 
-
-// useEffect(() => {
-//   let dx = 0, dy = 0;
-//   let leftPressCount = 0, rightPressCount = 0, upPressCount = 0, downPressCount = 0;
-//   let lastKey = null;
-
-//   const handleKeyDownLocationEdit = (e) => {
-//     if (!isEditingLocation || editingImageIndex === null) return;
-
-//     const moveDistance = 20;
-//     const currentTime = getFormattedTimestamp();
-
-//     // Apply any changes immediately on key press, check for key changes
-//     if (lastKey && lastKey !== e.key) {
-//       announceMovement();
-//       resetMovement();
-//     }
-
-//     switch (e.key) {
-//       case 'ArrowLeft':
-//         announceMovement();
-//       case 'ArrowRight':
-//         announceMovement();
-//       case 'ArrowUp':
-//         announceMovement();
-//       case 'ArrowDown':
-//         updateAndCheckMovement(e.key, moveDistance);
-//         break;
-//       case 'Shift':
-//       case 'Escape':
-//         announceMovement();
-//         resetMovement();
-//         if (e.key === 'Escape') {
-//           setIsEditingLocation(false);
-//           setEditingImageIndex(null);
-//         }
-//         break;
-//       default:
-//         return;
-//     }
-
-//     lastKey = e.key;
-//   };
-
-//   const updateAndCheckMovement = (key, moveDistance) => {
-//     let localDx = 0, localDy = 0;
-
-//     switch (key) {
-//       case 'ArrowLeft':
-//         localDx = -moveDistance;
-//         leftPressCount++;
-//         break;
-//       case 'ArrowRight':
-//         localDx = moveDistance;
-//         rightPressCount++;
-//         break;
-//       case 'ArrowUp':
-//         localDy = -moveDistance;
-//         upPressCount++;
-//         break;
-//       case 'ArrowDown':
-//         localDy = moveDistance;
-//         downPressCount++;
-//         break;
-//     }
-
-//     // Update position and check for overlaps immediately
-//     updateImagePosition(editingImageIndex, localDx, localDy);
-//     isOverlapping(savedImages[editingImageIndex], editingImageIndex);
-
-//     // Accumulate total movement for announcement on key change or release
-//     dx += localDx;
-//     dy += localDy;
-//   };
-
-//   const updateImagePosition = (index, dx, dy) => {
-//     savedImages[index].canvas.x += dx;
-//     savedImages[index].canvas.y += dy;
-//   };
-
-//   const announceMovement = () => {
-//     if (dx !== 0) speakMessage(`moved horizontally ${dx} pixels`);
-//     if (dy !== 0) speakMessage(`moved vertically ${dy} pixels`);
-//   };
-
-//   const resetMovement = () => {
-//     dx = 0; dy = 0;
-//     leftPressCount = 0; rightPressCount = 0; upPressCount = 0; downPressCount = 0;
-//   };
-
-//   document.addEventListener('keydown', handleKeyDownLocationEdit);
-//   return () => {
-//     document.removeEventListener('keydown', handleKeyDownLocationEdit);
-//   };
-// }, [isEditingLocation, editingImageIndex, savedImages]);
-
-
-
   useEffect(() => {
     const handleKeyDownLocationEdit = (e) => {
       
@@ -1342,10 +1244,8 @@ const stopLoadingSound = () => {
           
 
     if (imageObject !== -1 || tiles.length == 1) {
-      console.log('Only One tile')
-      tileRefs.current[focusedIndex].focus();
       if(!savedImages[imageObject] && !keyOptions){
-       
+        tileRefs.current[focusedIndex].focus();
         // speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
@@ -1726,7 +1626,7 @@ const stopLoadingSound = () => {
         },
         method: 'POST',
         body: JSON.stringify({
-          model: 'gpt-4',
+          model: 'gpt-4-turbo',
           messages: [
             {
               role: 'user',
@@ -2019,6 +1919,7 @@ const stopLoadingSound = () => {
           url: img.url,
           image_nbg: '',
           descriptions: '',
+          canvas_descriptions: '',
           coordinate: { x: centerX, y: centerY },
           canvas: {x: centerX, y: centerY},
           sizeParts: { width: imageSize  , height: imageSize},
@@ -2035,7 +1936,7 @@ const stopLoadingSound = () => {
         }
 
 
-        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The image is located in ${imageObjects[0].canvas.x} and ${imageObjects[0].canvas.y}. It is ${imageObjects[0].sizeParts.width} in width and ${imageObjects[0].sizeParts.height} in height `;
+        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The image is located in ${imageObjects[0].canvas.x} and ${imageObjects[0].canvas.y}. It is ${imageObjects[0].sizeParts.width} in width and ${imageObjects[0].sizeParts.height} in height. `;
         
         let utterance = new SpeechSynthesisUtterance(imageDescription);
         utterance.rate = 1;
@@ -2045,9 +1946,7 @@ const stopLoadingSound = () => {
   
         if (isRegeneration) {
           updateImageAtIndex(index, imageObjects[0]);
-          
           speechSynthesis.speak(utterance);
-
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
           };
@@ -2104,7 +2003,6 @@ const stopLoadingSound = () => {
     };
 
     distances.forEach((item, index) => {
-      // Introduce delay to ensure sequential playback
       setTimeout(() => {
           const image = otherImages[item.index];
           playSoundAfterSpeech(image, index);
