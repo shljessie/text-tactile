@@ -787,7 +787,7 @@ const startLoadingSound = async (voiceText) => {
     await Tone.start();
     console.log('Tone started');
 
-    const utterance = new SpeechSynthesisUtterance(`Detected: ${voiceText}. Press Enter to Confirm. Press the escape key to cancel`);
+    const utterance = new SpeechSynthesisUtterance(`Detected: ${voiceText}. Press Enter to Confirm and the escape key to cancel`);
     console.log('Tone utterance', utterance);
       utterance.pitch = 1;
       utterance.rate = 1;
