@@ -51,9 +51,23 @@ export const SonicTiles = () => {
   });
   
   const tileSize = Math.round(canvasSize['width'] / 10);
-  const [messagePlayed, setMessagePlayed] = useState(false)
+  let messagePlayed =false
 
   useEffect(() => {
+
+    if (apiKey) {
+      const configuration = new Configuration({
+        "model": "gpt-4-turbo",
+        apiKey: apiKey,
+        "style": 'natural',
+        "size": "1024x1024"
+      });
+      setOpenai(new OpenAIApi(configuration));
+    }
+
+    if (Tone.context.state !== 'running') {
+      Tone.context.resume();
+    }
 
     sendUuidToServer();
     const uuid=  localStorage.getItem('uuid');
@@ -68,7 +82,11 @@ export const SonicTiles = () => {
     )
 
     tileRefs.current[0].focus()
-    speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
+    if(!messagePlayed){
+      speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
+      messagePlayed = true
+    }
+    // speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
    
 
     // Add event listeners
@@ -334,24 +352,7 @@ export const SonicTiles = () => {
           }
         }
   }, [savedImages]);
-  
-  
-  useEffect(() => {
-    if (apiKey) {
-      const configuration = new Configuration({
-        "model": "gpt-4-turbo",
-        apiKey: apiKey,
-        "style": 'natural',
-        "size": "1024x1024"
-      });
-      setOpenai(new OpenAIApi(configuration));
-    }
 
-    if (Tone.context.state !== 'running') {
-      Tone.context.resume();
-    }
-    
-  }, []);
 
   const thumpRef = useRef(null);
   const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
@@ -477,6 +478,103 @@ export const SonicTiles = () => {
 
 
 const [isUpdating, setIsUpdating] = useState(false);
+
+
+// useEffect(() => {
+//   let dx = 0, dy = 0;
+//   let leftPressCount = 0, rightPressCount = 0, upPressCount = 0, downPressCount = 0;
+//   let lastKey = null;
+
+//   const handleKeyDownLocationEdit = (e) => {
+//     if (!isEditingLocation || editingImageIndex === null) return;
+
+//     const moveDistance = 20;
+//     const currentTime = getFormattedTimestamp();
+
+//     // Apply any changes immediately on key press, check for key changes
+//     if (lastKey && lastKey !== e.key) {
+//       announceMovement();
+//       resetMovement();
+//     }
+
+//     switch (e.key) {
+//       case 'ArrowLeft':
+//         announceMovement();
+//       case 'ArrowRight':
+//         announceMovement();
+//       case 'ArrowUp':
+//         announceMovement();
+//       case 'ArrowDown':
+//         updateAndCheckMovement(e.key, moveDistance);
+//         break;
+//       case 'Shift':
+//       case 'Escape':
+//         announceMovement();
+//         resetMovement();
+//         if (e.key === 'Escape') {
+//           setIsEditingLocation(false);
+//           setEditingImageIndex(null);
+//         }
+//         break;
+//       default:
+//         return;
+//     }
+
+//     lastKey = e.key;
+//   };
+
+//   const updateAndCheckMovement = (key, moveDistance) => {
+//     let localDx = 0, localDy = 0;
+
+//     switch (key) {
+//       case 'ArrowLeft':
+//         localDx = -moveDistance;
+//         leftPressCount++;
+//         break;
+//       case 'ArrowRight':
+//         localDx = moveDistance;
+//         rightPressCount++;
+//         break;
+//       case 'ArrowUp':
+//         localDy = -moveDistance;
+//         upPressCount++;
+//         break;
+//       case 'ArrowDown':
+//         localDy = moveDistance;
+//         downPressCount++;
+//         break;
+//     }
+
+//     // Update position and check for overlaps immediately
+//     updateImagePosition(editingImageIndex, localDx, localDy);
+//     isOverlapping(savedImages[editingImageIndex], editingImageIndex);
+
+//     // Accumulate total movement for announcement on key change or release
+//     dx += localDx;
+//     dy += localDy;
+//   };
+
+//   const updateImagePosition = (index, dx, dy) => {
+//     savedImages[index].canvas.x += dx;
+//     savedImages[index].canvas.y += dy;
+//   };
+
+//   const announceMovement = () => {
+//     if (dx !== 0) speakMessage(`moved horizontally ${dx} pixels`);
+//     if (dy !== 0) speakMessage(`moved vertically ${dy} pixels`);
+//   };
+
+//   const resetMovement = () => {
+//     dx = 0; dy = 0;
+//     leftPressCount = 0; rightPressCount = 0; upPressCount = 0; downPressCount = 0;
+//   };
+
+//   document.addEventListener('keydown', handleKeyDownLocationEdit);
+//   return () => {
+//     document.removeEventListener('keydown', handleKeyDownLocationEdit);
+//   };
+// }, [isEditingLocation, editingImageIndex, savedImages]);
+
 
 
   useEffect(() => {
@@ -627,6 +725,9 @@ const [isUpdating, setIsUpdating] = useState(false);
       document.removeEventListener('keydown', handleKeyDownLocationEdit);
     };
   }, [isEditingLocation]);
+
+
+  
 
   // Image location change is finished and image is updated
   useEffect(() => {
@@ -1245,7 +1346,7 @@ const stopLoadingSound = () => {
       tileRefs.current[focusedIndex].focus();
       if(!savedImages[imageObject] && !keyOptions){
        
-        speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
+        // speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
       }
@@ -2057,7 +2158,7 @@ const stopLoadingSound = () => {
           After that, navigate to other tile locations and create images there.
           For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
           <br/>
-          <p style={{fontSize:'0.7rem', textAlign:'right'}}>messagePlayed: {messagePlayed.toString()} | UUID: {getUuid()}</p>
+          <p style={{fontSize:'0.7rem', textAlign:'right'}}> UUID: {getUuid()}</p>
         </p>
       </div>
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
