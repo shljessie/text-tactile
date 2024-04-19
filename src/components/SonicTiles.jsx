@@ -1958,6 +1958,8 @@ const stopLoadingSound = () => {
           speechSynthesis.speak(utterance);
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
+            setFocusedIndex(index);
+            tileRefs.current[index].focus();
           };
           
           setFocusedIndex(index);
@@ -1977,6 +1979,8 @@ const stopLoadingSound = () => {
         }
       }else{
         speakMessage('Image Generation Cancelled')
+        setFocusedIndex(index);
+        tileRefs.current[index].focus();
       }
 
 
