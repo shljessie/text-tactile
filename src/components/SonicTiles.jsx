@@ -1407,7 +1407,7 @@ const stopLoadingSound = () => {
 
             setlocationEditActive(true); 
             const imageIndex = savedImages.findIndex(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
-            playModeNotification(`Location Edit. Use the Arrow keys to edit the location by ${moveDistance}  Press Shift to hear the coordinates.`);
+            playModeNotification(`Location Edit. Use the Arrow keys to edit the location by 20.  Press Shift to hear the coordinates.`);
 
             enterLocationEditMode(focusedIndex);
 
