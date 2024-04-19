@@ -1895,6 +1895,9 @@ const stopLoadingSound = () => {
         console.log('OpenAI', openai);
         const correctCall = await startLoadingSound(voiceText);
 
+
+
+
         if(correctCall) {
         const response = await openai.createImage({
           prompt: `
@@ -1904,8 +1907,6 @@ const stopLoadingSound = () => {
           There should be NO DETAILS and NO SHADING in the graphic.
           Use VERY THICK OUTLINES and REMOVE DETAILS. 
           Create ONLY ONE of a ZOOMED OUT ${voiceText}
-
-          Example: 
           `,
           n: 1,
           });
