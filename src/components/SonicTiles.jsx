@@ -871,7 +871,8 @@ const stopLoadingSound = () => {
           speakMessage('Max Size Reached')
         }else{
           scaleFactor = 1.1;
-          changedFrequency = changedFrequency - 30
+          changedFrequency = changedFrequency + 30
+         
         }
         break;
       case 'ArrowDown':
@@ -879,7 +880,7 @@ const stopLoadingSound = () => {
           speakMessage('Min Size Reached')
         } else{
           scaleFactor = 0.9;
-          changedFrequency = changedFrequency + 30
+          changedFrequency = changedFrequency - 30
         }
         break;
       case 'Shift':
