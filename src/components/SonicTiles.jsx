@@ -498,7 +498,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               
             }else{
               playSpatialSound('left'); 
-              speakMessage(`left ${-dx}`);
+              // speakMessage(`left ${-dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
               isOverlapping(savedImages[editingImageIndex],editingImageIndex);
               outside = false;
@@ -512,7 +512,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               outside = true;
             }else{
               playSpatialSound('right');
-              speakMessage(`right ${dx}`);
+              // speakMessage(`right ${dx}`);
               updateImagePosition(editingImageIndex, dx, dy);
               isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
@@ -526,7 +526,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               outside = true;
             }else{
               playSpatialSound('up'); 
-              speakMessage(`up ${-dy}`);
+              // speakMessage(`up ${-dy}`);
               updateImagePosition(editingImageIndex, dx, dy);
               isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
@@ -540,7 +540,7 @@ const [isUpdating, setIsUpdating] = useState(false);
               outside = true;
             }else{
               playSpatialSound('down');
-              speakMessage(`down ${dy}`); 
+              // speakMessage(`down ${dy}`); 
               updateImagePosition(editingImageIndex, dx, dy);
               isOverlapping(savedImages[editingImageIndex], editingImageIndex);
               outside = false;
@@ -773,7 +773,7 @@ const [isUpdating, setIsUpdating] = useState(false);
         clearInterval(checkInterval);
         console.log('Stopping Notes due to isGeneratingImage becoming false');
       }
-    }, 1000); // Check every second
+    }, 5000); // Check every second
   };
   
   
@@ -872,7 +872,6 @@ const stopLoadingSound = () => {
         }else{
           scaleFactor = 1.1;
           changedFrequency = changedFrequency - 30
-          speakMessage('increase 10');
         }
         break;
       case 'ArrowDown':
@@ -881,7 +880,6 @@ const stopLoadingSound = () => {
         } else{
           scaleFactor = 0.9;
           changedFrequency = changedFrequency + 30
-          speakMessage('decrease 10');
         }
         break;
       case 'Shift':
@@ -1409,7 +1407,7 @@ const stopLoadingSound = () => {
 
             setlocationEditActive(true); 
             const imageIndex = savedImages.findIndex(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
-            playModeNotification(`Location Edit.  Press Shift to hear the coordinates. The image is located in ${savedImages[imageIndex].canvas.x} and ${savedImages[imageIndex].canvas.y} on the  ${canvasSize.width} by  ${canvasSize.height} canvas`);
+            playModeNotification(`Location Edit. Use the Arrow keys to edit the location by ${moveDistance}  Press Shift to hear the coordinates.`);
 
             enterLocationEditMode(focusedIndex);
 
@@ -1433,7 +1431,7 @@ const stopLoadingSound = () => {
           });
           
           setsizeEditActive(true); 
-          playModeNotification("Size Edit. Use up down arrow keys to edit the size. Press Shift to hear size Info.");
+          playModeNotification("Size Edit. Use up down arrow keys to edit the size by 10 each. Press Shift to hear size Info.");
 
           enterSizeEditMode(focusedIndex);
 
@@ -1901,7 +1899,7 @@ const stopLoadingSound = () => {
         if(correctCall) {
         const response = await openai.createImage({
           prompt: `
-          You are a children's COLORING BOOK GRAPHIC DESIGNER. Only create one of ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
+          You are a children's COLORING BOOK GRAPHIC DESIGNER. Create ONLY ONE of A SINGLE ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
           Create ONLY ONE of a VERY SIMPLE  ${voiceText} with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
           This type of graphic is often used in COLORING BOOK wuth THICK OUTLINES. 
           There should be NO DETAILS and NO SHADING in the graphic.
@@ -1960,8 +1958,9 @@ const stopLoadingSound = () => {
           utterance.onend = function(event) {
             console.log('Speech synthesis finished.');
           };
-
+          
           setFocusedIndex(index);
+          tileRefs.current[index].focus();
 
         } else {
           isGeneratingImage = false;
@@ -1973,6 +1972,7 @@ const stopLoadingSound = () => {
             console.log('Speech synthesis finished.');
           };
           setFocusedIndex(index);
+          tileRefs.current[index].focus();
         }
       }else{
         speakMessage('Image Generation Cancelled')
