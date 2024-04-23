@@ -870,7 +870,7 @@ const stopLoadingSound = () => {
 
     switch (e.key) {
       case 'ArrowUp':
-        if(originalWidth >= canvasSize.width / 2){
+        if(originalWidth >= canvasSize.width - 100){
           speakMessage('Max Size Reached')
         }else{
           scaleFactor = 1.1;
