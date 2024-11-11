@@ -1,4 +1,4 @@
-# AltCanvas: A Text2Image Model based Image Editor with Tile-Based Editing Interactions for Blind and Low Vision users 
+# AltCanvas: an Accessible Image Editor powered by Image Generation Models
 
 ---
 
