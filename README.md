@@ -11,6 +11,9 @@
 - [AltCanvas Research Paper on arXiv](https://www.arxiv.org/abs/2408.10240)
 
 
+![Alt text](src/assets/description.png)
+![Alt text](src/assets/edit.png)
+
 ---
 
 ## Thank You for Your Interest in AltCanvas!
@@ -25,15 +28,6 @@ We're excited to announce that the following tools will soon be added to this re
 
 - ✅ **Easy Model Training Script**: A script to streamline the training process, offering a guided setup for fine-tuning models on custom datasets. This script will include support for lightweight fine-tuning methods and clear instructions for managing dataset requirements and model checkpoints, helping users quickl
 
-
----
-# Coming Soon!
-
-## Fine-Tuning the Model for Specific Image Generation Tasks
-AltCanvas aims to expand its capabilities by enabling model fine-tuning based on specific BVI user data. In future versions, we will explore:
-
-- **Task-Specific Training**: Fine-tuning models to generate more accessible visual outputs with minimal detail, optimized for tactile and coloring book styles.
-- **Model Hosting Options**: Moving models to a custom endpoint for enhanced control and faster inference times.
 
 ---
 
