@@ -19,6 +19,17 @@ import { v4 as uuidv4 } from 'uuid';
 export const SonicTiles = () => {
   const apiKey = process.env.REACT_APP_API_KEY;
 
+  const [settingsOpen, setOpenSettings] = useState(false);
+
+  useEffect(() => {
+    setOpenSettings(true);
+  }, []);
+
+  const handleSettingsClose = () => {
+      setOpenSettings(false);
+  };
+
+
   const getUuid = () => {
     let uuid = localStorage.getItem('uuid');
     if (!uuid) {
@@ -195,7 +206,8 @@ export const SonicTiles = () => {
 };
 
 
-  
+  var posTagger = require( 'wink-pos-tagger' );
+  var tagger = posTagger();
   const [savedImages, setSavedImages] = useState([]);
   const canvasRef = useRef(null);
 
@@ -1604,8 +1616,7 @@ const stopLoadingSound = () => {
     globalDescriptionPrompt =  `
     You are describing and image to a Visually Impaired User.
     Give a one line brief description of what the image looks like
-    Describe the layout of the following images 
-    on a canvas based on their coordinates and sizes in a verbal way with out 
+    Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out 
     using exact numbers descriptions: ${descriptions}. 
     DO NOT say that it is a square shape. Keep the description short within a paragraph. 
     Describe the relative locations of the images and the size.
@@ -1865,6 +1876,8 @@ const stopLoadingSound = () => {
   const generateImage = async (index, isRegeneration = false) => {
     setLoading(true);
     setActiveIndex(index);
+    
+
     let shouldCancel = false;
 
     const keydownListener = (event) => {
@@ -1896,18 +1909,50 @@ const stopLoadingSound = () => {
 
 
 
+        const results = tagger.tagSentence( voiceText );
+        console.log('POS tag result', results)
+        const nouns = results.filter(result => result.pos === 'NN');
+        console.log('Nouns:', nouns);
+
+        let nonImageNouns = [];
+        // Collect non-image nouns in an array
+        for (const noun of nouns) {
+            if (noun.value !== 'image') {
+                nonImageNouns.push(noun.value);
+                console.log('non-image noun', noun.value);
+            }
+        }
+        
+        // Join non-image nouns into a single string, or use the original voiceText if none are found
+        let mainObject = nonImageNouns.length > 0 ? nonImageNouns.join(' ') : voiceText;
+        console.log('Main Object:', mainObject);
+
+        console.log(`
+        You are a MINIMALISTIC COLORING BOOK GRAPHIC DESIGNER. 
+        Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
+        NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
+        The user has requested: ${voiceText}
+        `)
+
+        console.log(`
+        You are a MINIMALISTIC COLORFUL GRAPHIC DESIGNER, BLOGGER, and CONTENT CREATOR.
+        Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
+        NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
+        The user has requested: ${voiceText}
+        `)
+
 
         if(correctCall) {
         const response = await openai.createImage({
           prompt: `
-          You are a children's COLORING BOOK GRAPHIC DESIGNER. Create ONLY ONE of A SINGLE ${voiceText} The background should be white. Only draw thick outlines without color. It should be in a simple minimalistic graphic design.
-          Create ONLY ONE of a VERY SIMPLE  ${voiceText} with VERY THICK OUTLINES and a ZOOMED OUT graphic that would go in a CHILDREN'S COLORING BOOK.
-          This type of graphic is often used in COLORING BOOK wuth THICK OUTLINES. 
-          There should be NO DETAILS and NO SHADING in the graphic.
-          Use VERY THICK OUTLINES and REMOVE DETAILS. 
-          Create ONLY ONE of a ZOOMED OUT ${voiceText}
+          You are a MINIMALISTIC COLORFUL GRAPHIC DESIGNER, BLOGGER, and CONTENT CREATOR.
+          Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
+          NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
+          The user has requested: ${voiceText}
           `,
           n: 1,
+          quality:'hd',
+          style:'natural'
           });
 
           if (shouldCancel) {
@@ -1995,51 +2040,38 @@ const stopLoadingSound = () => {
     }
   };
 
-
-   const radarScan = (gridIndex) => {
+  const radarScan = (gridIndex) => {
 
     const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+    const tileY = tiles[gridIndex].y;
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY);
 
-    console.log('Image',savedImages[imageIndex]);
+    if (imageIndex === -1) {
+        console.error('No image found at the specified grid index.');
+        return;
+    }
 
-    const centerX = savedImages[gridIndex].coordinate.x;
-    const centerY = savedImages[gridIndex].coordinate.y;
+    const centerX = savedImages[imageIndex].coordinate.x;
+    const centerY = savedImages[imageIndex].coordinate.y;
 
-    const otherImages = savedImages.filter((_, index) => index !== gridIndex);
+    const otherImages = savedImages.filter((_, index) => index !== imageIndex);
 
-    const distances = otherImages.map((image, index) => {
-    const distance = Math.sqrt(Math.pow(image.canvas.x - centerX, 2) + Math.pow(image.canvas.y - centerY, 2));
-        return {index, distance};
+    const distances = otherImages.map(image => {
+        const distance = Math.sqrt(Math.pow(image.coordinate.x - centerX, 2) + Math.pow(image.coordinate.y - centerY, 2));
+        return { image, distance };
     });
 
     distances.sort((a, b) => a.distance - b.distance);
 
-    const playSoundAfterSpeech = (image, index) => {
-      speakImageName(image.name, () => {
-          console.log('Playing', image.name);
-          playRadarSound(image.sound, image.canvas.x, image.canvas.y);
-      });
-    };
-
     distances.forEach((item, index) => {
-      setTimeout(() => {
-          const image = otherImages[item.index];
-          playSoundAfterSpeech(image, index);
-      }, index * 2000); // Adjust delay to account for speech duration
+        setTimeout(() => {
+            speakMessage(`${item.image.name}, ${item.distance.toFixed(2)} pixels away`, () => {
+                console.log( item.image.name, item.distance.toFixed(2), 'pixels away');
+            });
+        }, index * 2000);
     });
-    
-   }
-
-   const speakImageName = (text, callback) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.onend = function(event) {
-        console.log('Speech synthesis finished speaking');
-        callback();
-    };
-    window.speechSynthesis.speak(utterance);
 }
+
 
    const playRadarSound = (note, x ,y ) =>{
 
@@ -2065,6 +2097,54 @@ const stopLoadingSound = () => {
  
   return (
     <div id='imageGeneration'>
+
+
+    <Dialog open={settingsOpen} onClose={handleSettingsClose} aria-labelledby="welcome-dialog-title">
+    <div style={{ flexGrow: 1, margin: '6%' }}>
+      <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>System Settings</h1>
+    </div>
+        <p id="welcome-dialog-title" style={{padding: '1rem'}}>
+          Welcome to AltCanvas. Select the system settings on Image Style and Speech Speech below.
+          Press the Speech Speed Buttons up and down to hear the sample speed
+        </p>
+        <DialogContent>
+            <div>
+              <h3>Canvas Size</h3>
+              <br/>
+              <label htmlFor="width">Width:</label>
+              <input
+                type="number"
+                id="width"
+                style={{ margin: '0 10px', border:'2px solid royalblue' }}
+              />
+              <label htmlFor="height">Height:</label>
+              <input
+                type="number"
+                id="height"
+                style={{ margin: '0 10px', border:'2px solid royalblue' }}
+              />
+            </div>
+            <br/>
+            <br/>
+            <div>
+                <h3>Image Style:</h3>
+                <button  style={{marginLeft:"20%"}} onClick={() => console.log('Tactile Graphic selected')}>Tactile Graphic</button>
+                <button onClick={() => console.log('Color Graphic selected')}>Color Graphic</button>
+            </div>
+            <br/>
+            <br/>
+            <div>
+                <h3>Speech Speed:  </h3>   
+                <h1 style={{marginLeft:"50%"}}>1</h1>
+                <br/>
+                  <button style={{marginLeft:"20%"}}  onClick={() => console.log('Fast Speed selected')}> + Increase Speed</button>
+                  <button onClick={() => console.log('Medium Speed selected')}> - Descrease Speed </button>
+            </div>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleSettingsClose} color="primary">Close</Button>
+        </DialogActions>
+    </Dialog>
 
     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '1rem', alignItems: 'center' }}>
       <div style={{ flexGrow: 1, marginLeft: '2%' }}>
@@ -2214,13 +2294,21 @@ const stopLoadingSound = () => {
       aria-labelledby="form-dialog-title"
       aria-describedby="keyboard-shortcuts-description"
     >
-      <DialogTitle id="form-dialog-title">Keyboard Shortcuts</DialogTitle>
+      <DialogTitle id="form-dialog-title">
+      <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>Keyboard Shortcuts</h1>
+      </DialogTitle>
+
+
       <DialogContent style={{width: '100%'}} aria-live="polite">
         <div
           className="keyboard-shortcuts"
           style={{marginBottom: '2%'}}
           id="keyboard-shortcuts-description"
         >
+        <p>
+        Press the up down arrowkeys to navigate through the keyboard shortcuts
+        </p>
+        <br/>
           <ul style={{marginTop: '0.5rem', width: '100%'}} role="list">
             <li style={{marginBottom: '2%'}} role="listitem">
               <kbd>Enter</kbd> : To generate or regenerate an image on a tile.

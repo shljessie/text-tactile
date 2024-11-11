@@ -50,7 +50,7 @@ export const SonicTilesVideo = () => {
     height: roundToNearest100(window.innerWidth * 0.35)+ 100,
   });
   
-  const tileSize = Math.round(canvasSize['width'] / 10);
+  const tileSize = 78;
   let messagePlayed =false
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export const SonicTilesVideo = () => {
 
     tileRefs.current[0].focus()
     if(!messagePlayed){
-      speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
+      speakMessage(`You are currently focused on the first tile. Press Enter to Generate the first Image on a ${canvasSize.width} by ${canvasSize.height} canvas`)
       messagePlayed = true
     }
     // speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
@@ -1611,8 +1611,7 @@ const stopLoadingSound = () => {
     on a canvas based on their coordinates and sizes in a verbal way with out 
     using exact numbers descriptions: ${descriptions}. 
     DO NOT say that it is a square shape. Keep the description short within a paragraph. 
-    Describe the relative locations of the images and the size.
-    Considering that there are spaces above and below the iamge, describe whether or not one image looks like it is placed on top of the other`;
+    Describe the relative locations of the images and the size.`;
   };
 
 
@@ -1787,6 +1786,7 @@ const stopLoadingSound = () => {
         You are describing an image to a Visually Impaired Person.
         Generate the given image description according to the following criteria:
         Briefly describe the primary subject or focus of the image in one sentence.
+        You will be describing either a dog, frisbee, or a tree.
       `;
   
     const payload = {
@@ -1867,9 +1867,10 @@ const stopLoadingSound = () => {
 
 
   const url_list = [
-    "https://texttactile.s3.amazonaws.com/tree.png",
+    "https://texttactile.s3.amazonaws.com/dog.png",
     "https://texttactile.s3.amazonaws.com/frisbee.png",
-    "https://texttactile.s3.amazonaws.com/dog.png"
+    "https://texttactile.s3.amazonaws.com/tree.png",
+    "https://texttactile.s3.amazonaws.com/flower.png"
   ]
 
 
@@ -2003,41 +2004,63 @@ const stopLoadingSound = () => {
   };
 
 
-   const radarScan = (gridIndex) => {
-
+  const radarScan = (gridIndex) => {
     const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+    const tileY = tiles[gridIndex].y;
+    const imageIndex = savedImages.findIndex(image => 
+        tileX >= image.coordinate.x - image.sizeParts.width / 2 &&
+        tileX <= image.coordinate.x + image.sizeParts.width / 2 &&
+        tileY >= image.coordinate.y - image.sizeParts.height / 2 &&
+        tileY <= image.coordinate.y + image.sizeParts.height / 2
+    );
 
-    console.log('Image',savedImages[imageIndex]);
+    if (imageIndex === -1) {
+        console.error('No image found at the specified grid index.');
+        return;
+    }
 
-    const centerX = savedImages[gridIndex].coordinate.x;
-    const centerY = savedImages[gridIndex].coordinate.y;
+    const imageCenterX = savedImages[imageIndex].coordinate.x;
+    const imageCenterY = savedImages[imageIndex].coordinate.y;
+    const imageWidth = savedImages[imageIndex].sizeParts.width;
+    const imageHeight = savedImages[imageIndex].sizeParts.height;
 
-    const otherImages = savedImages.filter((_, index) => index !== gridIndex);
+    const otherImages = savedImages.filter((_, index) => index !== imageIndex);
 
-    const distances = otherImages.map((image, index) => {
-    const distance = Math.sqrt(Math.pow(image.canvas.x - centerX, 2) + Math.pow(image.canvas.y - centerY, 2));
-        return {index, distance};
+    const distances = otherImages.map(image => {
+        const edgeX = imageCenterX + (imageWidth / 2);
+        const edgeY = imageCenterY + (imageHeight / 2);
+        const distanceX = (image.coordinate.x + image.sizeParts.width / 2) - edgeX;
+        const distanceY = (image.coordinate.y + image.sizeParts.height / 2) - edgeY;
+
+        const distance = Math.sqrt(distanceX ** 2 + distanceY ** 2);
+        let positionDescription = '';
+
+        if (distanceX < 0) {
+            positionDescription += `${ - Math.round(distanceX)} pixels to the left, `;
+        } else if (distanceX > 0) {
+            positionDescription += `${Math.round(distanceX)} pixels to the right, `;
+        }
+
+        if (distanceY < 0) {
+            positionDescription += `${- Math.round(distanceY)} pixels above, `;
+        } else if (distanceY > 0) {
+            positionDescription += `${Math.round(distanceY)} pixels below, `;
+        }
+
+        return { image, distance, positionDescription };
     });
 
     distances.sort((a, b) => a.distance - b.distance);
 
-    const playSoundAfterSpeech = (image, index) => {
-      speakImageName(image.name, () => {
-          console.log('Playing', image.name);
-          playRadarSound(image.sound, image.canvas.x, image.canvas.y);
-      });
-    };
-
     distances.forEach((item, index) => {
-      setTimeout(() => {
-          const image = otherImages[item.index];
-          playSoundAfterSpeech(image, index);
-      }, index * 2000); // Adjust delay to account for speech duration
+        setTimeout(() => {
+            speakMessage(`${item.image.name}, ${item.positionDescription}`, () => {
+                console.log(item.image.name, item.positionDescription);
+            });
+        }, index * 2000);
     });
-    
-   }
+}
+
 
    const speakImageName = (text, callback) => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -2143,9 +2166,9 @@ const stopLoadingSound = () => {
                   border: '3px solid gray', 
                   borderRadius: '13px',
                   boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                  width: '10%', 
-                  height: "10%",
-                  margin: '5px',
+                  width: '12%', 
+                  height: "12%",
+                  margin: '10px',
                   position: 'absolute',
                   left: tile.x,
                   top: tile.y, 
