@@ -23,8 +23,9 @@ We're excited to announce that the following tools will soon be added to this re
 - ✅ **API for Monitoring Model Performance Across Training**: An API specifically designed for tracking and analyzing model performance, focusing on metrics like time-to-first-token (TTFT), latency, and other key performance indicators. This monitoring API will help users better understand model efficiency and identify any bottlenecks during training and inference.
 
 - ✅ **Easy Model Training Script**: A script to streamline the training process, offering a guided setup for fine-tuning models on custom datasets. This script will include support for lightweight fine-tuning methods and clear instructions for managing dataset requirements and model checkpoints, helping users quickl
+
 ![Alt text](src/assets/description.png)
-![Alt text](src/assets/edit.png)
+
 ---
 
 ### Model Endpoint
