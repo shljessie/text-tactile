@@ -13,8 +13,18 @@
 
 ---
 
-![Alt text](src/assets/description.png)
-![Alt text](src/assets/edit.png)
+## Thank You for Your Interest in AltCanvas!
+
+We're excited to announce that the following tools will soon be added to this repository to enhance your experience and expand AltCanvas's capabilities:
+
+- ✅ **NPM Model UI Toolkit for AltCanvas**: A comprehensive UI toolkit published on npm, allowing users to seamlessly integrate AltCanvas components. This toolkit will include prebuilt components like tile management, interaction controls, and audio feedback, making it easy to create and manage visual elements with accessibility in mind.
+
+- ✅ **Config Files for Model Customization**: Configurable files will enable users to change models, adjust parameters, and manage text-to-image generation properties without modifying core code. These files will provide a flexible way to experiment with different model endpoints, model types, and fine-tuning parameters.
+
+- ✅ **API for Monitoring Model Performance Across Training**: An API specifically designed for tracking and analyzing model performance, focusing on metrics like time-to-first-token (TTFT), latency, and other key performance indicators. This monitoring API will help users better understand model efficiency and identify any bottlenecks during training and inference.
+
+- ✅ **Easy Model Training Script**: A script to streamline the training process, offering a guided setup for fine-tuning models on custom datasets. This script will include support for lightweight fine-tuning methods and clear instructions for managing dataset requirements and model checkpoints, helping users quickl
+
 
 ---
 # Coming Soon!
