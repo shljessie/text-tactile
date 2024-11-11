@@ -6,10 +6,14 @@
 
 **AltCanvas** is an accessible, image editor powered by Image Generation Models specifically designed for Blind and Low-Vision users. Using a combination of text-to-image models and a tile-based interface, AltCanvas empowers users to create and modify visual scenes through text descriptions and keyboard interactions. The application incorporates audio feedback and spatial cues to guide users, making it easy to understand visual layouts and image positions without sight.
 
+- [AltCanvas Demo Site](https://shljessie.github.io/AltCanvas/)
+- [AltCanvas Demo Video](https://www.youtube.com/watch?v=l7Xbek7MLnU)
+- [AltCanvas Research Paper on arXiv](https://www.arxiv.org/abs/2408.10240)
+
+
 ---
 
 ![Alt text](src/assets/description.png)
-
 ![Alt text](src/assets/edit.png)
 
 ---
@@ -18,13 +22,8 @@
 ## Fine-Tuning the Model for Specific Image Generation Tasks
 AltCanvas aims to expand its capabilities by enabling model fine-tuning based on specific BVI user data. In future versions, we will explore:
 
-- **Custom Dataset Integration**: Using data from specific user interactions to improve model performance.
 - **Task-Specific Training**: Fine-tuning models to generate more accessible visual outputs with minimal detail, optimized for tactile and coloring book styles.
 - **Model Hosting Options**: Moving models to a custom endpoint for enhanced control and faster inference times.
-
-### How to Fine-Tune Models
-We will include a guide for setting up and running model fine-tuning. This will cover preparing datasets, running training scripts, and testing model output for BVI-focused use cases.
-
 
 ---
 
@@ -61,7 +60,7 @@ const image = await pipe(prompt);
 ## Interaction Elements and Sonification (Coming Soon)
 
 ### Interaction Guide
-AltCanvas features a robust set of interactions, allowing users to navigate tiles and control object placement with keyboard commands. Future documentation will include:
+AltCanvas features a robust set of interactions, allowing users to navigate tiles and control object placement with keyboard commands. For current explanations, please refer to the code. Future documentation will include:
 
 - **Detailed Command Descriptions**: Breakdown of each command, including keyboard shortcuts and intended actions.
 - **Navigation and Positioning**: Explanation of tile-based spatial navigation and radar scan functionality.
