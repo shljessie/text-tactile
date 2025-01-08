@@ -14,7 +14,7 @@
 
 ## Thank You for Your Interest in AltCanvas!
 
-We're excited to announce that the following tools will soon be added to this repository to enhance your experience and expand AltCanvas's capabilities:
+The following tools will soon be added to this repository to enhance your experience and expand AltCanvas's capabilities:
 
 - ✅ **NPM Model UI Toolkit for AltCanvas**: A comprehensive UI toolkit published on npm, allowing users to seamlessly integrate AltCanvas components. This toolkit will include prebuilt components like tile management, interaction controls, and audio feedback, making it easy to create and manage visual elements with accessibility in mind.
 
