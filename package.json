@@ -33,7 +33,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
     "react-screen-capture": "^1.1.1",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-speech-recognition": "^3.10.0",
     "react-spinners": "^0.13.7",
     "rembg": "^1.0.6",
