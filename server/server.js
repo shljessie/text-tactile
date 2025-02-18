@@ -83,7 +83,7 @@ const imagesDir = path.join(__dirname, 'public', 'images');
 app.use(cors({
   origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
-app.use(express.static(path.join(__dirname, '..', 'build')));
+// app.use(express.static(path.join(__dirname, '..', 'build')));
 
 app.use('/images', express.static(imagesDir));
 
@@ -130,9 +130,9 @@ app.use('/images', express.static(imagesDir));
 //     });
 // });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
+// });
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
