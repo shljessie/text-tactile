@@ -25,6 +25,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable CORS for all resources
 
+// ✅ Serve React frontend from the build folder
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.post('/sonic', (req, res) => {
   const uuid = req.body.uuid;
