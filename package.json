@@ -26,7 +26,7 @@
     "image-js": "^0.35.5",
     "js-pixel-fonts": "^1.6.0",
     "multer": "^1.4.5-lts.1",
-    "openai": "^3.1.0",
+    "openai": "^4.85.1",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0",
@@ -37,7 +37,7 @@
     "react-speech-recognition": "^3.10.0",
     "react-spinners": "^0.13.7",
     "rembg": "^1.0.6",
-    "tone": "^14.7.39",
+    "tone": "14.7",
     "use-react-screenshot": "^4.0.0",
     "web-vitals": "^2.1.4",
     "wink-ner": "^2.1.0",
@@ -71,6 +71,7 @@
   },
   "proxy": "http://localhost:3001",
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/node": "^20.12.2"
   },
   "main": "server/server.js",

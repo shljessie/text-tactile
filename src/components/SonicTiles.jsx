@@ -1,23 +1,23 @@
+/* eslint-disable no-unused-vars */
 import * as Tone from 'tone';
 
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from "openai";
 import React, { useEffect, useRef, useState } from 'react';
 
 import Button from '@mui/material/Button';
-import ClearIcon from '@mui/icons-material/Clear';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
-import TextField from '@mui/material/TextField';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SonicTiles = () => {
-  const apiKey = process.env.REACT_APP_API_KEY;
+  const openai = new OpenAI({ apiKey: process.env.REACT_APP_API_KEY,
+    dangerouslyAllowBrowser: true
+  });
 
   const [settingsOpen, setOpenSettings] = useState(false);
 
@@ -43,7 +43,7 @@ export const SonicTiles = () => {
     const uuid = getUuid();
 
     try {
-      const response = await axios.post('https://art.alt-canvas.com/sonic', {
+      const response = await axios.post('/sonic', {
         uuid: uuid,
       });
       console.log('Server response:', response.data);
@@ -66,16 +66,6 @@ export const SonicTiles = () => {
 
   useEffect(() => {
 
-    if (apiKey) {
-      const configuration = new Configuration({
-        "model": "gpt-4-turbo",
-        apiKey: apiKey,
-        "style": 'natural',
-        "size": "1024x1024"
-      });
-      setOpenai(new OpenAIApi(configuration));
-    }
-
     if (Tone.context.state !== 'running') {
       Tone.context.resume();
     }
@@ -86,7 +76,7 @@ export const SonicTiles = () => {
     console.log(
       `
       Loading Check
-      API_KEY_LOADED: ${!!apiKey}
+      openai_LOADED: ${!!openai}
       Canvas Size: ${canvasSize.width}, ${canvasSize.height}
       UUID: ${uuid}
       `
@@ -95,7 +85,7 @@ export const SonicTiles = () => {
     tileRefs.current[0].focus()
     if(!messagePlayed){
       speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
-      messagePlayed = true
+      messagePlayed = true;
     }
     // speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
    
@@ -176,7 +166,7 @@ export const SonicTiles = () => {
     console.log('PAGE REFRESH')
     event.preventDefault();
     event.returnValue = ''; // Needed for some browsers
-    logEvent({'event': 'PAGE_REFRESH'});  // Call your logEvent function
+    // logEvent({'event': 'PAGE_REFRESH'});  // Call your logEvent function
   }
 
 
@@ -197,8 +187,8 @@ export const SonicTiles = () => {
     .then(response => response.json())
     .then(data => {
         console.log('DaTA', data)
-        console.log('Image URL:', data.imageUrl);
-        imageObject.image_nbg = data.imageUrl;
+        console.log('Image URL:', data.imageURL);
+        imageObject.image_nbg = data.imageURL;
     })
     .catch(error => {
         console.error('Error:', error);
@@ -227,14 +217,6 @@ export const SonicTiles = () => {
     saveToSessionStorage();
     speakMessage('Going to Render Canvas')
     navigate('/render', { state: { savedImages, canvasSize } });
-  };
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleCloseInstructions = () => {
-    setOpen(false);
   };
 
   const [tiles, setTiles] = useState([
@@ -272,16 +254,15 @@ export const SonicTiles = () => {
   }, [savedImages]);
 
   let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
-  const [isPushing, setisPushing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [rows, setRows] = useState(5);
   const [columns, setColumns] = useState(5);
   const [gridItems, setGridItems] = useState([]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
-  const [openai, setOpenai] = useState();
   const [promptText, setPromptText] = useState('');
 
   const tileRefs = useRef([]);
@@ -345,11 +326,11 @@ export const SonicTiles = () => {
           const existingTileIndex = focusedIndex;
 
           console.log('existingTileInex', existingTileIndex)
-          if (existingTileIndex == -1) {
+          if (existingTileIndex === -1) {
             return
           } else if (isEditingLocation) {
             console.log('Editing Image', savedImages[editingImageIndex])
-            const newTile = tiles.findIndex(tile => tile.x == savedImages[editingImageIndex].coordinate.x && tile.y == savedImages[editingImageIndex].coordinate.y);
+            const newTile = tiles.findIndex(tile => tile.x === savedImages[editingImageIndex].coordinate.x && tile.y === savedImages[editingImageIndex].coordinate.y);
             console.log('New tile the iamge has moved to ', newTile)
             const centralTile = tiles[newTile];
             console.log('centralTile', centralTile);
@@ -367,7 +348,7 @@ export const SonicTiles = () => {
 
 
   const thumpRef = useRef(null);
-  const urlTwo = "../../public/assets/bump.mp3";
+  const urlTwo = "https://altcanvas.art/audio/bump.mp3";
 
   const playerTwo = new Tone.Player().toDestination();
   playerTwo.load(urlTwo).then(() => {
@@ -412,9 +393,9 @@ export const SonicTiles = () => {
 
     tileRefs.current = items.map((_, i) => tileRefs.current[i] || React.createRef());
 
-    const leftrighturl = "https://texttactile.s3.amazonaws.com/leftright.mp3";
-    const downurl ="https://texttactile.s3.amazonaws.com/down.mp3";
-    const upurl="https://texttactile.s3.amazonaws.com/up.mp3";
+    const leftrighturl = "https://altcanvas.art/audio/leftright.mp3";
+    const downurl ="https://altcanvas.art/audio/down.mp3";
+    const upurl="https://altcanvas.art/audio/up.mp3";
 
     const playerLR = new Tone.Player().toDestination();
     playerLR.load(leftrighturl).then(() => {
@@ -443,7 +424,7 @@ export const SonicTiles = () => {
 
   const readLocationEdit = (focusedIndex) => {
     console.log('READ LOCATION EDIT',  tiles[focusedIndex].x)
-    const image = savedImages.find(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
+    const image = savedImages.find(image => image.coordinate.x === tiles[focusedIndex].x && image.coordinate.y === tiles[focusedIndex].y)
     console.log('EDIT IMAGE', image)
     const script = `The image is now located in ${Math.round(image.canvas.x)} and ${Math.round(image.canvas.y)}`
 
@@ -506,6 +487,7 @@ const [isUpdating, setIsUpdating] = useState(false);
 
             if (savedImages[editingImageIndex].canvas.x  - (savedImages[editingImageIndex].sizeParts.width / 2) <= moveDistance) {
               thumpRef.current.start();
+              // eslint-disable-next-line react-hooks/exhaustive-deps
               outside = true;
               
             }else{
@@ -569,18 +551,18 @@ const [isUpdating, setIsUpdating] = useState(false);
 
                 console.log(`${currentTime}: Checking Location Coordinate- ${focusedIndex}`);
           
-                logEvent({
-                  time: currentTime,
-                  action: 'location_edit_info',
-                  focusedIndex: focusedIndex,
-                });
+                // logEvent({
+                //   time: currentTime,
+                //   action: 'location_edit_info',
+                //   focusedIndex: focusedIndex,
+                // });
                 
               break;
               
           case 'Escape':
             setIsEditingLocation(false);
             setEditingImageIndex(null);
-            const newIndex = tiles.findIndex(tile => tile.x == savedImages[editingImageIndex].coordinate.x && tile.y == savedImages[editingImageIndex].coordinate.y )
+            const newIndex = tiles.findIndex(tile => tile.x === savedImages[editingImageIndex].coordinate.x && tile.y === savedImages[editingImageIndex].coordinate.y )
             setFocusedIndex(newIndex);
             if (tileRefs.current[newIndex]) {
               tileRefs.current[newIndex].focus();
@@ -590,11 +572,11 @@ const [isUpdating, setIsUpdating] = useState(false);
             
             console.log(`${currentTime}: Exit Location Edit- ${focusedIndex}`);
           
-            logEvent({
-              time: currentTime,
-              action: 'location_edit_exit',
-              focusedIndex: focusedIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'location_edit_exit',
+            //   focusedIndex: focusedIndex,
+            // });
             
             return;
           default: 
@@ -646,7 +628,7 @@ const [isUpdating, setIsUpdating] = useState(false);
   // Image location change is finished and image is updated
   useEffect(() => {
     if (saveCompleted) {
-      console.log('==================================================');
+      console.log('=========================================================');
       console.log('Location Edit Image has been successfully updated.');
       console.log('Saved Images', savedImages);
   
@@ -731,17 +713,16 @@ const [isUpdating, setIsUpdating] = useState(false);
     };
   }, [isEditingSize, editingSizeImageIndex]);
 
-  //  ==============================
+  //  ==================================
 
   // For Loading and Image Gneration feedback
-  let isGeneratingImage = false; 
 
   let isPlayingSound = false;
   const synth = new Tone.Synth().toDestination();
   const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
   let currentNote = 0;
 
-  const note_url = "https://texttactile.s3.amazonaws.com/generating.mp3";
+  const note_url = "https://altcanvas.art/audio/generating.mp3";
 
   const loadingPlayer = new Tone.Player().toDestination();
   loadingPlayer.load(note_url).then(() => {
@@ -900,11 +881,11 @@ const stopLoadingSound = () => {
 
         console.log(`${currentTime}: Size - Edit Info Focused Index: ${focusedIndex}`);
           
-        logEvent({
-          time: currentTime,
-          action: 'size_edit_info',
-          focusedIndex: focusedIndex,
-        });
+        // logEvent({
+        //   time: currentTime,
+        //   action: 'size_edit_info',
+        //   focusedIndex: focusedIndex,
+        // });
         
         break;
       case 'Escape':
@@ -915,11 +896,11 @@ const stopLoadingSound = () => {
         speakMessage("Size Edit mode exited");
         console.log(`${currentTime}: Size - Edit Exit Focused Index: ${focusedIndex}`);
           
-        logEvent({
-          time: currentTime,
-          action: 'size_edit_exit',
-          focusedIndex: focusedIndex,
-        });
+        // logEvent({
+        //   time: currentTime,
+        //   action: 'size_edit_exit',
+        //   focusedIndex: focusedIndex,
+        // });
         
         if (tileRefs.current[focusedIndex]) {
           tileRefs.current[focusedIndex].focus();
@@ -1027,7 +1008,7 @@ const stopLoadingSound = () => {
 
   const pushImage = (movingTile, newX, newY) => {
 
-    const findImageIndex = savedImages.findIndex(image => image.coordinate.x == movingTile.x && image.coordinate.y == movingTile.y);
+    const findImageIndex = savedImages.findIndex(image => image.coordinate.x === movingTile.x && image.coordinate.y === movingTile.y);
     const pushImage = savedImages[findImageIndex];
 
     
@@ -1047,7 +1028,7 @@ const stopLoadingSound = () => {
     pushImage.coordinate.x = newX;
     pushImage.coordinate.y = newY;
 
-    const centralTile = tiles.find(tile => tile.x == newX && tile.y == newY )
+    const centralTile = tiles.find(tile => tile.x === newX && tile.y === newY )
 
     addSurroundingTiles(centralTile)
 
@@ -1064,7 +1045,7 @@ const stopLoadingSound = () => {
 
     if(!keyOptions){
 
-    const hasImage = savedImages.find(image => image.coordinate.x == tiles[index].x & image.coordinate.y == tiles[index].y)
+    const hasImage = savedImages.find(image => image.coordinate.x === tiles[index].x & image.coordinate.y === tiles[index].y)
     if (hasImage) {
       oldImage = hasImage;
     }
@@ -1078,13 +1059,14 @@ const stopLoadingSound = () => {
     const currentTime = getFormattedTimestamp();
 
     if (event.shiftKey) {
+      // eslint-disable-next-line default-case
       switch (event.key) {
         case 'ArrowUp':
 
-          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newY =  tiles[index].y - tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
-          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           console.log('targetTile',targetTile);
           if(targetTile){
             speakMessage('There is an image in the tile above. Push the Image above first.')
@@ -1093,11 +1075,11 @@ const stopLoadingSound = () => {
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing UP - Moving Index: ${movingIndex}`);
             
-            logEvent({
-              time: currentTime,
-              action: 'pushup',
-              focusedIndex: movingIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'pushup',
+            //   focusedIndex: movingIndex,
+            // });
           }
 
           break;
@@ -1106,10 +1088,10 @@ const stopLoadingSound = () => {
         case 'ArrowDown':
 
 
-          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newY =  tiles[index].y + tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
-          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           console.log('targetTile',targetTile);
           if(targetTile){
             speakMessage('There is an image in the tile below. Push the Image below first.')
@@ -1117,11 +1099,11 @@ const stopLoadingSound = () => {
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing DOwn - Moving Index: ${movingIndex}`);
             
-            logEvent({
-              time: currentTime,
-              action: 'pushdown',
-              focusedIndex: movingIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'pushdown',
+            //   focusedIndex: movingIndex,
+            // });
           }
 
           break;
@@ -1129,42 +1111,42 @@ const stopLoadingSound = () => {
 
         case 'ArrowLeft':
 
-          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newX =  tiles[index].x - tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
-          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the left. Push the Image left first.')
           }
           else{
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing left - Moving Index: ${movingIndex}`);
-            logEvent({
-              time: currentTime,
-              action: 'pushleft',
-              focusedIndex: movingIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'pushleft',
+            //   focusedIndex: movingIndex,
+            // });
           }
           break;
 
 
         case 'ArrowRight':
 
-          movingIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newX =  tiles[index].x + tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x == newX && image.coordinate.y == newY);
-          targetIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the right. Push the Image right first.')
           }
           else{
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing Right - Moving Index: ${movingIndex}`);
-            logEvent({
-              time: currentTime,
-              action: 'pushright',
-              focusedIndex: movingIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'pushright',
+            //   focusedIndex: movingIndex,
+            // });
           }
           break;
 
@@ -1220,33 +1202,21 @@ const stopLoadingSound = () => {
         direction = 'right';
         break;
       case 'Enter': 
-        newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+        if (isGeneratingImage) return; 
+        newIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
         setFocusedIndex(newIndex);
         if(isRegeneration){
           console.log(`${currentTime}: Image Regeneration - ${newIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'image_REgeneration',
-            focusedIndex: newIndex,
-          });
         }else{
           console.log(`${currentTime}: Image Generation - ${newIndex}`);
-          
-          logEvent({
-            time: currentTime,
-            action: 'image_generation',
-            focusedIndex: newIndex,
-          });
-
         }
-
         generateImage(newIndex, isRegeneration);
+        return;
       default:
         return;
     }
 
-    newIndex = tiles.findIndex(tile => tile.x == newX && tile.y == newY);
+    newIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
     console.log('newTile', newIndex);
 
 
@@ -1259,10 +1229,10 @@ const stopLoadingSound = () => {
 
     console.log('newIndex', newIndex)
 
-    const imageObject = savedImages.findIndex(image => image.coordinate.x == newX && image.coordinate.y == newY);
+    const imageObject = savedImages.findIndex(image => image.coordinate.x === newX && image.coordinate.y === newY);
           
 
-    if (imageObject !== -1 || tiles.length == 1) {
+    if (imageObject !== -1 || tiles.length === 1) {
       if(!savedImages[imageObject] && !keyOptions){
         tileRefs.current[focusedIndex].focus();
         // speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
@@ -1270,7 +1240,7 @@ const stopLoadingSound = () => {
         speakMessage(`${savedImages[imageObject].name}`)
       }
     }else{
-      if( newIndex == -1) {
+      if( newIndex === -1) {
         console.log('playing Spatial Thump', direction);
         playSpatialThump(direction);
       }
@@ -1292,7 +1262,7 @@ const stopLoadingSound = () => {
       console.log(' tiles[gridIndex].x',  tiles[gridIndex].x);
       const tileX = tiles[gridIndex].x;
       const tileY= tiles[gridIndex].y
-      const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
       console.log('imageIndex', imageIndex);
       setEditingImageIndex(imageIndex);
       canvasRef.current.focus();
@@ -1329,7 +1299,7 @@ const stopLoadingSound = () => {
 
     if(gridIndex !== -1) {
       setIsEditingSize(true);
-      const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
       setEditingSizeImageIndex(imageIndex);
       canvasRef.current.focus();
     }
@@ -1386,11 +1356,11 @@ const stopLoadingSound = () => {
           setRadarActive(true);
           console.log(`${currentTime}: Radar Scan - Focused Index: ${focusedIndex}`);
           
-          logEvent({
-            time: currentTime,
-            action: 'radar_scan_start',
-            focusedIndex: focusedIndex,
-          });
+          // logEvent({
+          //   time: currentTime,
+          //   action: 'radar_scan_start',
+          //   focusedIndex: focusedIndex,
+          // });
 
           playModeNotification("Radar Scan Activated. You will hear relative location of other objects on the canvas.", () => {
             radarScan(focusedIndex); 
@@ -1412,14 +1382,14 @@ const stopLoadingSound = () => {
             console.log('Focused Index', focusedIndex);
             console.log(`${currentTime}: Location Edit - Focused Index: ${focusedIndex}`);
 
-            logEvent({
-              time: currentTime,
-              action: 'location_edit_start',
-              focusedIndex: focusedIndex,
-            });
+            // logEvent({
+            //   time: currentTime,
+            //   action: 'location_edit_start',
+            //   focusedIndex: focusedIndex,
+            // });
 
             setlocationEditActive(true); 
-            const imageIndex = savedImages.findIndex(image => image.coordinate.x == tiles[focusedIndex].x && image.coordinate.y == tiles[focusedIndex].y)
+            const imageIndex = savedImages.findIndex(image => image.coordinate.x === tiles[focusedIndex].x && image.coordinate.y === tiles[focusedIndex].y)
             playModeNotification(`Location Edit. Use the Arrow keys to edit the location by 20.  Press Shift to hear the coordinates.`);
 
             enterLocationEditMode(focusedIndex);
@@ -1437,11 +1407,11 @@ const stopLoadingSound = () => {
           console.log('Focused Index', focusedIndex);
           console.log(`${currentTime}: Size Edit - Focused Index: ${focusedIndex}`);
 
-          logEvent({
-            time: currentTime,
-            action: 'size_edit_start',
-            focusedIndex: focusedIndex,
-          });
+          // logEvent({
+          //   time: currentTime,
+          //   action: 'size_edit_start',
+          //   focusedIndex: focusedIndex,
+          // });
           
           setsizeEditActive(true); 
           playModeNotification("Size Edit. Use up down arrow keys to edit the size by 10 each. Press Shift to hear size Info.");
@@ -1460,11 +1430,11 @@ const stopLoadingSound = () => {
           setinfoActive(true); 
           console.log(`${currentTime}: Local Information - Focused Index: ${focusedIndex}`);
 
-          logEvent({
-            time: currentTime,
-            action: 'localInfo_start',
-            focusedIndex: focusedIndex,
-          });
+          // logEvent({
+          //   time: currentTime,
+          //   action: 'localInfo_start',
+          //   focusedIndex: focusedIndex,
+          // });
 
           playModeNotification("Describing Image on Tile. Press the Escape Key to stop me.", () => {
             setFocusedIndex(focusedIndex)
@@ -1489,12 +1459,11 @@ const stopLoadingSound = () => {
           setchatActive(true); 
           console.log(`${currentTime}: Chat - Focused Index: ${focusedIndex}`);
 
-
-          logEvent({
-            time: currentTime,
-            action: 'chat_start',
-            focusedIndex: focusedIndex,
-          });
+          // logEvent({
+          //   time: currentTime,
+          //   action: 'chat_start',
+          //   focusedIndex: focusedIndex,
+          // });
 
           playModeNotification("Ask a question about the image on this tile and I will answer", () => {
             setFocusedIndex(focusedIndex);
@@ -1516,22 +1485,22 @@ const stopLoadingSound = () => {
         speakMessage('Describing Canvas. Press the Escape Key to stop me.')
         fetchGlobalDescription();
 
-        logEvent({
-          time: currentTime,
-          action: 'globalInfo_start',
-          focusedIndex: focusedIndex,
-        });
+        // logEvent({
+        //   time: currentTime,
+        //   action: 'globalInfo_start',
+        //   focusedIndex: focusedIndex,
+        // });
         console.log(`${currentTime}: Global Information - Focused Index: ${focusedIndex}`);
       }
       else if (e.shiftKey && e.key === 'X') {
         speakMessage('Deleted Image on Tile.')
         deleteImage(focusedIndex)
 
-        logEvent({
-          time: currentTime,
-          action: 'delete_image',
-          focusedIndex: focusedIndex,
-        });
+        // logEvent({
+        //   time: currentTime,
+        //   action: 'delete_image',
+        //   focusedIndex: focusedIndex,
+        // });
         
         console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
@@ -1585,7 +1554,7 @@ const stopLoadingSound = () => {
   const readInfo = (gridIndex) => {
     const tileX = tiles[gridIndex].x;
     const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
     
     const image = savedImages[imageIndex];
 
@@ -1606,231 +1575,204 @@ const stopLoadingSound = () => {
   const isImageOnTile = (tileX, tileY) => {
     return savedImages.some(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
   };
-  
 
   const generateDescriptionPrompt = (savedImages) => {
+    if (!savedImages || savedImages.length === 0) {
+      return "There are no images on the canvas.";
+    }
+  
     let descriptions = savedImages.map((img, index) => {
       return `Image ${index + 1} named "${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
     }).join(" ");
-
-    globalDescriptionPrompt =  `
-    You are describing and image to a Visually Impaired User.
-    Give a one line brief description of what the image looks like
-    Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way with out 
-    using exact numbers descriptions: ${descriptions}. 
-    DO NOT say that it is a square shape. Keep the description short within a paragraph. 
-    Describe the relative locations of the images and the size.
-    Considering that there are spaces above and below the iamge, describe whether or not one image looks like it is placed on top of the other`;
+  
+    return `
+      You are describing an image to a Visually Impaired User.
+      Give a one-line brief description of what the image looks like.
+      Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way without 
+      using exact numbers: ${descriptions}.
+      DO NOT say that it is a square shape. Keep the description short within a paragraph.
+      Describe the relative locations of the images and their sizes.
+      Considering that there are spaces above and below the image, describe whether or not one image looks like it is placed on top of the other.
+    `;
   };
-
-
+  
   const fetchGlobalDescription = async () => {
-
-    generateDescriptionPrompt(savedImages)
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    const stopOperations = () => {
-      controller.abort();
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-    };
-    
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + apiKey,
-        },
-        method: 'POST',
-        body: JSON.stringify({
-          model: 'gpt-4-turbo',
-          messages: [
-            {
-              role: 'user',
-              content: globalDescriptionPrompt,
-            },
-          ],
-        }),
-        signal, 
+    try {
+      console.log("Fetching global description...");
+  
+      const globalDescriptionPrompt = generateDescriptionPrompt(savedImages);
+      console.log("Generated Prompt:", globalDescriptionPrompt);
+  
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: globalDescriptionPrompt,
+          },
+        ],
       });
   
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.log("Global description response received:", response);
+  
+      if (response.choices && response.choices.length > 0) {
+        const globalDescription = response.choices[0].message.content;
+        console.log("Global Description:", globalDescription);
+        speakMessage(globalDescription);
+        return globalDescription;
+      } else {
+        console.warn("No valid global description received.");
+        return "No global description available.";
+      }
+    } catch (error) {
+      console.error("Error fetching global description:", error);
+      return "Error fetching global description.";
     }
-    const data = await response.json();
-    const globalDescription =data.choices[0].message.content; 
-    
-    console.log('Global Description', globalDescription);
-    speakMessage(globalDescription);
-
-  };
-
-
+  };  
   
   const imageChat = async (gridIndex) => {
-
-    const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+    try {
+      const tileX = tiles[gridIndex].x;
+      const tileY = tiles[gridIndex].y;
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
   
-    console.log('check of chat image matches',savedImages[imageIndex] )
-
-    const imageURL = savedImages[imageIndex].url;
-
-    console.log('imageURL',imageURL)
-
-    const voiceText = await startListening();
-    setPromptText(voiceText);
-    console.log('voceText:' , voiceText)
-
-    speakMessage(`You have asked: ${voiceText}.`)
-
-    let customPrompt = `
-    You are describing an image to a Visually Impaired Person.
-    Keep the description brief and straightforward.
-    Generate the given image description according to the following criteria:
-    ${voiceText}
-  `;
-
-    const payload = {
-      "model": "gpt-4-vision-preview",
-      "messages": [
-          {
-              "role": "user",
-              "content": [
-                  {"type": "text", "text": customPrompt},
-                  {"type": "image_url", "image_url": imageURL}
-              ]
-          }
-      ],
-      "max_tokens": 300
-    };
-
-      
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-        console.log('fetched',data);
-        
-
-        if (data.choices && data.choices.length > 0) {
-          console.log(data.choices[0].message.content );
-          const description = data.choices[0].message.content;
-          speakMessage(description);
-          setFocusedIndex(gridIndex);
-          if (tileRefs.current[focusedIndex]) {
-            tileRefs.current[focusedIndex].focus();
-          }
-          return data.choices[0].message.content;
-        } else {
-          return 'No description available';
-        }
-      } catch (error) {
-        speakMessage('Sorry could you ask the question again?')
-        return 'Error fetching description';
+      console.log('Checking if chat image matches:', savedImages[imageIndex]);
+  
+      if (imageIndex === -1) {
+        console.error('No image found at the specified coordinates.');
+        speakMessage('Sorry, no image found.');
+        return 'No image available';
       }
-
-
-  }
-
-  const fetchImageName = async (imageURL) => {
-
-    let customPrompt = `
-        Generate the title of this image. Use minimal words.
-
-        Example Response : dog
+  
+      const imageURL = savedImages[imageIndex].url;
+      console.log('Image URL:', imageURL);
+  
+      const voiceInput = await startListening();
+      setPromptText(voiceInput);
+      console.log('Voice Input Question from User:', voiceInput);
+  
+      speakMessage(`You have asked: ${voiceInput}.`);
+  
+      let customPrompt = `
+        You are describing an image to a Blind and Visually Impaired Person.
+        Keep the description brief and straightforward.
+        Generate the given image description according to the following criteria:
+        ${voiceInput}
       `;
   
-    const payload = {
-      "model": "gpt-4-vision-preview",
-      "messages": [
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
           {
-              "role": "user",
-              "content": [
-                  {"type": "text", "text": customPrompt},
-                  {"type": "image_url", "image_url": imageURL}
-              ]
+            role: "user",
+            content: [
+              { type: "text", text: customPrompt },
+              { type: "image_url", image_url: { url: imageURL } }
+            ]
           }
-      ],
-      "max_tokens": 300
-    };
-  
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(payload)
+        ],
+        max_tokens: 300
       });
   
-      const data = await response.json();
+      console.log('Fetched response:', response);
   
-      if (data.choices && data.choices.length > 0) {
-        return data.choices[0].message.content;
+      if (response.choices && response.choices.length > 0) {
+        const description = response.choices[0].message.content;
+        console.log('Generated Description:', description);
+        speakMessage(description);
+        setFocusedIndex(gridIndex);
+        
+        if (tileRefs.current[gridIndex]) {
+          tileRefs.current[gridIndex].focus();
+        }
+  
+        return description;
       } else {
         return 'No description available';
       }
     } catch (error) {
       console.error('Error fetching image description:', error);
+      speakMessage('Sorry, could you ask the question again?');
       return 'Error fetching description';
     }
   };
-
+  const fetchImageName = async (imageURL) => {
+    let customPrompt = `
+      Generate the title of this image. Use minimal words.
+      Example Response: dog
+    `;
+  
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: customPrompt },
+              { type: "image_url", image_url: { url: imageURL } } // Fixed OpenAI SDK format
+            ]
+          }
+        ],
+        max_tokens: 300
+      });
+  
+      if (response.choices && response.choices.length > 0) {
+        return response.choices[0].message.content;
+      } else {
+        return 'No description available';
+      }
+    } catch (error) {
+      console.error('Error fetching image name:', error);
+      return 'Error fetching name';
+    }
+  };
+  
 
   const fetchImageDescription = async (imageURL) => {
 
-    let customPrompt = `
-        You are describing an image to a Visually Impaired Person.
-        Generate the given image description according to the following criteria:
-        Briefly describe the primary subject or focus of the image in one sentence.
-      `;
+    try{
+      console.log('fetching image description for', imageURL);
+
+      let customPrompt = `
+          You are describing an image to a Blind or Visually Impaired Person.
+          Generate the given image description according to the following criteria:
+          Briefly describe the primary subject or focus of the image in one sentence.
+        `;
   
-    const payload = {
-      "model": "gpt-4-vision-preview",
-      "messages": [
-          {
-              "role": "user",
-              "content": [
-                  {"type": "text", "text": customPrompt},
-                  {"type": "image_url", "image_url": imageURL}
-              ]
-          }
-      ],
-      "max_tokens": 300
-    };
+        const descriptionResponse = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: customPrompt },
+                { type: "image_url", image_url: { url: imageURL } },
+              ],
+            },
+          ],
+          store: true,
+        });
+
+        if (descriptionResponse.choices && descriptionResponse.choices.length > 0) {
+          const description = descriptionResponse.choices[0].message.content;
+          console.log("Generated image description:", description);
+          return description;
+        } else {
+          console.warn("No valid description received.");
+          return "No description available.";
+        }
   
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(payload)
-      });
-  
-      const data = await response.json();
-  
-      if (data.choices && data.choices.length > 0) {
-        return data.choices[0].message.content;
-      } else {
-        return 'No description available';
-      }
-    } catch (error) {
+        console.log("Image description response received:", descriptionResponse);
+        const description = descriptionResponse.choices[0].message.content;
+        console.log("Generated image description:", description);
+
+    }
+    catch (error) { 
       console.error('Error fetching image description:', error);
       return 'Error fetching description';
     }
+  
   };
 
 
@@ -1840,7 +1782,7 @@ const stopLoadingSound = () => {
 
     const tileX = tiles[gridIndex].x;
     const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY)
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
     
     updatedSavedImages[imageIndex] = newImageObject;
     
@@ -1872,179 +1814,167 @@ const stopLoadingSound = () => {
     }
   };
 
-
   const generateImage = async (index, isRegeneration = false) => {
+    if (isGeneratingImage) return; // Prevent duplicate triggers
+    setIsGeneratingImage(true); // Lock Enter key from triggering movement
+  
     setLoading(true);
     setActiveIndex(index);
-    
-
+  
     let shouldCancel = false;
-
+    let isConfirmed = false;
+    let isWaitingForConfirmation = false; // Prevent duplicate Enter triggers
+  
+    // Keydown listener for Enter (confirm) and Escape (cancel)
     const keydownListener = (event) => {
-      if (event.key === 'Escape') {
-        let shouldCancel = true;
+      if (event.key === "Escape") {
+        shouldCancel = true;
         console.log("Generation cancellation requested.");
+        speakMessage("Image generation cancelled.");
+        setLoading(false);
+        setIsGeneratingImage(false); // Unlock movement
+        document.removeEventListener("keydown", keydownListener);
+        return;
+      }
+      if (event.key === "Enter" && isWaitingForConfirmation) {
+        isConfirmed = true;
+        console.log("Generation confirmed.");
       }
     };
+  
+    document.addEventListener("keydown", keydownListener);
+  
+    let voiceInput;
 
     let centerX, centerY;
     centerX = tiles[index].x;
     centerY = tiles[index].y;
+
+    try {
+      voiceInput = await startListening();
+      setPromptText(voiceInput);
+      console.log("Voice Input:", voiceInput);
+    } catch (error) {
+      console.error("Error during voice input:", error);
+      setLoading(false);
+      setIsGeneratingImage(false); // Unlock movement
+      document.removeEventListener("keydown", keydownListener);
+      return;
+    }
   
-    console.log('Generating image...');
+    if (!voiceInput) {
+      speakMessage("No voice input detected.");
+      setLoading(false);
+      setIsGeneratingImage(false); // Unlock movement
+      document.removeEventListener("keydown", keydownListener);
+      return;
+    }
+  
+    // Now we start waiting for confirmation
+    isWaitingForConfirmation = true;
+    speakMessage(`You have asked to: ${voiceInput}. Press Enter to confirm or Esc to cancel.`);
+  
+    // Wait for Enter key confirmation
+    while (!isConfirmed) {
+      if (shouldCancel) return;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  
+    isWaitingForConfirmation = false;
+  
+    let imageResponse;
+    try {
+      console.log("Sending image generation request to DALL‑E‑3...", voiceInput);
+      imageResponse = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: voiceInput,
+        n: 1,
+        size: "1024x1024",
+      });
+  
+      console.log("Image generation response received:", imageResponse);
+      
+    } catch (error) {
+      console.error("Error generating image from OpenAI:", error);
+      setLoading(false);
+      setIsGeneratingImage(false); // Unlock movement
+      document.removeEventListener("keydown", keydownListener);
+      return;
+    }
+  
+    const imageURL = imageResponse.data[0]?.url;
+    const imageSize = 100;
+
+    if (!imageURL) {
+      console.error("No valid image URL received.");
+      setLoading(false);
+      setIsGeneratingImage(false); // Unlock movement
+      document.removeEventListener("keydown", keydownListener);
+      return;
+    }
+  
+    let imageObject = {
+      prompt: voiceInput,
+      name: '',
+      url: imageURL,
+      image_nbg: '',
+      descriptions: '',
+      canvas_descriptions: '',
+      coordinate: { x: centerX, y: centerY },
+      canvas: {x: centerX, y: centerY},
+      sizeParts: { width: imageSize  , height: imageSize},
+    };
   
     try {
-
-      playNotificationSound();
-
-      const voiceText = await startListening();
-      setPromptText(voiceText);
-      console.log('voiceText:' , voiceText)
-
-      document.addEventListener('keydown', keydownListener);
-  
-      if (voiceText) {
-        console.log('OpenAI', openai);
-        const correctCall = await startLoadingSound(voiceText);
-
-
-
-        const results = tagger.tagSentence( voiceText );
-        console.log('POS tag result', results)
-        const nouns = results.filter(result => result.pos === 'NN');
-        console.log('Nouns:', nouns);
-
-        let nonImageNouns = [];
-        // Collect non-image nouns in an array
-        for (const noun of nouns) {
-            if (noun.value !== 'image') {
-                nonImageNouns.push(noun.value);
-                console.log('non-image noun', noun.value);
-            }
-        }
-        
-        // Join non-image nouns into a single string, or use the original voiceText if none are found
-        let mainObject = nonImageNouns.length > 0 ? nonImageNouns.join(' ') : voiceText;
-        console.log('Main Object:', mainObject);
-
-        console.log(`
-        You are a MINIMALISTIC COLORING BOOK GRAPHIC DESIGNER. 
-        Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
-        NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
-        The user has requested: ${voiceText}
-        `)
-
-        console.log(`
-        You are a MINIMALISTIC COLORFUL GRAPHIC DESIGNER, BLOGGER, and CONTENT CREATOR.
-        Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
-        NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
-        The user has requested: ${voiceText}
-        `)
-
-
-        if(correctCall) {
-        const response = await openai.createImage({
-          prompt: `
-          You are a MINIMALISTIC COLORFUL GRAPHIC DESIGNER, BLOGGER, and CONTENT CREATOR.
-          Create ONLY ONE of a VERY SIMPLE  ${mainObject} DIGITAL graphic.
-          NO perspectives, NO detail, NO text. SIMPLE, MINIMAL, GRAPHIC.
-          The user has requested: ${voiceText}
-          `,
-          n: 1,
-          quality:'hd',
-          style:'natural'
-          });
-
-          if (shouldCancel) {
-            console.log("Generation cancelled after image request.");
-            speakMessage('Canceled Image Generation')
-            return;  // Stop processing as cancellation request came during image generation
-          }
-
-        console.log('OpenAI Image Response', response);
-        
-
-        const lengthImages = savedImages.length;
-        const imageSize = 100;
-  
-        const imageObjects = response.data.data.map(img => ({
-          prompt: voiceText,
-          name: '',
-          url: img.url,
-          image_nbg: '',
-          descriptions: '',
-          canvas_descriptions: '',
-          coordinate: { x: centerX, y: centerY },
-          canvas: {x: centerX, y: centerY},
-          sizeParts: { width: imageSize  , height: imageSize},
-        }));
-
-
-        for (let imageObject of imageObjects) {
-          const imageURL = imageObject.url;
-          const nbg = await removeBackground(imageURL, imageObject);
-          const name = await fetchImageName(imageURL);
-          const description = await fetchImageDescription(imageURL);
-          imageObject.descriptions = description;
-          imageObject.name = name;
-        }
-
-
-        let imageDescription = `${imageObjects[0].name} has been created. ${imageObjects[0].descriptions}. The image is located in ${imageObjects[0].canvas.x} and ${imageObjects[0].canvas.y}. It is ${imageObjects[0].sizeParts.width} in width and ${imageObjects[0].sizeParts.height} in height. `;
-        
-        let utterance = new SpeechSynthesisUtterance(imageDescription);
-        utterance.rate = 1;
-        utterance.pitch = 1; 
-        utterance.volume = 1; 
-
-  
-        if (isRegeneration) {
-          updateImageAtIndex(index, imageObjects[0]);
-          speechSynthesis.speak(utterance);
-          utterance.onend = function(event) {
-            console.log('Speech synthesis finished.');
-            setFocusedIndex(index);
-            tileRefs.current[index].focus();
-          };
-          
-          setFocusedIndex(index);
-          tileRefs.current[index].focus();
-
-        } else {
-          isGeneratingImage = false;
-          const updatedSavedImages = [...savedImages, ...imageObjects];
-          setSavedImages(updatedSavedImages);
-          speechSynthesis.speak(utterance);
-
-          utterance.onend = function(event) {
-            console.log('Speech synthesis finished.');
-          };
-          setFocusedIndex(index);
-          tileRefs.current[index].focus();
-        }
-      }else{
-        speakMessage('Image Generation Cancelled')
-        setFocusedIndex(index);
-        tileRefs.current[index].focus();
-      }
-
-
-      } else {
-
-        console.log("Voice text is empty.");
-      }
-    } catch (err) {
-      console.error('Error generating image:', err);
-    } finally {
-      setLoading(false);
+      // ✅ Remove background
+      imageObject.image_nbg = await removeBackground(imageURL, imageObject);
+    } catch (error) {
+      console.error("Error removing background:", error);
+      imageObject.image_nbg = "Background removal failed";
     }
+  
+    try {
+      // ✅ Fetch image name
+      imageObject.name = await fetchImageName(imageURL);
+    } catch (error) {
+      console.error("Error fetching image name:", error);
+      imageObject.name = "Unnamed";
+    }
+  
+    try {
+      // ✅ Fetch image description
+      imageObject.descriptions = await fetchImageDescription(imageURL);
+      speakMessage(imageObject.descriptions);
+    } catch (error) {
+      console.error("Error fetching image description:", error);
+      imageObject.descriptions = "No description available.";
+      speakMessage("Sorry, I couldn't retrieve the image description.");
+    }
+  
+    console.log("Final Image Object:", imageObject);
+  
+    try {
+      if (isRegeneration) {
+        updateImageAtIndex(index, imageObject);
+      } else {
+        setSavedImages((prevImages) => [...prevImages, imageObject]);
+      }
+      setFocusedIndex(index);
+      tileRefs.current[index]?.focus();
+    } catch (error) {
+      console.error("Error updating saved images:", error);
+    }
+  
+    document.removeEventListener("keydown", keydownListener);
+    setLoading(false);
+    setIsGeneratingImage(false); // Unlock movement
   };
-
+  
   const radarScan = (gridIndex) => {
 
     const tileX = tiles[gridIndex].x;
     const tileY = tiles[gridIndex].y;
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x == tileX && image.coordinate.y == tileY);
+    const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
 
     if (imageIndex === -1) {
         console.error('No image found at the specified grid index.');
@@ -2240,8 +2170,6 @@ const stopLoadingSound = () => {
                 )}
               </div>
             ))}
-          
-              
           </div>
 
         
@@ -2309,32 +2237,32 @@ const stopLoadingSound = () => {
         Press the up down arrowkeys to navigate through the keyboard shortcuts
         </p>
         <br/>
-          <ul style={{marginTop: '0.5rem', width: '100%'}} role="list">
-            <li style={{marginBottom: '2%'}} role="listitem">
+          <ul style={{marginTop: '0.5rem', width: '100%'}}>
+            <li style={{marginBottom: '2%'}}>
               <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>G</kbd>: Global - Descriptions about what the canvas currently looks like.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Press Shift+X to delete an Image
             </li>
-            <li style={{marginBottom: '2%'}} role="listitem">
+            <li style={{marginBottom: '2%'}}>
               <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
             </li>
           </ul>

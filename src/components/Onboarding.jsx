@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 const Onboarding = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [audioUrl, setAudioUrl] = useState('');
   const [recognition, setRecognition] = useState(null);
   const [canvasSize, setCanvasSize] = useState({
     width:  roundToNearest100(window.innerWidth * 0.35)+ 100,
@@ -20,23 +19,6 @@ const Onboarding = () => {
     return Math.round(x / 100) * 100;
   }
 
-  const speakMessage = (message) => {
-    const utterance = new SpeechSynthesisUtterance(message);
-
-    window.speechSynthesis.speak(utterance);
-    utterance.rate = 0.9; 
-  
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        window.speechSynthesis.cancel();
-        document.removeEventListener("keydown", handleEscape);
-        
-      }
-    };
-  
-    document.addEventListener("keydown", handleEscape);
-  };
-
   const navigate = useNavigate();
 
   const handleButtonClick = () => {
@@ -44,9 +26,9 @@ const Onboarding = () => {
     navigate('/sonic');
   };
 
-  const leftrighturl = "../../public/assets/leftright.mp3";
-  const downurl ="../../public/assets/down.mp3";
-  const upurl="../../public/assets/up.mp3";
+  const leftrighturl = "https://altcanvas.art/audio/leftright.mp3";
+  const downurl ="https://altcanvas.art/audio/down.mp3";
+  const upurl="https://altcanvas.art/audio/up.mp3";
 
   const playerLRRef = useRef(null);
   const playerURef = useRef(null);
