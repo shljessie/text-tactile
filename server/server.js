@@ -10,10 +10,10 @@ const os = require('os');
 
 const PORT = process.env.PORT || 3001;
 
-let logFile = '';
+let logFile = path.join(__dirname, 'public', 'logs', 'default-log.json');
 
 app.use(express.json());
-// Allow requests from your Amplify frontend
+
 const corsOptions = {
   origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com', 'http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000', 'https://localhost:3000'],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -83,53 +83,55 @@ const imagesDir = path.join(__dirname, 'public', 'images');
 app.use(cors({
   origin: ['https://main.d3onukrw5z0iwo.amplifyapp.com','http://main.d3onukrw5z0iwo.amplifyapp.com', 'http://localhost:3000']
 }));
-app.use(express.static(path.join(__dirname, '../build')));
+app.use(express.static(path.join(__dirname, '..', 'build')));
+
 app.use('/images', express.static(imagesDir));
-app.post('/remove-background', async (req, res) => {
-    const form = new formidable.IncomingForm();
 
-    form.parse(req, async (err, fields, files) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Error parsing form data');
-        }
+// app.post('/remove-background', async (req, res) => {
+//     const form = new formidable.IncomingForm();
 
-        // console.log('Fields:', fields); // Check what's inside fields
-        const image_url = fields.image_url;
+//     form.parse(req, async (err, fields, files) => {
+//         if (err) {
+//             console.error(err);
+//             return res.status(500).send('Error parsing form data');
+//         }
+
+//         // console.log('Fields:', fields); // Check what's inside fields
+//         const image_url = fields.image_url;
     
-        const formData = new FormData();
-        // console.log('Appending image_url:', image_url[0]); // Verify the type and value
-        formData.append("image_url", image_url[0]);
-        formData.append("get_file", "1");
+//         const formData = new FormData();
+//         // console.log('Appending image_url:', image_url[0]); // Verify the type and value
+//         formData.append("image_url", image_url[0]);
+//         formData.append("get_file", "1");
 
-        try {
-            const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
-                headers: {
-                    ...formData.getHeaders(),
-                    "Rm-Token": "74CAD990-738E-B276-5ACB-E1AFD5049E3D"
-                },
-                responseType: 'arraybuffer'
-            });
+//         try {
+//             const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
+//                 headers: {
+//                     ...formData.getHeaders(),
+//                     "Rm-Token": "74CAD990-738E-B276-5ACB-E1AFD5049E3D"
+//                 },
+//                 responseType: 'arraybuffer'
+//             });
 
-            // Generate a unique file name
-            const imageName = `processed-${Date.now()}.png`;
-            const imagePath = path.join(imagesDir, imageName);
+//             // Generate a unique file name
+//             const imageName = `processed-${Date.now()}.png`;
+//             const imagePath = path.join(imagesDir, imageName);
 
-            // Save the image data to a file
-            fs.writeFileSync(imagePath, response.data);
+//             // Save the image data to a file
+//             fs.writeFileSync(imagePath, response.data);
 
-            // Generate URL to access the image
-            const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
-            res.json({ imageUrl });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send('Error processing image');
-        }
-    });
-});
+//             // Generate URL to access the image
+//             const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
+//             res.json({ imageUrl });
+//         } catch (error) {
+//             console.error(error);
+//             res.status(500).send('Error processing image');
+//         }
+//     });
+// });
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../build', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
 });
 
 app.listen(PORT, () => {

@@ -367,7 +367,7 @@ export const SonicTiles = () => {
 
 
   const thumpRef = useRef(null);
-  const urlTwo = "https://texttactile.s3.amazonaws.com/bump.mp3";
+  const urlTwo = "../../public/assets/bump.mp3";
 
   const playerTwo = new Tone.Player().toDestination();
   playerTwo.load(urlTwo).then(() => {

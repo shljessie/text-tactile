@@ -44,9 +44,9 @@ const Onboarding = () => {
     navigate('/sonic');
   };
 
-  const leftrighturl = "https://texttactile.s3.amazonaws.com/leftright.mp3";
-  const downurl ="https://texttactile.s3.amazonaws.com/down.mp3";
-  const upurl="https://texttactile.s3.amazonaws.com/up.mp3";
+  const leftrighturl = "../../public/assets/leftright.mp3";
+  const downurl ="../../public/assets/down.mp3";
+  const upurl="../../public/assets/up.mp3";
 
   const playerLRRef = useRef(null);
   const playerURef = useRef(null);
