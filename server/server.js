@@ -10,56 +10,25 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Resolve and log the absolute path of the build directory
-const buildPath = path.resolve(__dirname, '../build');
-const indexPath = path.join(buildPath, 'index.html');
-
-console.log("🚀 Serving static files from:", buildPath);
-console.log("📄 Checking for index.html:", indexPath);
-
-// ✅ Check if build/index.html exists when starting the server
-if (!fs.existsSync(buildPath)) {
-    console.error("❌ ERROR: Build directory does not exist:", buildPath);
-} else if (!fs.existsSync(indexPath)) {
-    console.error("❌ ERROR: index.html NOT FOUND in build directory!");
-} else {
-    console.log("✅ index.html FOUND at", indexPath);
-}
-
-// ✅ Serve static files from build directory
-app.use(express.static(buildPath));
-
-// ✅ Handle all unknown routes by serving index.html (if it exists)
-app.get('*', (req, res) => {
-    if (!fs.existsSync(indexPath)) {
-        console.error("❌ ERROR: index.html is missing when serving a request.");
-        return res.status(500).send("❌ ERROR: index.html not found on the server");
-    }
-    res.sendFile(indexPath);
-});
-
+// ✅ Enable JSON Parsing for API Requests
 app.use(express.json());
 
+// ✅ CORS Settings (Allow Frontend Requests)
 const corsOptions = {
     origin: ['http://localhost:3000', 'https://altcanvas.art', 'http://localhost:3001'],
     optionsSuccessStatus: 200
 };
-
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-// ✅ Debug log to confirm server is running
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-});
-
-// ✅ Additional API Routes
+// ✅ API Routes (Handled by Express)
 app.post('/sonic', (req, res) => {
     const uuid = req.body.uuid;
-    console.log('Received UUID:', uuid);
+    console.log('📩 Received UUID:', uuid);
     res.status(200).json({ status: 'success', message: 'UUID received successfully', receivedUuid: uuid });
 });
 
+// ✅ Serve Static Files for API Responses (But NOT React)
 const imagesDir = path.join(__dirname, 'public', 'images');
 app.use('/images', express.static(imagesDir));
 
@@ -96,4 +65,9 @@ app.post('/remove-background', async (req, res) => {
             res.status(500).send('Error processing image');
         }
     });
+});
+
+// ✅ START THE SERVER (Only API Routes, No Frontend Serving)
+app.listen(PORT, () => {
+    console.log(`✅ Express API is running on port ${PORT}`);
 });
