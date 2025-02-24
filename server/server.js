@@ -83,6 +83,6 @@ app.use(express.static(buildPath));
 
 
 // ✅ START THE SERVER
-app.listen(PORT, () => {
-    console.log(`✅ Express API is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Express API is running on http://0.0.0.0:${PORT}`);
 });
