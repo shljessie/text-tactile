@@ -167,7 +167,7 @@ export const SonicTiles = () => {
       console.log(key, value);
     }
 
-    fetch('https://altcanvas.art/remove-background', {
+    fetch('/remove-background', {
         method: 'POST',
         body: formData 
     })
@@ -1292,21 +1292,21 @@ const stopLoadingSound = () => {
     }
 };
 
-  const logEvent = (data) => {
-    console.log('Logging event:', data);
-    localStorage.setItem('lastKeyEvent', JSON.stringify(data)); // Store locally
+  // const logEvent = (data) => {
+  //   console.log('Logging event:', data);
+  //   localStorage.setItem('lastKeyEvent', JSON.stringify(data)); // Store locally
 
-    fetch('https://art.alt-canvas.com/log-data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => console.log('Server response:', data))
-    .catch(error => console.error('Error sending data to server:', error));
-  }
+  //   fetch('https://art.alt-canvas.com/log-data', {
+  //       method: 'POST',
+  //       headers: {
+  //           'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(data)
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => console.log('Server response:', data))
+  //   .catch(error => console.error('Error sending data to server:', error));
+  // }
 
   const playModeNotification = (message, callback) => {
     const utterance = new SpeechSynthesisUtterance(message);
