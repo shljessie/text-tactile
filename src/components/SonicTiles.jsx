@@ -9,16 +9,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
-import OpenAI from "openai";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SonicTiles = () => {
-  const openai = new OpenAI({
-    apiKey: process.env.REACT_APP_API_KEY,
-    dangerouslyAllowBrowser: true
-  });
   
   const [settingsOpen, setOpenSettings] = useState(false);
 
@@ -73,15 +68,6 @@ export const SonicTiles = () => {
 
     sendUuidToServer();
     const uuid=  localStorage.getItem('uuid');
-
-    console.log(
-      `
-      Loading Check
-      openai_LOADED: ${!!openai}
-      Canvas Size: ${canvasSize.width}, ${canvasSize.height}
-      UUID: ${uuid}
-      `
-    )
 
     tileRefs.current[0].focus()
     if(!messagePlayed){
@@ -1604,20 +1590,12 @@ const stopLoadingSound = () => {
       const globalDescriptionPrompt = generateDescriptionPrompt(savedImages);
       console.log("Generated Prompt:", globalDescriptionPrompt);
   
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "user",
-            content: globalDescriptionPrompt,
-          },
-        ],
-      });
+      const response = await axios.post("/api/openai/global-description", { prompt: globalDescriptionPrompt });
   
       console.log("Global description response received:", response);
   
       if (response.choices && response.choices.length > 0) {
-        const globalDescription = response.choices[0].message.content;
+        const globalDescription = response.data.description;
         console.log("Global Description:", globalDescription);
         speakMessage(globalDescription);
         return globalDescription;
@@ -1661,24 +1639,11 @@ const stopLoadingSound = () => {
         ${voiceInput}
       `;
   
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: customPrompt },
-              { type: "image_url", image_url: { url: imageURL } }
-            ]
-          }
-        ],
-        max_tokens: 300
-      });
+      const response = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt});  
+      console.log('Image Chat Response:', response);
   
-      console.log('Fetched response:', response);
-  
-      if (response.choices && response.choices.length > 0) {
-        const description = response.choices[0].message.content;
+      if (response) {
+        const description = response.data.description;
         console.log('Generated Description:', description);
         speakMessage(description);
         setFocusedIndex(gridIndex);
@@ -1697,6 +1662,7 @@ const stopLoadingSound = () => {
       return 'Error fetching description';
     }
   };
+
   const fetchImageName = async (imageURL) => {
     let customPrompt = `
       Generate the title of this image. Use minimal words.
@@ -1704,22 +1670,10 @@ const stopLoadingSound = () => {
     `;
   
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: customPrompt },
-              { type: "image_url", image_url: { url: imageURL } } // Fixed OpenAI SDK format
-            ]
-          }
-        ],
-        max_tokens: 300
-      });
+      const response = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt });
   
-      if (response.choices && response.choices.length > 0) {
-        return response.choices[0].message.content;
+      if (response) {
+        return response;
       } else {
         return 'No description available';
       }
@@ -1741,33 +1695,18 @@ const stopLoadingSound = () => {
           Briefly describe the primary subject or focus of the image in one sentence.
         `;
   
-        const descriptionResponse = await openai.chat.completions.create({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: customPrompt },
-                { type: "image_url", image_url: { url: imageURL } },
-              ],
-            },
-          ],
-          store: true,
-        });
+        const descriptionResponse = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt });
 
-        if (descriptionResponse.choices && descriptionResponse.choices.length > 0) {
-          const description = descriptionResponse.choices[0].message.content;
-          console.log("Generated image description:", description);
-          return description;
+        console.log("Image description response received:", descriptionResponse);
+
+        if (descriptionResponse.data && descriptionResponse.data.description) {
+          console.log("Generated image description:", descriptionResponse.data.description);
+          return descriptionResponse.data.description;
         } else {
           console.warn("No valid description received.");
           return "No description available.";
         }
   
-        console.log("Image description response received:", descriptionResponse);
-        const description = descriptionResponse.choices[0].message.content;
-        console.log("Generated image description:", description);
-
     }
     catch (error) { 
       console.error('Error fetching image description:', error);
@@ -1775,7 +1714,6 @@ const stopLoadingSound = () => {
     }
   
   };
-
 
   const updateImageAtIndex = (gridIndex, newImageObject) => {
 
@@ -1886,14 +1824,53 @@ const stopLoadingSound = () => {
     let imageResponse;
     try {
       console.log("Sending image generation request to DALL‑E‑3...", voiceInput);
-      imageResponse = await openai.images.generate({
-        model: "dall-e-3",
+      const response = await axios.post("/api/openai/generate-image", { prompt: voiceInput });
+      console.log("Image generation response received:", response);
+      const imageURL = response.data.url;
+      const imageSize = 100;
+
+      if (!imageURL) {
+        console.error("No valid image URL received.");
+        setLoading(false);
+        setIsGeneratingImage(false); // Unlock movement
+        document.removeEventListener("keydown", keydownListener);
+        return;
+      }
+
+      let imageObject = {
         prompt: voiceInput,
-        n: 1,
-        size: "1024x1024",
-      });
-  
-      console.log("Image generation response received:", imageResponse);
+        name: '',
+        url: imageURL,
+        image_nbg: '',
+        descriptions: '',
+        canvas_descriptions: '',
+        coordinate: { x: centerX, y: centerY },
+        canvas: {x: centerX, y: centerY},
+        sizeParts: { width: imageSize  , height: imageSize},
+      };
+      imageObject.image_nbg = await removeBackground(imageURL, imageObject);
+      imageObject.descriptions = await fetchImageDescription(imageURL);
+      speakMessage(imageObject.descriptions);
+
+      console.log("Final Image Object:", imageObject);
+
+      try {
+        if (isRegeneration) {
+          updateImageAtIndex(index, imageObject);
+        } else {
+          setSavedImages((prevImages) => [...prevImages, imageObject]);
+        }
+        
+        // Ensure `setFocusedIndex` is called properly
+        setFocusedIndex(index);
+        
+        // Ensure `focus()` is only called if the reference exists
+        if (tileRefs.current[index]) {
+          tileRefs.current[index].focus();
+        }
+      } catch (error) {
+        console.error("Error updating saved images:", error);
+      }      
       
     } catch (error) {
       console.error("Error generating image from OpenAI:", error);
@@ -1902,75 +1879,7 @@ const stopLoadingSound = () => {
       document.removeEventListener("keydown", keydownListener);
       return;
     }
-  
-    const imageURL = imageResponse.data[0]?.url;
-    const imageSize = 100;
 
-    if (!imageURL) {
-      console.error("No valid image URL received.");
-      setLoading(false);
-      setIsGeneratingImage(false); // Unlock movement
-      document.removeEventListener("keydown", keydownListener);
-      return;
-    }
-  
-    let imageObject = {
-      prompt: voiceInput,
-      name: '',
-      url: imageURL,
-      image_nbg: '',
-      descriptions: '',
-      canvas_descriptions: '',
-      coordinate: { x: centerX, y: centerY },
-      canvas: {x: centerX, y: centerY},
-      sizeParts: { width: imageSize  , height: imageSize},
-    };
-  
-    try {
-      // ✅ Remove background
-      imageObject.image_nbg = await removeBackground(imageURL, imageObject);
-    } catch (error) {
-      console.error("Error removing background:", error);
-      imageObject.image_nbg = "Background removal failed";
-    }
-  
-    try {
-      // ✅ Fetch image name
-      imageObject.name = await fetchImageName(imageURL);
-    } catch (error) {
-      console.error("Error fetching image name:", error);
-      imageObject.name = "Unnamed";
-    }
-  
-    try {
-      // ✅ Fetch image description
-      imageObject.descriptions = await fetchImageDescription(imageURL);
-      speakMessage(imageObject.descriptions);
-    } catch (error) {
-      console.error("Error fetching image description:", error);
-      imageObject.descriptions = "No description available.";
-      speakMessage("Sorry, I couldn't retrieve the image description.");
-    }
-  
-    console.log("Final Image Object:", imageObject);
-  
-    try {
-      if (isRegeneration) {
-        updateImageAtIndex(index, imageObject);
-      } else {
-        setSavedImages((prevImages) => [...prevImages, imageObject]);
-      }
-      
-      // Ensure `setFocusedIndex` is called properly
-      setFocusedIndex(index);
-      
-      // Ensure `focus()` is only called if the reference exists
-      if (tileRefs.current[index]) {
-        tileRefs.current[index].focus();
-      }
-    } catch (error) {
-      console.error("Error updating saved images:", error);
-    }    
   
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
