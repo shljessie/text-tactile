@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import * as Tone from 'tone';
 
-import OpenAI from "openai";
 import React, { useEffect, useRef, useState } from 'react';
 
 import Button from '@mui/material/Button';
@@ -10,6 +9,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
+import OpenAI from "openai";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -1959,11 +1959,17 @@ const stopLoadingSound = () => {
       } else {
         setSavedImages((prevImages) => [...prevImages, imageObject]);
       }
+      
+      // Ensure `setFocusedIndex` is called properly
       setFocusedIndex(index);
-      tileRefs.current[index]?.focus();
+      
+      // Ensure `focus()` is only called if the reference exists
+      if (tileRefs.current[index]) {
+        tileRefs.current[index].focus();
+      }
     } catch (error) {
       console.error("Error updating saved images:", error);
-    }
+    }    
   
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
