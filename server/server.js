@@ -26,6 +26,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+app.get('/api/', (req, res) => {
+    res.json({ status: 'success', message: 'API is working!' });
+});
+
 // UUID check - main screen start
 app.post('/api/sonic', (req, res) => {
     const uuid = req.body.uuid;
