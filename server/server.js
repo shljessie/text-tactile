@@ -17,9 +17,10 @@ const openAIRoutes = require("./routes/openaiRoutes");
 
 // ✅ CORS Settings (Allow Frontend Requests)
 const corsOptions = {
-    origin: '*',  // Allow all origins for testing (change later for security)
+    origin: ['http://altcanvas.art', 'https://altcanvas.art'],  // Allow only your domain
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true  // Allow cookies & authentication headers
 };
 
 app.use(cors(corsOptions));
