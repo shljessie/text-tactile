@@ -67,7 +67,24 @@ app.post('/remove-background', async (req, res) => {
     });
 });
 
-// ✅ START THE SERVER (Only API Routes, No Frontend Serving)
+// ✅ Serve the Frontend (React/Vue)
+const buildPath = path.join(__dirname, '../build'); // Adjust if needed
+console.log(`🚀 Serving static files from: ${buildPath}`);
+
+app.use(express.static(buildPath));
+
+// ✅ Fallback for React Router (SPA Routing)
+app.get('*', (req, res) => {
+    const indexPath = path.join(buildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        console.error('❌ ERROR: index.html is missing when serving a request.');
+        res.status(500).send('index.html not found');
+    }
+});
+
+// ✅ START THE SERVER
 app.listen(PORT, () => {
     console.log(`✅ Express API is running on port ${PORT}`);
 });
