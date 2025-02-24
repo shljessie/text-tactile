@@ -24,7 +24,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // UUID check - main screen start
-app.post('/sonic', (req, res) => {
+app.post('/api/sonic', (req, res) => {
     const uuid = req.body.uuid;
     console.log('📩 Received UUID:', uuid);
     res.status(200).json({ status: 'success', message: 'UUID received successfully', receivedUuid: uuid });

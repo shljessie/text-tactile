@@ -39,7 +39,7 @@ export const SonicTiles = () => {
     const uuid = getUuid();
 
     try {
-      const response = await axios.post('/sonic', {
+      const response = await axios.post('/api/sonic', {
         uuid: uuid,
       });
       console.log('Server response:', response.data);
