@@ -13,6 +13,8 @@ const PORT = process.env.PORT || 3001;
 // ✅ Enable JSON Parsing for API Requests
 app.use(express.json());
 
+const openAIRoutes = require("./routes/openaiRoutes");
+
 // ✅ CORS Settings (Allow Frontend Requests)
 const corsOptions = {
     origin: ['http://localhost:3000', 'https://altcanvas.art', 'http://localhost:3001'],
@@ -21,12 +23,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-// ✅ API Routes (Handled by Express)
+// UUID check - main screen start
 app.post('/sonic', (req, res) => {
     const uuid = req.body.uuid;
     console.log('📩 Received UUID:', uuid);
     res.status(200).json({ status: 'success', message: 'UUID received successfully', receivedUuid: uuid });
 });
+
+// ✅ OpenAI API Routes (Handled by Express)
+app.use("/api/openai", openAIRoutes);
 
 // ✅ Serve Static Files for API Responses (But NOT React)
 const imagesDir = path.join(__dirname, 'public', 'images');

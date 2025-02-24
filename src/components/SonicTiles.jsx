@@ -15,10 +15,11 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 export const SonicTiles = () => {
-  const openai = new OpenAI({ apiKey: process.env.REACT_APP_API_KEY,
+  const openai = new OpenAI({
+    apiKey: process.env.REACT_APP_API_KEY,
     dangerouslyAllowBrowser: true
   });
-
+  
   const [settingsOpen, setOpenSettings] = useState(false);
 
   useEffect(() => {
@@ -180,7 +181,7 @@ export const SonicTiles = () => {
       console.log(key, value);
     }
 
-    fetch('https://art.alt-canvas.com/remove-background', {
+    fetch('https://altcanvas.art/remove-background', {
         method: 'POST',
         body: formData 
     })
