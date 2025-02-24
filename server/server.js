@@ -73,16 +73,6 @@ console.log(`🚀 Serving static files from: ${buildPath}`);
 
 app.use(express.static(buildPath));
 
-// ✅ Fallback for React Router (SPA Routing)
-app.get('*', (req, res) => {
-    const indexPath = path.join(buildPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        console.error('❌ ERROR: index.html is missing when serving a request.');
-        res.status(500).send('index.html not found');
-    }
-});
 
 // ✅ START THE SERVER
 app.listen(PORT, () => {
