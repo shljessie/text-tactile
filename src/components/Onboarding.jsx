@@ -26,9 +26,9 @@ const Onboarding = () => {
     navigate('/sonic');
   };
 
-  const leftrighturl = "https://altcanvas.art/audio/leftright.mp3";
-  const downurl ="https://altcanvas.art/audio/down.mp3";
-  const upurl="https://altcanvas.art/audio/up.mp3";
+  const leftrighturl = "https://storage.googleapis.com/altcanvas-storage/leftright.mp3";
+  const downurl ="https://storage.googleapis.com/altcanvas-storage/down.mp3";
+  const upurl="https://storage.googleapis.com/altcanvas-storage/up.mp3";
 
   const playerLRRef = useRef(null);
   const playerURef = useRef(null);

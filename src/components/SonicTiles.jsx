@@ -335,7 +335,7 @@ export const SonicTiles = () => {
 
 
   const thumpRef = useRef(null);
-  const urlTwo = "https://altcanvas.art/audio/bump.mp3";
+  const urlTwo = "https://storage.googleapis.com/altcanvas-storage/bump.mp3";
 
   const playerTwo = new Tone.Player().toDestination();
   playerTwo.load(urlTwo).then(() => {
@@ -380,9 +380,9 @@ export const SonicTiles = () => {
 
     tileRefs.current = items.map((_, i) => tileRefs.current[i] || React.createRef());
 
-    const leftrighturl = "https://altcanvas.art/audio/leftright.mp3";
-    const downurl ="https://altcanvas.art/audio/down.mp3";
-    const upurl="https://altcanvas.art/audio/up.mp3";
+    const leftrighturl = "https://storage.googleapis.com/altcanvas-storage/leftright.mp3";
+    const downurl ="https://storage.googleapis.com/altcanvas-storage/down.mp3";
+    const upurl="https://storage.googleapis.com/altcanvas-storage/up.mp3";
 
     const playerLR = new Tone.Player().toDestination();
     playerLR.load(leftrighturl).then(() => {
@@ -709,7 +709,7 @@ const [isUpdating, setIsUpdating] = useState(false);
   const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
   let currentNote = 0;
 
-  const note_url = "https://altcanvas.art/audio/generating.mp3";
+  const note_url = "https://storage.googleapis.com/altcanvas-storage/generating.mp3";
 
   const loadingPlayer = new Tone.Player().toDestination();
   loadingPlayer.load(note_url).then(() => {
