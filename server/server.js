@@ -54,7 +54,6 @@ app.post('/remove-background', async (req, res) => {
       }
   
       console.log("Parsed fields:", fields);
-      // Use the full URL string from the fields
       const image_url = fields.image_url;
       console.log("Image URL received:", image_url);
   
@@ -76,23 +75,27 @@ app.post('/remove-background', async (req, res) => {
   
         const imageName = `processed-${Date.now()}.png`;
         const imagePath = path.join(imagesDir, imageName);
+        console.log("Image will be saved at:", imagePath);
+  
+        // Ensure the directory exists
+        if (!fs.existsSync(imagesDir)) {
+          console.log("Images directory not found. Creating:", imagesDir);
+          fs.mkdirSync(imagesDir, { recursive: true });
+        }
+        
         fs.writeFileSync(imagePath, response.data);
-        console.log("Image saved locally at:", imagePath);
+        console.log("Image saved successfully");
   
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
         console.log("Returning image URL:", imageUrl);
         res.json({ imageUrl });
       } catch (error) {
-        if (error.response) {
-            console.error("Removal.ai error response data:", error.response.data);
-            console.error("Status code:", error.response.status);
-        } else {
-            console.error("Removal.ai error message:", error.message);
-        }
+        console.error("Error processing image from removal.ai:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Error processing image' });
-    }
+      }
     });
   });
+  
   
 
 // Serve the Frontend (React)
