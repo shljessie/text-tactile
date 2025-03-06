@@ -166,22 +166,26 @@ export const SonicTiles = () => {
       console.log(key, value);
     }
   
-    fetch('/remove-background', {
+    // Return the promise from fetch so that you can await it.
+    return fetch('/remove-background', {
         method: 'POST',
         body: formData 
     })
     .then(response => response.json())
     .then(data => {
         console.log('DaTA', data);
-        // Use the correct property name as returned by the server:
         console.log('Image URL:', data.imageUrl);
-        imageObject.image_nbg = data.imageUrl;
+        // Return the image URL so the caller can assign it.
+        return data.imageUrl;
     })
     .catch(error => {
         console.error("Removal.ai error:", error.response ? error.response.data : error.message);
         console.error('Error:', error);
+        // Return an empty string or throw error if needed
+        return '';
     });
   };
+  
   
 
   var posTagger = require( 'wink-pos-tagger' );

@@ -38,6 +38,7 @@ app.post('/api/sonic', (req, res) => {
 });
 
 app.use("/api/openai", openAIRoutes);
+
 // Use a writable directory on Heroku
 const imagesDir = path.join('/tmp', 'images');
 app.use('/images', express.static(imagesDir));
