@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://localhost:3000", "http://0.0.0.0:3001","http://altcanvas.art", "https://altcanvas.art"],
+    "origin": ["https://alt-canvas-f8c8f716b1ba.herokuapp.com","http://localhost:3000", "http://0.0.0.0:3001","http://altcanvas.art", "https://altcanvas.art"],
     "method": ["GET", "HEAD", "OPTIONS"],
     "responseHeader": ["Content-Type", "Access-Control-Allow-Origin"],
     "maxAgeSeconds": 3600

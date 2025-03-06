@@ -46,37 +46,38 @@ app.use('/images', express.static(imagesDir));
 app.post('/remove-background', async (req, res) => {
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Error parsing form data');
-        }
-
-        const image_url = fields.image_url;
-        const formData = new FormData();
-        formData.append("image_url", image_url[0]);
-        formData.append("get_file", "1");
-
-        try {
-            const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
-                headers: {
-                    ...formData.getHeaders(),
-                    "Rm-Token": process.env.REMOVAL_AI_API_KEY
-                },
-                responseType: 'arraybuffer'
-            });
-
-            const imageName = `processed-${Date.now()}.png`;
-            const imagePath = path.join(imagesDir, imageName);
-            fs.writeFileSync(imagePath, response.data);
-
-            const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
-            res.json({ imageUrl });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send('Error processing image');
-        }
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Error parsing form data' });
+      }
+  
+      const image_url = fields.image_url;
+      const formData = new FormData();
+      formData.append("image_url", image_url[0]);
+      formData.append("get_file", "1");
+  
+      try {
+        const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
+          headers: {
+            ...formData.getHeaders(),
+            "Rm-Token": process.env.REMOVAL_AI_API_KEY
+          },
+          responseType: 'arraybuffer'
+        });
+  
+        const imageName = `processed-${Date.now()}.png`;
+        const imagePath = path.join(imagesDir, imageName);
+        fs.writeFileSync(imagePath, response.data);
+  
+        const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
+        res.json({ imageUrl });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error processing image' });
+      }
     });
-});
+  });
+  
 
 // Serve the Frontend (React)
 // This assumes your React build output is in the ../build folder
