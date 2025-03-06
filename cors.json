@@ -1,8 +1,8 @@
 [
   {
-    "origin": ["http://localhost:3000", "http://0.0.0.0:3001"],
-    "method": ["GET"],
-    "responseHeader": ["Content-Type"],
+    "origin": ["http://localhost:3000", "http://0.0.0.0:3001","http://altcanvas.art", "https://altcanvas.art"],
+    "method": ["GET", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Access-Control-Allow-Origin"],
     "maxAgeSeconds": 3600
   }
 ]
