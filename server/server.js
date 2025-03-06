@@ -83,9 +83,14 @@ app.post('/remove-background', async (req, res) => {
         console.log("Returning image URL:", imageUrl);
         res.json({ imageUrl });
       } catch (error) {
-        console.error("Error processing image from removal.ai:", error.response ? error.response.data : error.message);
+        if (error.response) {
+            console.error("Removal.ai error response data:", error.response.data);
+            console.error("Status code:", error.response.status);
+        } else {
+            console.error("Removal.ai error message:", error.message);
+        }
         res.status(500).json({ error: 'Error processing image' });
-      }
+    }
     });
   });
   
