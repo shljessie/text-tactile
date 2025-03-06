@@ -178,6 +178,7 @@ export const SonicTiles = () => {
         imageObject.image_nbg = data.imageURL;
     })
     .catch(error => {
+        console.error("Removal.ai error:", error.response ? error.response.data : error.message);
         console.error('Error:', error);
     });
 };

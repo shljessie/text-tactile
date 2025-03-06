@@ -43,20 +43,28 @@ app.use("/api/openai", openAIRoutes);
 const imagesDir = path.join(__dirname, 'public', 'images');
 app.use('/images', express.static(imagesDir));
 
+// Remove Background API Route
 app.post('/remove-background', async (req, res) => {
+    console.log("Received /remove-background request");
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
       if (err) {
-        console.error(err);
+        console.error("Error parsing form data:", err);
         return res.status(500).json({ error: 'Error parsing form data' });
       }
   
+      console.log("Parsed fields:", fields);
+      // Use the full URL string from the fields
       const image_url = fields.image_url;
+      console.log("Image URL received:", image_url);
+  
       const formData = new FormData();
-      formData.append("image_url", image_url[0]);
+      formData.append("image_url", image_url);
       formData.append("get_file", "1");
+      console.log("FormData prepared with image_url and get_file");
   
       try {
+        console.log("Sending request to removal.ai...");
         const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
           headers: {
             ...formData.getHeaders(),
@@ -64,15 +72,18 @@ app.post('/remove-background', async (req, res) => {
           },
           responseType: 'arraybuffer'
         });
+        console.log("Response received from removal.ai, status:", response.status);
   
         const imageName = `processed-${Date.now()}.png`;
         const imagePath = path.join(imagesDir, imageName);
         fs.writeFileSync(imagePath, response.data);
+        console.log("Image saved locally at:", imagePath);
   
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
+        console.log("Returning image URL:", imageUrl);
         res.json({ imageUrl });
       } catch (error) {
-        console.error(error);
+        console.error("Error processing image from removal.ai:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Error processing image' });
       }
     });
