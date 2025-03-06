@@ -157,32 +157,32 @@ export const SonicTiles = () => {
   }
 
 
-
   const removeBackground = (imageURL, imageObject) => {
     console.log('making call');
     const formData = new FormData();
     formData.append('image_url', imageURL); // Add the image URL to the form data
-
+  
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
     }
-
+  
     fetch('/remove-background', {
         method: 'POST',
         body: formData 
     })
     .then(response => response.json())
     .then(data => {
-        console.log('DaTA', data)
-        console.log('Image URL:', data.imageURL);
-        imageObject.image_nbg = data.imageURL;
+        console.log('DaTA', data);
+        // Use the correct property name as returned by the server:
+        console.log('Image URL:', data.imageUrl);
+        imageObject.image_nbg = data.imageUrl;
     })
     .catch(error => {
         console.error("Removal.ai error:", error.response ? error.response.data : error.message);
         console.error('Error:', error);
     });
-};
-
+  };
+  
 
   var posTagger = require( 'wink-pos-tagger' );
   var tagger = posTagger();
