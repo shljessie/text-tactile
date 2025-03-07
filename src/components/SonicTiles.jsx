@@ -1668,26 +1668,16 @@ const stopLoadingSound = () => {
     }
   };
 
+  // Updated fetchImageName function to use the new API endpoint
   const fetchImageName = async (imageURL) => {
-    let customPrompt = `
-      Generate the title of this image. Use minimal words.
-      Example Response: dog
-    `;
-  
     try {
-      const response = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt });
-  
-      if (response) {
-        return response;
-      } else {
-        return 'No description available';
-      }
+      const response = await axios.post("/api/openai/generate-image-name", { imageURL });
+      return response.data.title || 'No title available';
     } catch (error) {
       console.error('Error fetching image name:', error);
       return 'Error fetching name';
     }
   };
-  
 
   const fetchImageDescription = async (imageURL) => {
 
@@ -1739,6 +1729,7 @@ const stopLoadingSound = () => {
 
     synth.triggerAttackRelease(note, "8n");
 }
+  
 
   const playNotificationSound = () => {
     try {
@@ -1856,6 +1847,8 @@ const stopLoadingSound = () => {
       imageObject.image_nbg = await removeBackground(imageURL, imageObject);
       imageObject.descriptions = await fetchImageDescription(imageURL);
       speakMessage(imageObject.descriptions);
+      // Update the image name using the new API endpoint
+      imageObject.name = await fetchImageName(imageURL);
 
       console.log("Final Image Object:", imageObject);
 

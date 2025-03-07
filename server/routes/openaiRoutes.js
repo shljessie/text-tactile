@@ -66,4 +66,33 @@ router.post("/global-description", async (req, res) => {
     }
 });
 
+// Add a new endpoint to generate the image title
+router.post("/generate-image-name", async (req, res) => {
+    try {
+        const { imageURL } = req.body;
+        const customPrompt = `
+          Generate a title for this image in minimal words.
+          Example: dog
+        `;
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: customPrompt },
+                        { type: "image_url", image_url: { url: imageURL } }
+                    ]
+                }
+            ],
+            max_tokens: 50
+        });
+        res.json({ title: response.choices[0].message.content });
+    } catch (error) {
+        console.error("[API] Error generating image title:", error);
+        res.status(500).json({ error: "Failed to generate image title" });
+    }
+});
+
+
 module.exports = router;
