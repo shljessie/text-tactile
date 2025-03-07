@@ -1820,7 +1820,7 @@ const stopLoadingSound = () => {
     let imageResponse;
     try {
       console.log("Sending image generation request to DALL‑E‑3...", voiceInput);
-      const response = await axios.post("/api/openai/generate-image", { prompt: voiceInput });
+      const response = await axios.post("/api/openai/generate-image", { prompt: voiceInput+ 'Focus on creating only the single object the user describes. Keep the background white ' });
       console.log("Image generation response received:", response);
       const imageURL = response.data.url;
       const imageSize = 100;
