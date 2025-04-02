@@ -13,12 +13,27 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
+const initialGraphicsMode = localStorage.getItem("graphicsMode") || "color";
+const initialSpeechSpeed = parseFloat(localStorage.getItem("speechSpeed")) || 0.9;
+
 export const SonicTiles = () => {
   
   const [settingsOpen, setOpenSettings] = useState(false);
+  const [graphicsMode, setGraphicsMode] = useState(initialGraphicsMode);
+  const [speechSpeed, setSpeechSpeed] = useState(initialSpeechSpeed);
+
+
+  // Update localStorage when settings change
+  useEffect(() => {
+    localStorage.setItem("graphicsMode", graphicsMode);
+  }, [graphicsMode]);
 
   useEffect(() => {
-    setOpenSettings(true);
+    localStorage.setItem("speechSpeed", speechSpeed);
+  }, [speechSpeed]);
+
+  useEffect(() => {
+    setOpenSettings(false);
   }, []);
 
   const handleSettingsClose = () => {
@@ -74,8 +89,6 @@ export const SonicTiles = () => {
       speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
       messagePlayed = true;
     }
-    // speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
-   
 
     // Add event listeners
     window.addEventListener('beforeunload', performRefreshAction);
@@ -259,7 +272,6 @@ export const SonicTiles = () => {
 
   const tileRefs = useRef([]);
   if (tileRefs.current.length !== tiles.length) {
-    // Initialize or update the refs array to match the tiles array length
     tileRefs.current = Array(tiles.length).fill().map((_, i) => tileRefs.current[i] || React.createRef());
   }
   const playerLRRef = useRef(null);
@@ -274,7 +286,6 @@ export const SonicTiles = () => {
   const [isEditingSize, setIsEditingSize] = useState(false);
   const [editingSizeImageIndex, setEditingSizeImageIndex] = useState(null);
 
-
   const [isChangeMode, setIsChangeMode] = useState(false);
   const [changeIndex, setChangeIndex] = useState(null);
   const [changePrompt, setChangePrompt] = useState('');
@@ -284,13 +295,48 @@ export const SonicTiles = () => {
   const [sizeEditActive, setsizeEditActive] = useState(false);
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
-  
+
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
     const currentTime = getFormattedTimestamp();
+    utterance.rate = speechSpeed;
     window.speechSynthesis.speak(utterance);
-    utterance.rate = 0.9; 
-  
+  };
+
+  // Settings functions
+  const handleTactileMode = () => {
+    setGraphicsMode("tactile");
+    console.log("Tactile Graphics Mode selected");
+    speakMessage("Tactile Graphics Mode selected");
+  };
+
+  const handleColorMode = () => {
+    setGraphicsMode("color");
+    console.log("Color Graphics Mode selected");
+    speakMessage("Color Graphics Mode selected");
+  };
+
+  const speakImmediate = (message, rate = 1) => {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = rate;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleIncreaseSpeechSpeed = () => {
+    setSpeechSpeed((prevSpeed) => {
+      const newSpeed = parseFloat((Math.min(prevSpeed + 0.2, 2.0)).toFixed(1));
+      speakImmediate(`Speech speed increased to ${newSpeed}`, newSpeed);
+      return newSpeed;
+    });
+  };
+
+  const handleDecreaseSpeechSpeed = () => {
+    setSpeechSpeed((prevSpeed) => {
+      const newSpeed = parseFloat((Math.max(prevSpeed - 0.2, 0.5)).toFixed(1));
+      speakImmediate(`Speech speed decreased to ${newSpeed}`, newSpeed);
+      return newSpeed;
+    });
   };
 
   useEffect(() => {
@@ -1750,15 +1796,14 @@ const stopLoadingSound = () => {
   };
 
   const generateImage = async (index, isRegeneration = false) => {
-    if (isGeneratingImage) return; // Prevent duplicate triggers
-    setIsGeneratingImage(true); // Lock Enter key from triggering movement
-  
+    if (isGeneratingImage) return;
+    setIsGeneratingImage(true);
     setLoading(true);
     setActiveIndex(index);
   
     let shouldCancel = false;
     let isConfirmed = false;
-    let isWaitingForConfirmation = false; // Prevent duplicate Enter triggers
+    let isWaitingForConfirmation = false;
   
     // Keydown listener for Enter (confirm) and Escape (cancel)
     const keydownListener = (event) => {
@@ -1767,7 +1812,7 @@ const stopLoadingSound = () => {
         console.log("Generation cancellation requested.");
         speakMessage("Image generation cancelled.");
         setLoading(false);
-        setIsGeneratingImage(false); // Unlock movement
+        setIsGeneratingImage(false);
         document.removeEventListener("keydown", keydownListener);
         return;
       }
@@ -1780,11 +1825,9 @@ const stopLoadingSound = () => {
     document.addEventListener("keydown", keydownListener);
   
     let voiceInput;
-
-    let centerX, centerY;
-    centerX = tiles[index].x;
-    centerY = tiles[index].y;
-
+    let centerX = tiles[index].x;
+    let centerY = tiles[index].y;
+  
     try {
       voiceInput = await startListening();
       setPromptText(voiceInput);
@@ -1792,7 +1835,7 @@ const stopLoadingSound = () => {
     } catch (error) {
       console.error("Error during voice input:", error);
       setLoading(false);
-      setIsGeneratingImage(false); // Unlock movement
+      setIsGeneratingImage(false);
       document.removeEventListener("keydown", keydownListener);
       return;
     }
@@ -1800,39 +1843,43 @@ const stopLoadingSound = () => {
     if (!voiceInput) {
       speakMessage("No voice input detected.");
       setLoading(false);
-      setIsGeneratingImage(false); // Unlock movement
+      setIsGeneratingImage(false);
       document.removeEventListener("keydown", keydownListener);
       return;
     }
   
-    // Now we start waiting for confirmation
+    // Wait for confirmation
     isWaitingForConfirmation = true;
     speakMessage(`You have asked to: ${voiceInput}. Press Enter to confirm or Esc to cancel.`);
-  
-    // Wait for Enter key confirmation
     while (!isConfirmed) {
       if (shouldCancel) return;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-  
     isWaitingForConfirmation = false;
   
-    let imageResponse;
+    // Build the generation prompt based on graphicsMode
+    let generationPrompt = "";
+    if (graphicsMode === "color") {
+      generationPrompt = `${voiceInput} Focus on creating only the single object the user describes. Keep the background white.`;
+    } else {
+      generationPrompt = `${voiceInput}. Create a high-contrast, black and white image with bold, thick outlines and simplified shapes, designed specifically for tactile graphics on a PIF embosser. Focus solely on the single object described by the user, using only essential patterns, and maintain a clean white background.`;
+    }
+    
     try {
-      console.log("Sending image generation request to DALL‑E‑3...", voiceInput);
-      const response = await axios.post("/api/openai/generate-image", { prompt: voiceInput+ 'Focus on creating only the single object the user describes. Keep the background white ' });
+      console.log("Sending image generation request with prompt:", generationPrompt);
+      const response = await axios.post("/api/openai/generate-image", { prompt: generationPrompt });
       console.log("Image generation response received:", response);
       const imageURL = response.data.url;
       const imageSize = 100;
-
+  
       if (!imageURL) {
         console.error("No valid image URL received.");
         setLoading(false);
-        setIsGeneratingImage(false); // Unlock movement
+        setIsGeneratingImage(false);
         document.removeEventListener("keydown", keydownListener);
         return;
       }
-
+  
       let imageObject = {
         prompt: voiceInput,
         name: '',
@@ -1841,17 +1888,18 @@ const stopLoadingSound = () => {
         descriptions: '',
         canvas_descriptions: '',
         coordinate: { x: centerX, y: centerY },
-        canvas: {x: centerX, y: centerY},
-        sizeParts: { width: imageSize  , height: imageSize},
+        canvas: { x: centerX, y: centerY },
+        sizeParts: { width: imageSize, height: imageSize },
       };
+  
       imageObject.image_nbg = await removeBackground(imageURL, imageObject);
       imageObject.descriptions = await fetchImageDescription(imageURL);
       speakMessage(imageObject.descriptions);
       // Update the image name using the new API endpoint
       imageObject.name = await fetchImageName(imageURL);
-
+  
       console.log("Final Image Object:", imageObject);
-
+  
       try {
         if (isRegeneration) {
           updateImageAtIndex(index, imageObject);
@@ -1859,29 +1907,24 @@ const stopLoadingSound = () => {
           setSavedImages((prevImages) => [...prevImages, imageObject]);
         }
         
-        // Ensure `setFocusedIndex` is called properly
         setFocusedIndex(index);
-        
-        // Ensure `focus()` is only called if the reference exists
         if (tileRefs.current[index]) {
           tileRefs.current[index].focus();
         }
       } catch (error) {
         console.error("Error updating saved images:", error);
-      }      
-      
+      }
     } catch (error) {
       console.error("Error generating image from OpenAI:", error);
       setLoading(false);
-      setIsGeneratingImage(false); // Unlock movement
+      setIsGeneratingImage(false);
       document.removeEventListener("keydown", keydownListener);
       return;
     }
-
   
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
-    setIsGeneratingImage(false); // Unlock movement
+    setIsGeneratingImage(false);
   };
   
   const radarScan = (gridIndex) => {
@@ -1945,45 +1988,30 @@ const stopLoadingSound = () => {
 
     <Dialog open={settingsOpen} onClose={handleSettingsClose} aria-labelledby="welcome-dialog-title">
     <div style={{ flexGrow: 1, margin: '6%' }}>
-      <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>System Settings</h1>
+      <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1rem', marginTop: '0', color: '#1E90FF'}}>System Settings</h1>
     </div>
-        <p id="welcome-dialog-title" style={{padding: '1rem'}}>
-          Welcome to AltCanvas. Select the system settings on Image Style and Speech Speech below.
-          Press the Speech Speed Buttons up and down to hear the sample speed
-        </p>
         <DialogContent>
             <div>
-              <h3>Canvas Size</h3>
-              <br/>
-              <label htmlFor="width">Width:</label>
-              <input
-                type="number"
-                id="width"
-                style={{ margin: '0 10px', border:'2px solid royalblue' }}
-              />
-              <label htmlFor="height">Height:</label>
-              <input
-                type="number"
-                id="height"
-                style={{ margin: '0 10px', border:'2px solid royalblue' }}
-              />
+                <p>Current Image Style: {graphicsMode}</p>
+                <h4>Image Style (color or tactile graphic):</h4>
+                <button style={{ marginLeft: "20%" }} onClick={handleTactileMode} aria-label="Select Tactile Graphics Mode">
+                Tactile
+                </button>
+                <button onClick={handleColorMode} aria-label="Select Color Graphics Mode">
+                Color
+                </button>
             </div>
-            <br/>
             <br/>
             <div>
-                <h3>Image Style:</h3>
-                <button  style={{marginLeft:"20%"}} onClick={() => console.log('Tactile Graphic selected')}>Tactile Graphic</button>
-                <button onClick={() => console.log('Color Graphic selected')}>Color Graphic</button>
-            </div>
-            <br/>
-            <br/>
-            <div>
-                <h3>Speech Speed:  </h3>   
-                <h1 style={{marginLeft:"50%"}}>1</h1>
-                <br/>
-                  <button style={{marginLeft:"20%"}}  onClick={() => console.log('Fast Speed selected')}> + Increase Speed</button>
-                  <button onClick={() => console.log('Medium Speed selected')}> - Descrease Speed </button>
-            </div>
+                <p>Current Speech Speed: {speechSpeed}</p>
+                <h4>Speech Speed (Max 2, Min 0.5, 0.2 intervals):</h4>
+                <button style={{ marginRight: '1rem' }} onClick={handleIncreaseSpeechSpeed} aria-label="Increase Speech Speed">
+                  + Increase Speed
+                </button>
+                <button onClick={handleDecreaseSpeechSpeed} aria-label="Decrease Speech Speed">
+                  - Decrease Speed
+                </button>
+              </div>
         </DialogContent>
         <DialogActions>
             <Button onClick={handleSettingsClose} color="primary">Close</Button>
@@ -1994,28 +2022,48 @@ const stopLoadingSound = () => {
       <div style={{ flexGrow: 1, marginLeft: '2%' }}>
         <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
       </div>
-      <div role="banner" aria-labelledby="mainHeader" aria-label="Welcome to AltCanvas an Image Editor for blind users!" style={{ flexGrow: 3, backgroundColor: 'aliceblue', padding: '1rem', margin: '0 1rem', fontSize: '0.9rem' }}>
-        <p>
-          Welcome to AltCanvas an Image Editor for blind users! In AltCanvas, you create images one by one using tiles.
-          Relative locations of images on the tiles reflect the relative locations of the canvas.
-          The size of the canvas is {canvasSize.width} width and {canvasSize.height} height. You are currently focused on the 1st tile. Press Enter to Create the 1st Image and tell the system what you want to make after the beep.
-          After that, navigate to other tile locations and create images there.
-          For more commands, press Shift+K to learn about the keyboard options and press Shift+D to go to the Render Canvas.
-          <br/>
-          <p style={{fontSize:'0.7rem', textAlign:'right'}}> UUID: {getUuid()}</p>
-        </p>
-      </div>
-      <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center',  marginLeft: '1rem', marginRight: '1rem' }}>
-        <button aria-label="Review keyboard shortcuts" aria-expanded="false" onClick={toggleInstructions}>
-          Keyboard Shortcuts
-        </button>
-        <button aria-label="Render canvas after you have made the image" className='renderButton' onClick={renderCanvas}>
-          Render Canvas
-        </button>
-      </div>
+      <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: '1rem',
+        marginTop: '1rem',
+        marginLeft: '1rem',
+        marginRight: '1rem'
+      }}
+    >
+      <button
+        style={{ width: '150px' }}
+        aria-label="Instructions"
+      >
+        Instructions
+      </button>
+      <button
+        style={{ width: '150px' }}
+        aria-label="System Settings"
+        onClick={() => setOpenSettings(true)}
+      >
+        System Settings
+      </button>
+      <button
+        style={{ width: '150px' }}
+        aria-label="Review keyboard shortcuts"
+        onClick={toggleInstructions}
+      >
+        Keyboard Shortcuts
+      </button>
+      <button
+        style={{ width: '150px' }}
+        aria-label="Render canvas after you have made the image"
+        className="renderButton"
+        onClick={renderCanvas}
+      >
+        Render Canvas
+      </button>
     </div>
-  
-
+    
+    </div>
 
 
       <div className='mainContainer'>
@@ -2092,16 +2140,10 @@ const stopLoadingSound = () => {
           className="rightContainer"
           aria-label="Right Portion of the Screen"
           >
-          <h4>Canvas {canvasSize.width} x {canvasSize.height}</h4>
+          <h4>Canvas</h4>
               <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
               {savedImages.map((image, index) => {
-                if (image.image_nbg !== '') { // Only render and log if image_nbg is not an empty string
-                    // Log the image URL here, before returning the JSX
-                    // console.log(`Image for index ${index}:`, image);
-                    // console.log(`Image for index ${index}:`, image.image_nbg);
-                    // console.log(`Image URL for index ${index}:`, image['image_nbg']);
-            
-                    // Now return your JSX
+                if (image.image_nbg !== '') { 
                     return (
                         <div key={index} 
                              style={{ position: 'absolute', left: `${image.canvas.x - ( image.sizeParts.width / 2 ) }px`, top: `${image.canvas.y  - ( image.sizeParts.width / 2 )}px` }} 
@@ -2118,7 +2160,7 @@ const stopLoadingSound = () => {
                         </div>
                     );
                 }
-                return null; // Return null if image_nbg is empty
+                return null;
             })}
             
               </div>

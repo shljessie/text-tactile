@@ -100,8 +100,6 @@ app.post('/remove-background', async (req, res) => {
       }
     });
   });
-  
-  
 
 // Serve the Frontend (React)
 // This assumes your React build output is in the ../build folder
