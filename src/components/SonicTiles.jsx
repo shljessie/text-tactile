@@ -10,6 +10,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { MoonLoader } from 'react-spinners';
 import axios from 'axios';
+import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -74,6 +75,217 @@ export const SonicTiles = () => {
   
   const tileSize = Math.round(canvasSize['width'] / 10);
   let messagePlayed =false
+
+  const printCanvas = () => {
+    const canvasElement = document.getElementById('canvas');
+    console.log('Canvas element:', canvasElement);
+    if (!canvasElement) {
+      console.error('No element with id "canvas" found.');
+      return;
+    }
+
+    // Notify user that rendering is in progress
+    speakMessage("Creating a printable version of your canvas");
+    
+    // Instead of using html2canvas directly, let's create our own canvas
+    try {
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasSize.width;
+      canvas.height = canvasSize.height;
+      const ctx = canvas.getContext('2d');
+      
+      // Fill with white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Create a counter to track loaded images
+      let totalImages = savedImages.length;
+      let loadedImages = 0;
+      
+      // If no images, just show an empty canvas
+      if (totalImages === 0) {
+        completePrintProcess(canvas);
+        return;
+      }
+      
+      // Load all images manually to avoid CORS issues
+      savedImages.forEach(image => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        // When image loads, draw it on canvas
+        img.onload = () => {
+          const x = image.canvas.x - (image.sizeParts.width / 2);
+          const y = image.canvas.y - (image.sizeParts.height / 2);
+          ctx.drawImage(img, x, y, image.sizeParts.width, image.sizeParts.height);
+          
+          loadedImages++;
+          if (loadedImages === totalImages) {
+            completePrintProcess(canvas);
+          }
+        };
+        
+        // If image fails to load, draw a placeholder
+        img.onerror = () => {
+          console.error('Failed to load image:', image.image_nbg || image.url);
+          
+          // Draw a placeholder rectangle
+          const x = image.canvas.x - (image.sizeParts.width / 2);
+          const y = image.canvas.y - (image.sizeParts.height / 2);
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(x, y, image.sizeParts.width, image.sizeParts.height);
+          ctx.strokeStyle = '#999';
+          ctx.strokeRect(x, y, image.sizeParts.width, image.sizeParts.height);
+          ctx.fillStyle = '#999';
+          ctx.font = '14px Arial';
+          ctx.fillText(image.name || 'Image', x + 10, y + image.sizeParts.height / 2);
+          
+          loadedImages++;
+          if (loadedImages === totalImages) {
+            completePrintProcess(canvas);
+          }
+        };
+        
+        // Always use proxied images to avoid CORS issues
+        let imgSrc = image.image_nbg || image.url;
+        
+        // Use our proxy for any external images to avoid CORS issues
+        if (imgSrc.includes('oaidalleapiprodscus.blob.core.windows.net') || 
+            imgSrc.includes('localhost:3001/images/') ||
+            imgSrc.startsWith('https://')) {
+          // Proxy the image through our server
+          const encodedUrl = encodeURIComponent(imgSrc);
+          img.src = `/proxy-image?url=${encodedUrl}`;
+        } else {
+          // For data URLs or relative paths, use directly
+          img.src = imgSrc;
+        }
+      });
+    } catch (error) {
+      console.error('Error creating canvas:', error);
+      speakMessage("There was an error creating the printable version. Trying alternative method.");
+      // Fallback to the navigation method
+      renderCanvas();
+    }
+    
+    // Function to complete the print process with the canvas
+    function completePrintProcess(canvas) {
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Create a dedicated print window with better styling
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          alert('Please allow pop-ups to print the canvas');
+          return;
+        }
+        
+        printWindow.document.open();
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Canvas Render</title>
+              <style>
+                @media print {
+                  body { margin: 0; padding: 0; }
+                  img { 
+                    display: block;
+                    max-width: 100%; 
+                    page-break-inside: avoid;
+                    margin: 0 auto;
+                  }
+                  .print-container {
+                    text-align: center;
+                    width: 100%;
+                    height: 100%;
+                  }
+                  .controls { display: none; }
+                }
+                body { 
+                  margin: 0; 
+                  padding: 20px; 
+                  font-family: Arial, sans-serif;
+                  background-color: #f0f0f0;
+                }
+                .print-container {
+                  background-color: white;
+                  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                  padding: 20px;
+                  margin: 0 auto;
+                  max-width: ${canvasSize.width + 40}px;
+                  border-radius: 5px;
+                }
+                img { 
+                  max-width: 100%;
+                  height: auto;
+                  display: block;
+                  margin: 0 auto;
+                  border: 1px solid #eee;
+                }
+                .controls {
+                  margin: 20px 0;
+                  text-align: center;
+                }
+                button {
+                  padding: 10px 20px;
+                  background-color: #1E90FF;
+                  color: white;
+                  border: none;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-size: 16px;
+                  margin: 0 5px;
+                }
+                button:hover {
+                  background-color: #0c7cd5;
+                }
+                h2 {
+                  text-align: center;
+                  color: #444;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="print-container">
+                <h2>Canvas Render</h2>
+                <img id="render-image" src="${dataUrl}" alt="Canvas Render" />
+                <div class="controls">
+                  <button onclick="window.print();">Print</button>
+                  <button onclick="window.close();">Close</button>
+                  <button onclick="downloadImage();">Download as Image</button>
+                </div>
+              </div>
+              <script>
+                function downloadImage() {
+                  const link = document.createElement('a');
+                  link.download = 'canvas-render-${new Date().toISOString().slice(0, 10)}.png';
+                  link.href = document.getElementById('render-image').src;
+                  link.click();
+                }
+                
+                // Auto-adjust image to window size
+                window.onload = function() {
+                  const img = document.getElementById('render-image');
+                  if (img.naturalWidth > window.innerWidth * 0.8) {
+                    img.style.width = '80%';
+                  }
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        
+        speakMessage("Canvas has been rendered. You can now print or download it.");
+      } catch (error) {
+        console.error('Error creating printable version:', error);
+        speakMessage("There was an error creating the printable version. Trying alternative method.");
+        // Fallback to the navigation method
+        renderCanvas();
+      }
+    }
+  };
 
   useEffect(() => {
 
@@ -219,9 +431,43 @@ export const SonicTiles = () => {
 
   const renderCanvas = () => {
     console.log('SavedImages',savedImages)
+    
+    // Ensure all images have crossOrigin attribute set
+    const preparedImages = savedImages.map(image => {
+      // Create a deep copy of the image object
+      const preparedImage = JSON.parse(JSON.stringify(image));
+      
+      // Add a timestamp parameter to force reload of the image and avoid caching issues
+      if (preparedImage.image_nbg) {
+        try {
+          // Try to add cache-busting parameter
+          const url = new URL(preparedImage.image_nbg);
+          url.searchParams.set('t', Date.now());
+          preparedImage.image_nbg = url.toString();
+        } catch (e) {
+          // If URL parsing fails (e.g., relative URL), keep the original
+          console.log('Could not parse image_nbg URL:', e);
+        }
+      }
+      
+      if (preparedImage.url) {
+        try {
+          // Try to add cache-busting parameter
+          const url = new URL(preparedImage.url);
+          url.searchParams.set('t', Date.now());
+          preparedImage.url = url.toString();
+        } catch (e) {
+          // If URL parsing fails, keep the original
+          console.log('Could not parse url:', e);
+        }
+      }
+      
+      return preparedImage;
+    });
+    
     saveToSessionStorage();
     speakMessage('Going to Render Canvas')
-    navigate('/render', { state: { savedImages, canvasSize } });
+    navigate('/render', { state: { savedImages: preparedImages, canvasSize } });
   };
 
   const [tiles, setTiles] = useState([
@@ -1833,7 +2079,7 @@ const startLoadingSound = async (voiceText) => {
     if (graphicsMode === "color") {
       generationPrompt = `${voiceInput} Focus on creating only the single object the user describes. Keep the background white.`;
     } else {
-      generationPrompt = `${voiceInput}. You are generating a simple black-and-white image for a toddler’s coloring book. Draw it in the style of a black outline icon or coloring book page. Use only black lines on a white background. Do not add color, shading, textures, or background details. Make the drawing flat and 2D. Remove all unnecessary detail — keep it extremely minimal and easy to trace.`;
+      generationPrompt = `${voiceInput}. You are generating a simple black-and-white image for a toddler's coloring book. Draw it in the style of a black outline icon or coloring book page. Use the style of studio ghibli. Use only black lines on a white background. Do not add color, shading, textures, or background details. Make the drawing flat and 2D. Remove all unnecessary detail — keep it extremely minimal and easy to trace.`;
     }
     
     try {
@@ -2028,12 +2274,7 @@ const startLoadingSound = async (voiceText) => {
       >
         Keyboard Shortcuts
       </button>
-      <button
-        style={{ width: '150px' }}
-        aria-label="Render canvas after you have made the image"
-        className="renderButton"
-        onClick={renderCanvas}
-      >
+      <button style={{ width: '150px' }} aria-label="Render canvas after you have made the image" className="renderButton" onClick={printCanvas}>
         Render Canvas
       </button>
     </div>

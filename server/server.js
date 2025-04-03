@@ -21,7 +21,7 @@ const openAIRoutes = require("./routes/openaiRoutes");
 
 // CORS Settings (Allow Frontend Requests)
 const corsOptions = {
-    origin: ['http://altcanvas.art', 'https://altcanvas.art'],
+    origin: ['http://altcanvas.art', 'https://altcanvas.art', 'http://localhost:3000', 'http://127.0.0.1:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -45,7 +45,44 @@ app.use("/api/openai", openAIRoutes);
 
 // Use a writable directory on Heroku
 const imagesDir = path.join('/tmp', 'images');
-app.use('/images', express.static(imagesDir));
+app.use('/images', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+}, express.static(imagesDir));
+
+// Add an image proxy endpoint to fix CORS issues with external images
+app.get('/proxy-image', async (req, res) => {
+  const imageUrl = req.query.url;
+  
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'No image URL provided' });
+  }
+  
+  console.log(`Proxying image from: ${imageUrl}`);
+  
+  try {
+    const response = await axios({
+      url: imageUrl,
+      method: 'GET',
+      responseType: 'arraybuffer',
+      timeout: 30000 // 30 seconds timeout
+    });
+    
+    const contentType = response.headers['content-type'];
+    
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.header('Content-Type', contentType);
+    
+    res.send(response.data);
+  } catch (error) {
+    console.error(`Error proxying image from ${imageUrl}:`, error.message);
+    res.status(500).json({ error: 'Failed to proxy image' });
+  }
+});
 
 // Updated remove-background endpoint using Replicate's rembg model
 app.post('/remove-background', async (req, res) => {
