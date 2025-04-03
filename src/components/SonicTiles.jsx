@@ -277,7 +277,6 @@ export const SonicTiles = () => {
   const playerLRRef = useRef(null);
   const playerURef = useRef(null);
   const playerDRef = useRef(null);
-  const loadingPlayerRef = useRef(null);
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [editingImageIndex, setEditingImageIndex] = useState(null);
@@ -759,56 +758,54 @@ const [isUpdating, setIsUpdating] = useState(false);
   const synth = new Tone.Synth().toDestination();
   const notes = ['C4', 'D4', 'E4']; // Do, Re, Mi notes
   let currentNote = 0;
-
+  const loadingPlayerRef = useRef(null);
   const note_url = "https://storage.googleapis.com/altcanvas-storage/generating.mp3";
+  
+  // Initialize the player safely once
+  useEffect(() => {
+    const initPlayer = async () => {
+      await Tone.start(); // Ensures context is started
+      console.log('Tone.js started');
 
-  const loadingPlayer = new Tone.Player().toDestination();
-  loadingPlayer.load(note_url).then(() => {
-    loadingPlayerRef.current = loadingPlayer;
-  });
+      const player = new Tone.Player(note_url, () => {
+        console.log('Audio loaded');
+        loadingPlayerRef.current = player;
+        loadingPlayerRef.current.toDestination(); // route directly to speakers
+      }).toDestination();
 
+      player.autostart = false;
+      player.loop = true;
+    };
+
+    initPlayer();
+
+    // Resume audio on user gesture
+    document.documentElement.addEventListener("mousedown", () => {
+      if (Tone.context.state !== "running") {
+        Tone.context.resume().then(() => {
+          console.log("Tone context resumed on user gesture");
+        });
+      }
+    });
+  }, []);
 
   const playNotes = () => {
-    if (!isGeneratingImage) {
-      console.log('Not playing because isGeneratingImage is false');
-      return;
-    }
+    console.log('Playing Notes for Generating Image');
   
-    console.log('In play');
-    const panner = new Tone.Panner3D({
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-    }).toDestination();
+    if (!loadingPlayerRef.current) return;
   
-    const playSound = () => {
-      if (isGeneratingImage) {
-        console.log('Playing Notes');
-        if (loadingPlayerRef.current.state !== "started") {
-          loadingPlayerRef.current.disconnect();
-          loadingPlayerRef.current.chain(panner, Tone.Destination);
-          loadingPlayerRef.current.start();
-        }
+    try {
+      const player = loadingPlayerRef.current;
+      if (player.state === "stopped") {
+        console.log("Starting sound...");
+        player.start();
       } else {
-        console.log('Stopping Notes');
-        loadingPlayerRef.current.stop();
+        console.log("Player already playing");
       }
-    };
-  
-    // Start playing sound and set an interval to check if isGeneratingImage changes
-    playSound();
-    const checkInterval = setInterval(() => {
-      playSound(); // Ensure continuous check and action based on isGeneratingImage
-      if (!isGeneratingImage) {
-        loadingPlayerRef.current.stop();
-        clearInterval(checkInterval);
-        console.log('Stopping Notes due to isGeneratingImage becoming false');
-      }
-    }, 5000); // Check every second
+    } catch (error) {
+      console.error("Error playing notes:", error);
+    }
   };
-  
-  
-  
   
 // Global variable to store the Audio object
 let loadingSound;
@@ -821,7 +818,7 @@ const startLoadingSound = async (voiceText) => {
     const utterance = new SpeechSynthesisUtterance(`Detected: ${voiceText}. Press Enter to Confirm and the escape key to cancel`);
     console.log('Tone utterance', utterance);
       utterance.pitch = 1;
-      utterance.rate = 1;
+      utterance.rate = speechSpeed;
       utterance.volume = 1;
   
       window.speechSynthesis.speak(utterance);
@@ -833,8 +830,10 @@ const startLoadingSound = async (voiceText) => {
           document.removeEventListener('keydown', keyPressHandler);
           if (event.key === "Enter") {
             speakMessage('Enter pressed, image generation starting.');
-            isGeneratingImage = true;
-            playNotes();
+            setIsGeneratingImage(true);
+            setTimeout(() => {
+              playNotes();
+            }, 50); // small delay to ensure state is updated
             resolve(true);
           } else if (event.key === "Escape") {
             resolve(false);
@@ -849,17 +848,16 @@ const startLoadingSound = async (voiceText) => {
     }
   };
 
-const stopLoadingSound = () => {
-  try {
-      if (loadingSound) {
-          loadingSound.pause(); // Pause the sound
-          loadingSound.currentTime = 0; // Reset the playback position to the start
-          console.log('Loading sound has been stopped and reset.');
+  const stopLoadingSound = () => {
+    if (loadingPlayerRef.current) {
+      try {
+        loadingPlayerRef.current.stop();
+        console.log("Stopped loading sound");
+      } catch (err) {
+        console.error("Failed to stop loading sound:", err);
       }
-  } catch (error) {
-      console.error('Error stopping the audio:', error);
-  }
-};
+    }
+  };
 
 
   const playTone = (frequency) => {
@@ -1796,6 +1794,8 @@ const stopLoadingSound = () => {
   };
 
   const generateImage = async (index, isRegeneration = false) => {
+
+    console.log('Generating Image',isGeneratingImage);
     if (isGeneratingImage) return;
     setIsGeneratingImage(true);
     setLoading(true);
@@ -1813,6 +1813,7 @@ const stopLoadingSound = () => {
         speakMessage("Image generation cancelled.");
         setLoading(false);
         setIsGeneratingImage(false);
+        stopLoadingSound();
         document.removeEventListener("keydown", keydownListener);
         return;
       }
@@ -1836,6 +1837,7 @@ const stopLoadingSound = () => {
       console.error("Error during voice input:", error);
       setLoading(false);
       setIsGeneratingImage(false);
+      stopLoadingSound();
       document.removeEventListener("keydown", keydownListener);
       return;
     }
@@ -1844,19 +1846,20 @@ const stopLoadingSound = () => {
       speakMessage("No voice input detected.");
       setLoading(false);
       setIsGeneratingImage(false);
+      stopLoadingSound();
       document.removeEventListener("keydown", keydownListener);
       return;
     }
   
     // Wait for confirmation
-    isWaitingForConfirmation = true;
-    speakMessage(`You have asked to: ${voiceInput}. Press Enter to confirm or Esc to cancel.`);
-    while (!isConfirmed) {
-      if (shouldCancel) return;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    isConfirmed = await startLoadingSound(voiceInput);
+    if (!isConfirmed) {
+      setLoading(false);
+      setIsGeneratingImage(false);
+      stopLoadingSound();
+      return;
     }
-    isWaitingForConfirmation = false;
-  
+
     // Build the generation prompt based on graphicsMode
     let generationPrompt = "";
     if (graphicsMode === "color") {
@@ -1876,6 +1879,7 @@ const stopLoadingSound = () => {
         console.error("No valid image URL received.");
         setLoading(false);
         setIsGeneratingImage(false);
+        stopLoadingSound();
         document.removeEventListener("keydown", keydownListener);
         return;
       }
@@ -1894,6 +1898,7 @@ const stopLoadingSound = () => {
   
       imageObject.image_nbg = await removeBackground(imageURL, imageObject);
       imageObject.descriptions = await fetchImageDescription(imageURL);
+      stopLoadingSound();
       speakMessage(imageObject.descriptions);
       // Update the image name using the new API endpoint
       imageObject.name = await fetchImageName(imageURL);
@@ -1918,6 +1923,7 @@ const stopLoadingSound = () => {
       console.error("Error generating image from OpenAI:", error);
       setLoading(false);
       setIsGeneratingImage(false);
+      stopLoadingSound();
       document.removeEventListener("keydown", keydownListener);
       return;
     }
@@ -1925,6 +1931,7 @@ const stopLoadingSound = () => {
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
     setIsGeneratingImage(false);
+    stopLoadingSound();
   };
   
   const radarScan = (gridIndex) => {
