@@ -105,7 +105,7 @@ export const SonicTiles = () => {
     "Command One,  Enter: Generate/regenerate image on a tile",
     "Command Two, Shift + G as in Global: Hear the global description of the canvas with all the images on it",
     "Command Three, Shift + I as in Information: Hear the local information about selected item on the tile",
-    "Command Four, Shift + C as in Chat: Ask a question about the iamge on the tile",
+    "Command Four, Shift + C as in Chat: Ask a question about the image on the tile",
     "Command Five, Shift + L as in Location: Enter Location Edit Mode",
     "Command Six, Shift + S as in Size: Enter Size Edit Mode",
     "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
@@ -1316,36 +1316,21 @@ const startLoadingSound = async (voiceText) => {
 
   const enterSizeEditMode = (gridIndex) => {
 
-    console.log('Size Edit grid index', gridIndex);
-    const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
+      console.log('Size Edit grid index', gridIndex);
+      const tileX = tiles[gridIndex].x;
+      const tileY= tiles[gridIndex].y
 
-    if(gridIndex !== -1) {
-      setIsEditingSize(true);
-      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
-      setEditingSizeImageIndex(imageIndex);
-      canvasRef.current.focus();
-    }
-};
-
-  // const logEvent = (data) => {
-  //   console.log('Logging event:', data);
-  //   localStorage.setItem('lastKeyEvent', JSON.stringify(data)); // Store locally
-
-  //   fetch('https://art.alt-canvas.com/log-data', {
-  //       method: 'POST',
-  //       headers: {
-  //           'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(data)
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => console.log('Server response:', data))
-  //   .catch(error => console.error('Error sending data to server:', error));
-  // }
+      if(gridIndex !== -1) {
+        setIsEditingSize(true);
+        const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
+        setEditingSizeImageIndex(imageIndex);
+        canvasRef.current.focus();
+      }
+  };
 
   const playModeNotification = (message, callback) => {
     const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = speechSpeed;
     utterance.onend = function(event) {
       if (callback) {
         callback();
@@ -1481,12 +1466,6 @@ const startLoadingSound = async (voiceText) => {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
           console.log(`${currentTime}: Chat - Focused Index: ${focusedIndex}`);
-
-          // logEvent({
-          //   time: currentTime,
-          //   action: 'chat_start',
-          //   focusedIndex: focusedIndex,
-          // });
 
           playModeNotification("Ask a question about the image on this tile and I will answer", () => {
             setFocusedIndex(focusedIndex);
@@ -1671,7 +1650,8 @@ const startLoadingSound = async (voiceText) => {
       let customPrompt = `
         You are describing an image to a Blind and Visually Impaired Person.
         Keep the description brief and straightforward.
-        Generate the given image description according to the following criteria:
+        Answer the question the user is asking first
+        Generate the given image description according to the user question:
         ${voiceInput}
       `;
   
