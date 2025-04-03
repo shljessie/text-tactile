@@ -1,11 +1,15 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
-const FormData = require('form-data');
 const fs = require('fs');
 const formidable = require('formidable');
 const cors = require('cors');
+const Replicate = require('replicate');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN,
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -43,6 +47,7 @@ app.use("/api/openai", openAIRoutes);
 const imagesDir = path.join('/tmp', 'images');
 app.use('/images', express.static(imagesDir));
 
+// Updated remove-background endpoint using Replicate's rembg model
 app.post('/remove-background', async (req, res) => {
     console.log("Received /remove-background request");
     const form = new formidable.IncomingForm();
@@ -54,31 +59,27 @@ app.post('/remove-background', async (req, res) => {
   
       console.log("Parsed fields:", fields);
       let image_url = fields.image_url;
-      // If image_url is an array, take the first element.
       if (Array.isArray(image_url)) {
         console.log("image_url is an array, using the first element");
         image_url = image_url[0];
       }
       console.log("Image URL received:", image_url);
   
-      const formData = new FormData();
-      formData.append("image_url", image_url);
-      formData.append("get_file", "1");
-      console.log("FormData prepared with image_url and get_file");
-  
       try {
-        console.log("Sending request to removal.ai...");
-        const response = await axios.post('https://api.removal.ai/3.0/remove', formData, {
-          headers: {
-            ...formData.getHeaders(),
-            "Rm-Token": process.env.REMOVAL_AI_API_KEY
-          },
-          responseType: 'arraybuffer'
-        });
-        console.log("Response received from removal.ai, status:", response.status);
+        console.log("Sending request to replicate rembg...");
+        const output = await replicate.run(
+          "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
+          {
+            input: { image: image_url }
+          }
+        );
+        console.log("Replicate output:", output);
+  
+        // Fetch the processed image data from the output URL
+        const imageResponse = await axios.get(output, { responseType: 'arraybuffer' });
+        console.log("Image response status:", imageResponse.status);
   
         const imageName = `processed-${Date.now()}.png`;
-        // Use a writable directory (/tmp/images) on Heroku
         const imagesDir = path.join('/tmp', 'images');
         const imagePath = path.join(imagesDir, imageName);
         console.log("Image will be saved at:", imagePath);
@@ -88,18 +89,18 @@ app.post('/remove-background', async (req, res) => {
           fs.mkdirSync(imagesDir, { recursive: true });
         }
         
-        fs.writeFileSync(imagePath, response.data);
+        fs.writeFileSync(imagePath, imageResponse.data);
         console.log("Image saved successfully");
   
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageName}`;
         console.log("Returning image URL:", imageUrl);
         res.json({ imageUrl });
       } catch (error) {
-        console.error("Error processing image from removal.ai:", error.response ? error.response.data : error.message);
+        console.error("Error processing image with replicate:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Error processing image' });
       }
     });
-  });
+});
 
 // Serve the Frontend (React)
 // This assumes your React build output is in the ../build folder
