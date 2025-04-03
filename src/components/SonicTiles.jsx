@@ -8,7 +8,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import HelpIcon from '@mui/icons-material/Help';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { MoonLoader } from 'react-spinners';
+import PaletteIcon from '@mui/icons-material/Palette';
+import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
@@ -1821,7 +1825,12 @@ const startLoadingSound = async (voiceText) => {
   };
 
   const isImageOnTile = (tileX, tileY) => {
-    return savedImages.some(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
+    const imageExists = savedImages.some(image => 
+      Math.abs(image.coordinate.x - tileX) < 1 && 
+      Math.abs(image.coordinate.y - tileY) < 1
+    );
+    console.log('Checking image on tile:', { tileX, tileY, imageExists });
+    return imageExists;
   };
 
   const generateDescriptionPrompt = (savedImages) => {
@@ -2126,10 +2135,34 @@ const startLoadingSound = async (voiceText) => {
           setSavedImages((prevImages) => [...prevImages, imageObject]);
         }
         
+        // Ensure the image coordinates match the tile coordinates exactly
+        imageObject.coordinate.x = centerX;
+        imageObject.coordinate.y = centerY;
+        imageObject.canvas.x = centerX;
+        imageObject.canvas.y = centerY;
+        
+        // Set focus to the tile where image was generated and update tile state
         setFocusedIndex(index);
-        if (tileRefs.current[index]) {
-          tileRefs.current[index].focus();
-        }
+        setTiles(prevTiles => {
+          const newTiles = [...prevTiles];
+          newTiles[index] = {
+            ...newTiles[index],
+            image: imageObject
+          };
+          return newTiles;
+        });
+
+        // Add surrounding tiles and ensure focus after a brief delay
+        setTimeout(() => {
+          const centralTile = tiles[index];
+          addSurroundingTiles(centralTile);
+          
+          if (tileRefs.current[index]) {
+            tileRefs.current[index].focus();
+            speakMessage(`Image generated successfully. ${imageObject.descriptions}`);
+          }
+        }, 100);
+
       } catch (error) {
         console.error("Error updating saved images:", error);
       }
@@ -2241,7 +2274,7 @@ const startLoadingSound = async (voiceText) => {
 
     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '1rem', alignItems: 'center' }}>
       <div style={{ flexGrow: 1, marginLeft: '2%' }}>
-        <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
+        <h1 id="mainHeader" aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>ALT-CANVAS</h1>
       </div>
       <div
       style={{
@@ -2255,27 +2288,88 @@ const startLoadingSound = async (voiceText) => {
       }}
     >
       <button
-        style={{ width: '150px' }}
+        style={{ 
+          width: '150px',
+          padding: '10px 20px',
+          backgroundColor: '#1E90FF',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
         aria-label="Instructions"
       >
+        <HelpIcon style={{ fontSize: '20px' }} />
         Instructions
       </button>
       <button
-        style={{ width: '150px' }}
+        style={{ 
+          width: '150px',
+          padding: '10px 20px',
+          backgroundColor: '#28a745',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
         aria-label="System Settings"
         onClick={() => setOpenSettings(true)}
       >
-        System Settings
+        <PaletteIcon style={{ fontSize: '20px' }} />
+        Settings
       </button>
       <button
-        style={{ width: '150px' }}
+        style={{ 
+          width: '150px',
+          padding: '10px 20px',
+          backgroundColor: '#ffc107',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
         aria-label="Review keyboard shortcuts"
         onClick={toggleInstructions}
       >
-        Keyboard Shortcuts
+        <KeyboardIcon style={{ fontSize: '20px' }} />
+        Shortcuts
       </button>
-      <button style={{ width: '150px' }} aria-label="Render canvas after you have made the image" className="renderButton" onClick={printCanvas}>
-        Render Canvas
+      <button 
+        style={{ 
+          width: '150px',
+          padding: '10px 20px',
+          backgroundColor: '#6c757d',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+        aria-label="Render canvas after you have made the image" 
+        className="renderButton" 
+        onClick={renderCanvas}
+      >
+        <ViewInArIcon style={{ fontSize: '20px' }} />
+        Render
       </button>
     </div>
     
