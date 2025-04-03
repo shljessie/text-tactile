@@ -897,7 +897,7 @@ const startLoadingSound = async (voiceText) => {
     switch (e.key) {
       case 'ArrowUp':
         if(originalWidth >= canvasSize.width / 2){
-          speakMessage('Max Size Reached')
+          speakImmediate('Max Size Reached', speechSpeed);
         }else{
           scaleFactor = 1.1;
           changedFrequency = changedFrequency + 30
@@ -906,7 +906,7 @@ const startLoadingSound = async (voiceText) => {
         break;
       case 'ArrowDown':
         if (originalWidth <= 50){
-          speakMessage('Min Size Reached')
+          speakImmediate('Min Size Reached', speechSpeed);
         } else{
           scaleFactor = 0.9;
           changedFrequency = changedFrequency - 30
@@ -914,15 +914,8 @@ const startLoadingSound = async (voiceText) => {
         break;
       case 'Shift':
         speakMessage(`The current size is ${savedImages[editingSizeImageIndex].sizeParts.width} by ${savedImages[editingSizeImageIndex].sizeParts.height}`);
-
         console.log(`${currentTime}: Size - Edit Info Focused Index: ${focusedIndex}`);
           
-        // logEvent({
-        //   time: currentTime,
-        //   action: 'size_edit_info',
-        //   focusedIndex: focusedIndex,
-        // });
-        
         break;
       case 'Escape':
         setIsEditingSize(false);
@@ -931,12 +924,6 @@ const startLoadingSound = async (voiceText) => {
         
         speakMessage("Size Edit mode exited");
         console.log(`${currentTime}: Size - Edit Exit Focused Index: ${focusedIndex}`);
-          
-        // logEvent({
-        //   time: currentTime,
-        //   action: 'size_edit_exit',
-        //   focusedIndex: focusedIndex,
-        // });
         
         if (tileRefs.current[focusedIndex]) {
           tileRefs.current[focusedIndex].focus();
@@ -1865,7 +1852,7 @@ const startLoadingSound = async (voiceText) => {
     if (graphicsMode === "color") {
       generationPrompt = `${voiceInput} Focus on creating only the single object the user describes. Keep the background white.`;
     } else {
-      generationPrompt = `${voiceInput}. Create a high-contrast, black and white image with bold, thick outlines and simplified shapes, designed specifically for tactile graphics on a PIF embosser. Focus solely on the single object described by the user, using only essential patterns, and maintain a clean white background.`;
+      generationPrompt = `${voiceInput}. You are generating a simple black-and-white image for a toddler’s coloring book. Draw it in the style of a black outline icon or coloring book page. Use only black lines on a white background. Do not add color, shading, textures, or background details. Make the drawing flat and 2D. Remove all unnecessary detail — keep it extremely minimal and easy to trace.`;
     }
     
     try {
