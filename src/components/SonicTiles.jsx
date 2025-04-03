@@ -2134,7 +2134,12 @@ const startLoadingSound = async (voiceText) => {
                   savedImages.filter(savedImage => 
                     savedImage.coordinate.x === tile.x && savedImage.coordinate.y === tile.y
                   ).map((image, imageIndex) => (
-                    <img key={imageIndex} src={image.url} alt="" style={{ width: '100%', height: '100%', position: 'absolute' }} />
+                    <img
+                      key={imageIndex}
+                      src={image.image_nbg || image.url}
+                      alt=""
+                      style={{ width: '100%', height: '100%', position: 'absolute' }}
+                    />
                   ))
                 )}
               </div>
