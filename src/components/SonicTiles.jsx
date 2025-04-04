@@ -328,54 +328,141 @@ export const SonicTiles = () => {
     "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
     "Command Eight, Shift + D as in Dog: Render Final Canvas",
     "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
-    "Command Ten, Shift + X as Xylophone: Delete Image",  
-    "Command Eleven, Escape: Exit any mode"
+    "Command Ten, Shift + X as Xylophone: Delete Image",
+    "Command Eleven, Shift + ? as Question: Ask a question about how to use AltCanvas",
+    "Command Twelve, Escape: Exit any mode"
+  ];
+
+  // Add action-oriented command descriptions
+  const actionCommands = [
+    "Generate Image: Press Enter on a tile to generate an image",
+    "Global Description: Press Shift+G to hear a description of the entire canvas",
+    "Image Information: Press Shift+I to hear details about the selected image",
+    "Image Chat: Press Shift+C to ask questions about the selected image",
+    "Location Edit: Press Shift+L, then use arrow keys to move the image",
+    "Size Edit: Press Shift+S, then use up/down arrow keys to change size",
+    "Radar Scan: Press Shift+R to hear about nearby objects",
+    "Render Canvas: Press Shift+D to render the final canvas",
+    "Keyboard Commands: Press Shift+K to hear these instructions",
+    "Delete Image: Press Shift+X to delete the selected image",
+    "Ask Questions: Press Shift+? to ask questions about how to use AltCanvas",
+    "Exit Mode: Press Escape to exit any mode"
+  ];
+
+  // Command titles for quick navigation
+  const commandTitles = [
+    "Generate Image",
+    "Global Description of Canvas",
+    "Image Information on a Single Tile",
+    "Image Chat",
+    "Location Edit",
+    "Size Edit",
+    "Radar Scan",
+    "Render Canvas",
+    "Keyboard Commands",
+    "Delete Image",
+    "Ask Questions about how to use AltCanvas",
+    "Exit Mode"
   ];
 
   let currentCommandIndex = 0;
+  let keyOptions;
 
   function displayCurrentCommand() {
-    console.log(`Current Command: ${commands[currentCommandIndex]}`);
+    console.log(`Current Command: ${actionCommands[currentCommandIndex]}`);
   }
-
- let keyOptions;
-
   
   function defaultKeyOptions(event) {
 
     if (event.shiftKey && event.key === 'K') {
       console.log('Shift+K pressed');
-      toggleInstructions();
+      toggleKeyboardShortcuts();
       keyOptions = true;
       console.log('keyOptions',keyOptions);
-      speakMessage('Keyboard Instructions.');
-      speakMessage('To Navigate through the Options use Up and Down arrow keys. There are a total of 10 commands. Press the escape key Twice to exit the mode.');
-      displayCurrentCommand();
+      speakImmediate('Keyboard Commands Dialog Opened. Use Up and Down arrow keys to navigate through the commands. Press Enter to select a command. Press Escape to exit.', speechSpeed);
+      // speakImmediate('You can also use number keys 1 through 12 to jump directly to a specific command.', speechSpeed);
+      // Add a delay before reading the current command
+      setTimeout(() => {
+        speakImmediate('The current command is: ' + commandTitles[currentCommandIndex], speechSpeed);
+      }, 3000); // 3 second delay to allow instructions to be read first
     } else if (event.shiftKey && event.key === 'D') {
       console.log('Shift+S pressed');
       renderCanvas(savedImages);
     } 
     
     if(keyOptions){
-       if (event.keyCode === 38) { // Up arrow key
+      if (event.keyCode === 38) { // Up arrow key
         console.log('Up pressed');
-        currentCommandIndex = (currentCommandIndex - 1 + commands.length) % commands.length;
-        speakMessage(commands[currentCommandIndex]);
-        displayCurrentCommand();
+        currentCommandIndex = (currentCommandIndex - 1 + actionCommands.length) % actionCommands.length;
+        speakImmediate(commandTitles[currentCommandIndex], speechSpeed);
       } else if (event.keyCode === 40) { // Down arrow key
         console.log('Down pressed');
-        currentCommandIndex = (currentCommandIndex + 1) % commands.length;
-        speakMessage(commands[currentCommandIndex]);
-        displayCurrentCommand();
+        currentCommandIndex = (currentCommandIndex + 1) % actionCommands.length;
+        speakImmediate(commandTitles[currentCommandIndex], speechSpeed);
+      } else if (event.keyCode === 13) { // Enter key
+        console.log('Enter pressed');
+        // Execute the selected command based on the current index
+        switch(currentCommandIndex) {
+          case 0: // Generate Image
+            speakImmediate("Selected: Generate Image. Press Enter on a tile to generate an image.", speechSpeed);
+            break;
+          case 1: // Global Description
+            speakImmediate("Selected: Global Description. Press Shift+G to hear a description of the entire canvas.", speechSpeed);
+            break;
+          case 2: // Image Information
+            speakImmediate("Selected: Image Information. Press Shift+I to hear details about the selected image.", speechSpeed);
+            break;
+          case 3: // Image Chat
+            speakImmediate("Selected: Image Chat. Press Shift+C to ask questions about the selected image.", speechSpeed);
+            break;
+          case 4: // Location Edit
+            speakImmediate("Selected: Location Edit. Press Shift+L, then use arrow keys to move the image.", speechSpeed);
+            break;
+          case 5: // Size Edit
+            speakImmediate("Selected: Size Edit. Press Shift+S, then use up/down arrow keys to change size.", speechSpeed);
+            break;
+          case 6: // Radar Scan
+            speakImmediate("Selected: Radar Scan. Press Shift+R to hear about nearby objects.", speechSpeed);
+            break;
+          case 7: // Render Canvas
+            speakImmediate("Selected: Render Canvas. Press Shift+D to render the final canvas.", speechSpeed);
+            break;
+          case 8: // Keyboard Commands
+            speakImmediate("Selected: Keyboard Commands. Press Shift+K to hear these instructions.", speechSpeed);
+            break;
+          case 9: // Delete Image
+            speakImmediate("Selected: Delete Image. Press Shift+X to delete the selected image.", speechSpeed);
+            break;
+          case 10: // Ask Questions
+            speakImmediate("Selected: Ask Questions. Press Shift+? to ask questions about how to use AltCanvas.", speechSpeed);
+            break;
+          case 11: // Exit Mode
+            speakImmediate("Selected: Exit Mode. Press Escape to exit any mode.", speechSpeed);
+            break;
+          default:
+            speakImmediate("Command selected.", speechSpeed);
+        }
       } else if (event.keyCode === 27) { // ESC key
         console.log('ESC pressed');
-        keyOptions = false
+        keyOptions = false;
         console.log('keyOptions', keyOptions);
+        speakImmediate('Exiting keyboard commands mode.', speechSpeed);
+      } else if (event.keyCode >= 48 && event.keyCode <= 57) { // Number keys 0-9
+        // Convert keyCode to actual number (0-9)
+        const number = event.keyCode - 48;
+        // Adjust for 1-based indexing (1 = first command, 2 = second command, etc.)
+        const targetIndex = number - 1;
+        
+        // Check if the target index is valid for commands
+        if (targetIndex >= 0 && targetIndex < actionCommands.length) {
+          console.log(`Jumping to command ${number}`);
+          currentCommandIndex = targetIndex;
+          speakImmediate(commandTitles[currentCommandIndex], speechSpeed);
+        } else {
+          speakImmediate(`Command ${number} does not exist. There are ${actionCommands.length} commands available.`, speechSpeed);
+        }
       }
-
     }
-    
-      
   }
 
   function performRefreshAction(event) {
@@ -1765,8 +1852,9 @@ const startLoadingSound = async (voiceText) => {
         console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
       else if (e.shiftKey && e.key === '?') {
+        console.log('Ask Questions Activated');
+        console.log(`${currentTime}: Ask Questions - Focused Index: ${focusedIndex}`);
         handleAskQuestions();
-        return;
       }
     };
 
@@ -2252,11 +2340,11 @@ const startLoadingSound = async (voiceText) => {
     setIsAskingQuestion(true);
     
     try {
-      speakMessage("What would you like to know about AltCanvas?");
+      speakImmediate("What would you like to know about AltCanvas? You can ask questions like 'How do I move an image?' or 'How do I change the size of an image?'", speechSpeed);
       const question = await startListening();
       
       if (question) {
-        speakMessage(`You asked: ${question}`);
+        speakImmediate(`You asked: ${question}`);
         
         // Prepare the context for GPT
         const context = `
@@ -2269,6 +2357,7 @@ const startLoadingSound = async (voiceText) => {
           Please provide a clear, concise answer focusing on how to use AltCanvas based on the user's question.
           If the question is about a specific feature, explain how to use that feature.
           If the question is general, provide a brief overview of the system's capabilities.
+          Keep the response focused and practical, avoiding unnecessary details.
         `;
 
         try {
@@ -2277,18 +2366,18 @@ const startLoadingSound = async (voiceText) => {
           });
 
           if (response.data && response.data.description) {
-            speakMessage(response.data.description);
+            speakImmediate(response.data.description);
           } else {
-            speakMessage("I apologize, but I couldn't generate a response. Please try asking your question again.");
+            speakImmediate("I apologize, but I couldn't generate a response. Please try asking your question again.");
           }
         } catch (error) {
           console.error("Error getting answer:", error);
-          speakMessage("I apologize, but I encountered an error while processing your question. Please try again.");
+          speakImmediate("I apologize, but I encountered an error while processing your question. Please try again.");
         }
       }
     } catch (error) {
       console.error("Error in handleAskQuestions:", error);
-      speakMessage("I apologize, but I encountered an error. Please try again.");
+      speakImmediate("I apologize, but I encountered an error. Please try again.");
     } finally {
       setIsAskingQuestion(false);
     }
@@ -2628,13 +2717,19 @@ const startLoadingSound = async (voiceText) => {
                   <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
                 </li>
                 <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Press Shift+X to delete an Image
+                  <kbd>Shift</kbd> + <kbd>D</kbd>: Render Canvas - Render the final canvas.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>K</kbd>: Keyboard Commands - Hear these instructions.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Delete the selected image.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>?</kbd>: Ask Questions - Ask a question about how to use AltCanvas.
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
-                </li>
-                <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>?</kbd>: Ask a question about AltCanvas.
                 </li>
               </ul>
               <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>

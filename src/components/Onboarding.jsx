@@ -137,7 +137,6 @@ const Onboarding = () => {
 
   const handleIncreaseSpeechSpeed = () => {
     setSpeechSpeed((prevSpeed) => {
-      // Increase by 0.2 and round to one decimal
       const newSpeed = parseFloat((Math.min(prevSpeed + 0.2, 2.0)).toFixed(1));
       speakImmediate(`Speech speed increased to ${newSpeed}`, newSpeed);
       return newSpeed;
