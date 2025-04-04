@@ -12,6 +12,7 @@ import HelpIcon from '@mui/icons-material/Help';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { MoonLoader } from 'react-spinners';
 import PaletteIcon from '@mui/icons-material/Palette';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
@@ -510,8 +511,10 @@ export const SonicTiles = () => {
 
   let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   const [rows, setRows] = useState(5);
   const [columns, setColumns] = useState(5);
   const [gridItems, setGridItems] = useState([]);
@@ -664,11 +667,12 @@ export const SonicTiles = () => {
     savedImages[editingImageIndex].canvas.y = savedImages[editingImageIndex].canvas.y + dy
   }
 
-  const toggleInstructions = (event) => {
+  const toggleInstructions = () => {
     setShowInstructions(prevState => !prevState);
-    setShowInstructions(!showInstructions);
-    keyOptions = !keyOptions
-    console.log('Toggle keyOptions', !keyOptions)
+  };
+
+  const toggleKeyboardShortcuts = () => {
+    setShowKeyboardShortcuts(prevState => !prevState);
   };
 
   useEffect(() => {
@@ -713,16 +717,20 @@ export const SonicTiles = () => {
     console.log('READ LOCATION EDIT',  tiles[focusedIndex].x)
     const image = savedImages.find(image => image.coordinate.x === tiles[focusedIndex].x && image.coordinate.y === tiles[focusedIndex].y)
     console.log('EDIT IMAGE', image)
+    
+    if (!image) {
+      console.log('No image found at the specified coordinates');
+      speakMessage("No image found at this location");
+      return;
+    }
+    
     const script = `The image is now located in ${Math.round(image.canvas.x)} and ${Math.round(image.canvas.y)}`
-
     speakMessage(script)
-
   }
 
   let outside = false;
   
   const isOverlapping = (editingImage, editingImageIndex) => { 
-
     const { x: currX, y: currY } = editingImage.canvas;
     const { width: currWidth, height: currHeight } = editingImage.sizeParts;
 
@@ -748,7 +756,7 @@ export const SonicTiles = () => {
               otherBottom < currTop || 
               otherTop > currBottom)) {
             console.log('Overlap detected with image at index', savedImages.indexOf(otherImage));
-            speakMessage(`Overlapping with ${otherImage.name}`);
+            speakImmediate(`Overlapping with ${otherImage.name}`);
             thumpRef.current.start();
             return true; 
         }
@@ -1756,6 +1764,10 @@ const startLoadingSound = async (voiceText) => {
         
         console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
+      else if (e.shiftKey && e.key === '?') {
+        handleAskQuestions();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -2235,7 +2247,53 @@ const startLoadingSound = async (voiceText) => {
     
    }
 
- 
+  const handleAskQuestions = async () => {
+    if (isAskingQuestion) return;
+    setIsAskingQuestion(true);
+    
+    try {
+      speakMessage("What would you like to know about AltCanvas?");
+      const question = await startListening();
+      
+      if (question) {
+        speakMessage(`You asked: ${question}`);
+        
+        // Prepare the context for GPT
+        const context = `
+          AltCanvas is a tile-based image editor designed for blind and visually impaired users.
+          Available commands:
+          ${commands.join('\n')}
+          
+          User's question: ${question}
+          
+          Please provide a clear, concise answer focusing on how to use AltCanvas based on the user's question.
+          If the question is about a specific feature, explain how to use that feature.
+          If the question is general, provide a brief overview of the system's capabilities.
+        `;
+
+        try {
+          const response = await axios.post("/api/openai/global-description", { 
+            prompt: context
+          });
+
+          if (response.data && response.data.description) {
+            speakMessage(response.data.description);
+          } else {
+            speakMessage("I apologize, but I couldn't generate a response. Please try asking your question again.");
+          }
+        } catch (error) {
+          console.error("Error getting answer:", error);
+          speakMessage("I apologize, but I encountered an error while processing your question. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("Error in handleAskQuestions:", error);
+      speakMessage("I apologize, but I encountered an error. Please try again.");
+    } finally {
+      setIsAskingQuestion(false);
+    }
+  };
+
   return (
     <div id='imageGeneration'>
 
@@ -2303,10 +2361,12 @@ const startLoadingSound = async (voiceText) => {
           gap: '8px'
         }}
         aria-label="Instructions"
+        onClick={toggleInstructions}
       >
         <HelpIcon style={{ fontSize: '20px' }} />
         Instructions
       </button>
+      
       <button
         style={{ 
           width: '150px',
@@ -2344,11 +2404,32 @@ const startLoadingSound = async (voiceText) => {
           gap: '8px'
         }}
         aria-label="Review keyboard shortcuts"
-        onClick={toggleInstructions}
+        onClick={toggleKeyboardShortcuts}
       >
         <KeyboardIcon style={{ fontSize: '20px' }} />
         Shortcuts
       </button>
+      <button
+      style={{ 
+        width: '150px',
+        padding: '10px 20px',
+        backgroundColor: '#9c27b0',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontWeight: '500',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px'
+      }}
+      aria-label="Ask Questions"
+      onClick={handleAskQuestions}
+    >
+      <QuestionAnswerIcon style={{ fontSize: '20px' }} />
+      Ask Questions
+    </button>
       <button 
         style={{ 
           width: '150px',
@@ -2485,74 +2566,84 @@ const startLoadingSound = async (voiceText) => {
 
       
       {showInstructions && (
-      <div className="instructions" style={{fontSize: '0.8rem'}}>
-
-      <Dialog
-      open={showInstructions}
-      onClose={toggleInstructions}
-      aria-labelledby="form-dialog-title"
-      aria-describedby="keyboard-shortcuts-description"
-    >
-      <DialogTitle id="form-dialog-title">
-      <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>Keyboard Shortcuts</h1>
-      </DialogTitle>
-
-
-      <DialogContent style={{width: '100%'}} aria-live="polite">
-        <div
-          className="keyboard-shortcuts"
-          style={{marginBottom: '2%'}}
-          id="keyboard-shortcuts-description"
+        <Dialog
+          open={showInstructions}
+          onClose={toggleInstructions}
+          aria-labelledby="instructions-dialog-title"
         >
-        <p>
-        Press the up down arrowkeys to navigate through the keyboard shortcuts
-        </p>
-        <br/>
-          <ul style={{marginTop: '0.5rem', width: '100%'}}>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>G</kbd>: Global - Descriptions about what the canvas currently looks like.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Press Shift+X to delete an Image
-            </li>
-            <li style={{marginBottom: '2%'}}>
-              <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
-            </li>
-          </ul>
-          <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
-        </div>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={toggleInstructions}
-          color="primary"
-          aria-label="Close keyboard shortcuts dialog"
+          <DialogTitle id="instructions-dialog-title">
+            <h1 style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>How to Use AltCanvas</h1>
+          </DialogTitle>
+          <DialogContent style={{width: '100%'}} aria-live="polite">
+            <div style={{marginBottom: '1rem'}}>
+              <p>AltCanvas is a tile-based image editor designed for blind and visually impaired users. Here's how to get started:</p>
+              <ol style={{marginLeft: '1rem'}}>
+                <li style={{marginBottom: '0.5rem'}}>Press <kbd>Enter</kbd> on the first tile to generate your first image using voice commands</li>
+                <li style={{marginBottom: '0.5rem'}}>Use arrow keys to navigate between tiles (with directional sound feedback)</li>
+                <li style={{marginBottom: '0.5rem'}}>Press <kbd>Shift + G</kbd> anytime to hear a description of your canvas</li>
+                <li style={{marginBottom: '0.5rem'}}>Use <kbd>Shift + L</kbd> to move images and <kbd>Shift + S</kbd> to resize them</li>
+              </ol>
+              <p>For more detailed instructions, visit our <a href="https://arxiv.org/pdf/2408.10240" target="_blank" rel="noopener noreferrer">documentation</a> or watch our <a href="https://www.youtube.com/watch?v=tJUqjjwSxPs" target="_blank" rel="noopener noreferrer">video tutorial</a>.</p>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={toggleInstructions} color="primary">Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {showKeyboardShortcuts && (
+        <Dialog
+          open={showKeyboardShortcuts}
+          onClose={toggleKeyboardShortcuts}
+          aria-labelledby="shortcuts-dialog-title"
         >
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
-    
-    
-      </div>
+          <DialogTitle id="shortcuts-dialog-title">
+            <h1 style={{ fontSize: '1.4rem', marginTop: '0', color: '#1E90FF' }}>Keyboard Shortcuts</h1>
+          </DialogTitle>
+          <DialogContent style={{width: '100%'}} aria-live="polite">
+            <div style={{marginBottom: '2%'}}>
+              <p>Press the up down arrowkeys to navigate through the keyboard shortcuts</p>
+              <br/>
+              <ul style={{marginTop: '0.5rem', width: '100%'}}>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>G</kbd>: Global - Descriptions about what the canvas currently looks like.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>L</kbd>: Location Edit Mode - Allows you to edit the location of the currently selected item.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>S</kbd>: Size Edit Mode - Adjust the size of the currently selected item.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>X</kbd>: Delete Image - Press Shift+X to delete an Image
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>?</kbd>: Ask a question about AltCanvas.
+                </li>
+              </ul>
+              <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={toggleKeyboardShortcuts} color="primary">Close</Button>
+          </DialogActions>
+        </Dialog>
       )}
   </div>
       </div>    

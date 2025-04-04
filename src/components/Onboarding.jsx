@@ -177,13 +177,13 @@ const Onboarding = () => {
       }}
     >
       <header className="header">
-        <h3
+        <h1
           id="mainHeader"
           aria-label="AltCanvas Study Onboarding"
           style={{ fontSize: '1.5rem', margin: '2rem', marginLeft: '1rem' }}
         >
           <b>ALT CANVAS</b>
-        </h3>
+        </h1>
       </header>
 
       <main>
