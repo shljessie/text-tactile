@@ -16,6 +16,7 @@ export const RenderCanvas = () => {
   const [renderedImage, setRenderedImage] = useState(null);
   const [savedRenders, setSavedRenders] = useState([]);
   const [showGallery, setShowGallery] = useState(false);
+  const [speechSpeed, setSpeechSpeed] = useState(parseFloat(localStorage.getItem("speechSpeed")) || 0.9);
   
   // Add debug logs
   console.log('RenderCanvas mounted with:', {
@@ -24,12 +25,14 @@ export const RenderCanvas = () => {
     isRendering,
     renderedImage,
     savedRenders,
-    showGallery
+    showGallery,
+    speechSpeed
   });
   
   // Speech synthesis function for accessibility
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = speechSpeed;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -82,23 +85,27 @@ export const RenderCanvas = () => {
   
   // Handle direct printing through browser
   const handlePrint = () => {
+    speakMessage("Opening print dialog. You can print your canvas now.");
     window.print();
   };
   
   // Handle downloading the canvas as an image
   const handleDownload = () => {
     if (renderedImage) {
+      speakMessage("Downloading canvas as an image file.");
       const link = document.createElement('a');
       link.download = `canvas-render-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = renderedImage;
       link.click();
     } else {
+      speakMessage("Preparing canvas for download.");
       captureCanvas(true);
     }
   };
   
   // Function to navigate back to editor
   const handleBack = () => {
+    speakMessage("Returning to the editor view.");
     navigate('/sonic');
   };
   

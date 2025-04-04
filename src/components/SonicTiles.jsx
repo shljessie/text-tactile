@@ -27,6 +27,7 @@ export const SonicTiles = () => {
   const [settingsOpen, setOpenSettings] = useState(false);
   const [graphicsMode, setGraphicsMode] = useState(initialGraphicsMode);
   const [speechSpeed, setSpeechSpeed] = useState(initialSpeechSpeed);
+  const [isRendering, setIsRendering] = useState(false);
 
 
   // Update localStorage when settings change
@@ -535,45 +536,51 @@ export const SonicTiles = () => {
     }
   };
 
-  const renderCanvas = () => {
-    console.log('SavedImages',savedImages)
+  const renderCanvas = async () => {
+    if (isRendering) return;
+    setIsRendering(true);
+    speakMessage("Rendering canvas. Please wait.", speechSpeed);
     
-    // Ensure all images have crossOrigin attribute set
-    const preparedImages = savedImages.map(image => {
-      // Create a deep copy of the image object
-      const preparedImage = JSON.parse(JSON.stringify(image));
+    try {
+      // Create a new canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasSize.width;
+      canvas.height = canvasSize.height;
+      const ctx = canvas.getContext('2d');
       
-      // Add a timestamp parameter to force reload of the image and avoid caching issues
-      if (preparedImage.image_nbg) {
-        try {
-          // Try to add cache-busting parameter
-          const url = new URL(preparedImage.image_nbg);
-          url.searchParams.set('t', Date.now());
-          preparedImage.image_nbg = url.toString();
-        } catch (e) {
-          // If URL parsing fails (e.g., relative URL), keep the original
-          console.log('Could not parse image_nbg URL:', e);
-        }
+      // Fill with white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw all images
+      for (const image of savedImages) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            const x = image.canvas.x - (image.sizeParts.width / 2);
+            const y = image.canvas.y - (image.sizeParts.height / 2);
+            ctx.drawImage(img, x, y, image.sizeParts.width, image.sizeParts.height);
+            resolve();
+          };
+          img.onerror = reject;
+          img.src = image.image_nbg || image.url;
+        });
       }
       
-      if (preparedImage.url) {
-        try {
-          // Try to add cache-busting parameter
-          const url = new URL(preparedImage.url);
-          url.searchParams.set('t', Date.now());
-          preparedImage.url = url.toString();
-        } catch (e) {
-          // If URL parsing fails, keep the original
-          console.log('Could not parse url:', e);
-        }
-      }
+      const dataUrl = canvas.toDataURL('image/png');
+      const savedImagesArray = JSON.parse(localStorage.getItem('savedImages') || '[]');
+      savedImagesArray.push(dataUrl);
+      localStorage.setItem('savedImages', JSON.stringify(savedImagesArray));
       
-      return preparedImage;
-    });
-    
-    saveToSessionStorage();
-    speakMessage('Going to Render Canvas')
-    navigate('/render', { state: { savedImages: preparedImages, canvasSize } });
+      speakMessage("Canvas rendered successfully. You can view it in the gallery.", speechSpeed);
+    } catch (error) {
+      console.error("Error rendering canvas:", error);
+      speakMessage("Error rendering canvas. Please try again.", speechSpeed);
+    } finally {
+      setIsRendering(false);
+    }
   };
 
   const [tiles, setTiles] = useState([
@@ -2550,7 +2557,10 @@ const startLoadingSound = async (voiceText) => {
         }}
         aria-label="Render canvas after you have made the image" 
         className="renderButton" 
-        onClick={renderCanvas}
+        onClick={() => {
+          speakMessage("Navigating to render canvas view. You can print, download, or save your canvas here.");
+          navigate('/render', { state: { savedImages, canvasSize } });
+        }}
       >
         <ViewInArIcon style={{ fontSize: '20px' }} />
         Render
