@@ -2262,7 +2262,8 @@ const startLoadingSound = async (voiceText) => {
       imageObject.image_nbg = await removeBackground(imageURL, imageObject);
       imageObject.descriptions = await fetchImageDescription(imageURL);
       stopLoadingSound();
-      speakMessage(imageObject.descriptions);
+      // Remove this line to prevent duplicate description
+      // speakMessage(imageObject.descriptions);
       // Update the image name using the new API endpoint
       imageObject.name = await fetchImageName(imageURL, voiceInput);
   
