@@ -4,6 +4,7 @@ import * as Tone from 'tone';
 import React, { useEffect, useRef, useState } from 'react';
 
 import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -333,7 +334,8 @@ export const SonicTiles = () => {
     "Command Eleven, Shift + ? as Question: Ask a question about how to use AltCanvas",
     "Command Twelve, Shift + H as Instructions: Open Instructions",
     "Command Thirteen, Shift + P as Settings: Open Settings",
-    "Command Fourteen, Escape: Exit any mode"
+    "Command Fourteen, Shift + Z as in Zap: Clear the entire canvas",
+    "Command Fifteen, Escape: Exit any mode"
   ];
 
   // Add action-oriented command descriptions
@@ -351,6 +353,7 @@ export const SonicTiles = () => {
     "Ask Questions: Press Shift+? to ask questions about how to use AltCanvas",
     "Instructions: Press Shift+H to open the instructions dialog",
     "Settings: Press Shift+P to open the settings dialog",
+    "Clear Canvas: Press Shift+Z to clear the entire canvas",
     "Exit Mode: Press Escape to exit any mode"
   ];
 
@@ -369,6 +372,7 @@ export const SonicTiles = () => {
     "Ask Questions about how to use AltCanvas",
     "Instructions",
     "Settings",
+    "Clear Canvas",
     "Exit Mode"
   ];
 
@@ -1891,6 +1895,12 @@ const startLoadingSound = async (voiceText) => {
         
         console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
+      else if (e.shiftKey && e.key === 'Z') {
+        speakMessage('Clearing the entire canvas.')
+        clearCanvas();
+        
+        console.log(`${currentTime}: Cleared Canvas`);
+      }
       else if (e.shiftKey && e.key === '?') {
         console.log('Ask Questions Activated');
         console.log(`${currentTime}: Ask Questions - Focused Index: ${focusedIndex}`);
@@ -2433,6 +2443,17 @@ const startLoadingSound = async (voiceText) => {
     }
   };
 
+  const clearCanvas = () => {
+    setSavedImages([]);
+    setTiles([{ 
+      id: 0, 
+      image: {}, 
+      x: Math.round((canvasSize['width'] / 2)),
+      y: Math.round((canvasSize['height'] / 2))
+    }]);
+    speakMessage("Canvas has been cleared");
+  };
+
   return (
     <div id='imageGeneration'>
 
@@ -2593,6 +2614,27 @@ const startLoadingSound = async (voiceText) => {
       >
         <ViewInArIcon style={{ fontSize: '20px' }} />
         Render
+      </button>
+      <button
+        style={{ 
+          width: '150px',
+          padding: '10px 20px',
+          backgroundColor: '#dc3545',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+        aria-label="Clear Canvas" 
+        onClick={clearCanvas}
+      >
+        <DeleteIcon style={{ fontSize: '20px' }} />
+        Clear Canvas
       </button>
     </div>
     
@@ -2789,6 +2831,9 @@ const startLoadingSound = async (voiceText) => {
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>Z</kbd>: Clear Canvas - Clear the entire canvas.
                 </li>
               </ul>
               <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
