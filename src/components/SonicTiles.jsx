@@ -330,7 +330,9 @@ export const SonicTiles = () => {
     "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
     "Command Ten, Shift + X as Xylophone: Delete Image",
     "Command Eleven, Shift + ? as Question: Ask a question about how to use AltCanvas",
-    "Command Twelve, Escape: Exit any mode"
+    "Command Twelve, Shift + H as Instructions: Open Instructions",
+    "Command Thirteen, Shift + P as Settings: Open Settings",
+    "Command Fourteen, Escape: Exit any mode"
   ];
 
   // Add action-oriented command descriptions
@@ -346,6 +348,8 @@ export const SonicTiles = () => {
     "Keyboard Commands: Press Shift+K to hear these instructions",
     "Delete Image: Press Shift+X to delete the selected image",
     "Ask Questions: Press Shift+? to ask questions about how to use AltCanvas",
+    "Instructions: Press Shift+H to open the instructions dialog",
+    "Settings: Press Shift+P to open the settings dialog",
     "Exit Mode: Press Escape to exit any mode"
   ];
 
@@ -362,6 +366,8 @@ export const SonicTiles = () => {
     "Keyboard Commands",
     "Delete Image",
     "Ask Questions about how to use AltCanvas",
+    "Instructions",
+    "Settings",
     "Exit Mode"
   ];
 
@@ -388,6 +394,14 @@ export const SonicTiles = () => {
     } else if (event.shiftKey && event.key === 'D') {
       console.log('Shift+S pressed');
       renderCanvas(savedImages);
+    } else if (event.shiftKey && event.key === 'H') {
+      console.log('Shift+H pressed');
+      toggleInstructions();
+      speakImmediate('Instructions dialog opened.', speechSpeed);
+    } else if (event.shiftKey && event.key === 'P') {
+      console.log('Shift+P pressed');
+      setOpenSettings(true);
+      speakImmediate('Settings dialog opened.', speechSpeed);
     } 
     
     if(keyOptions){
@@ -2727,6 +2741,12 @@ const startLoadingSound = async (voiceText) => {
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>?</kbd>: Ask Questions - Ask a question about how to use AltCanvas.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>H</kbd>: Help - Open the instructions dialog.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>P</kbd>: Settings - Open the settings dialog.
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
