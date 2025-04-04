@@ -304,7 +304,7 @@ export const SonicTiles = () => {
 
     tileRefs.current[0].focus()
     if(!messagePlayed){
-      speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image')
+      speakMessage('You are currently focused on the first tile. Press Enter to Generate the first Image and then speak the image generation command after the beep.')
       messagePlayed = true;
     }
 
@@ -656,9 +656,28 @@ export const SonicTiles = () => {
   const [chatActive, setchatActive] = useState(false);
   const [infoActive, setinfoActive] = useState(false); 
 
+  const playBeep = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 800; // Frequency in Hz
+      gainNode.gain.value = 0.1; // Volume level
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2); // Play for 0.2 seconds
+    } catch (error) {
+      console.error('Failed to play beep:', error);
+    }
+  };
+
   const speakMessage = (message) => {
     const utterance = new SpeechSynthesisUtterance(message);
-    const currentTime = getFormattedTimestamp();
     utterance.rate = speechSpeed;
     window.speechSynthesis.speak(utterance);
   };
@@ -2138,7 +2157,6 @@ const startLoadingSound = async (voiceText) => {
   };
 
   const generateImage = async (index, isRegeneration = false) => {
-
     console.log('Generating Image',isGeneratingImage);
     if (isGeneratingImage) return;
     setIsGeneratingImage(true);
@@ -2161,9 +2179,10 @@ const startLoadingSound = async (voiceText) => {
         document.removeEventListener("keydown", keydownListener);
         return;
       }
-      if (event.key === "Enter" && isWaitingForConfirmation) {
+      if (event.key === "Enter") {
         isConfirmed = true;
         console.log("Generation confirmed.");
+        playBeep(); // Play beep after Enter is pressed
       }
     };
   
