@@ -2226,9 +2226,18 @@ const startLoadingSound = async (voiceText) => {
     // Build the generation prompt based on graphicsMode
     let generationPrompt = "";
     if (graphicsMode === "color") {
-      generationPrompt = `${voiceInput} Focus on creating only the single object the user describes. Keep the background white.`;
+      generationPrompt = `${voiceInput} Focus on creating only the single object the user describes. Make it in the style of a animation. Keep the background white.`;
     } else {
-      generationPrompt = `${voiceInput}. You are generating a simple black-and-white image for a toddler's coloring book. Draw it in the style of a black outline icon or coloring book page. Use the style of studio ghibli. Use only black lines on a white background. Do not add color, shading, textures, or background details. Make the drawing flat and 2D. Remove all unnecessary detail — keep it extremely minimal and easy to trace.`;
+      generationPrompt = `
+      ${voiceInput}. 
+      I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS:
+      My prompt has full detail so no need to add more: 
+      You are generating a simple black-and-white image for a toddler's coloring book. 
+      Only use black. There should be no background.
+      Make the drawing flat and 2D. 
+      NO PATTERN. WHITE SPACE. EMPTY. SIMPLE. BLACK OUTLINE.
+      NOUN PROJECT ICON STYLE. SIMPLE.
+      SIMPLE MINIMALISTIC. ONLY OBJECT. NO BACKGROUND`;
     }
     
     try {
