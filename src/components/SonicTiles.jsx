@@ -4,6 +4,8 @@ import * as Tone from 'tone';
 import React, { useEffect, useRef, useState } from 'react';
 
 import Button from '@mui/material/Button';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -29,6 +31,7 @@ export const SonicTiles = () => {
   const [graphicsMode, setGraphicsMode] = useState(initialGraphicsMode);
   const [speechSpeed, setSpeechSpeed] = useState(initialSpeechSpeed);
   const [isRendering, setIsRendering] = useState(false);
+  const [copiedImage, setCopiedImage] = useState(null);
 
 
   // Update localStorage when settings change
@@ -335,7 +338,9 @@ export const SonicTiles = () => {
     "Command Twelve, Shift + H as Instructions: Open Instructions",
     "Command Thirteen, Shift + P as Settings: Open Settings",
     "Command Fourteen, Shift + Z as in Zap: Clear the entire canvas",
-    "Command Fifteen, Escape: Exit any mode"
+    "Command Fifteen, Ctrl + C: Copy the selected image",
+    "Command Sixteen, Ctrl + V: Paste the copied image",
+    "Command Seventeen, Escape: Exit any mode"
   ];
 
   // Add action-oriented command descriptions
@@ -354,6 +359,8 @@ export const SonicTiles = () => {
     "Instructions: Press Shift+H to open the instructions dialog",
     "Settings: Press Shift+P to open the settings dialog",
     "Clear Canvas: Press Shift+Z to clear the entire canvas",
+    "Copy Image: Press Ctrl+C to copy the selected image",
+    "Paste Image: Press Ctrl+V to paste the copied image",
     "Exit Mode: Press Escape to exit any mode"
   ];
 
@@ -373,6 +380,8 @@ export const SonicTiles = () => {
     "Instructions",
     "Settings",
     "Clear Canvas",
+    "Copy Image",
+    "Paste Image",
     "Exit Mode"
   ];
 
@@ -1901,7 +1910,21 @@ const startLoadingSound = async (voiceText) => {
         
         console.log(`${currentTime}: Cleared Canvas`);
       }
-      else if (e.shiftKey && e.key === '?') {
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        if (focusedIndex !== null) {
+          copyImage(focusedIndex);
+          console.log(`${currentTime}: Copied Image - Focused Index: ${focusedIndex}`);
+        } else {
+          speakMessage('No tile is focused.');
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        if (focusedIndex !== null) {
+          pasteImage(focusedIndex);
+          console.log(`${currentTime}: Pasted Image - Focused Index: ${focusedIndex}`);
+        } else {
+          speakMessage('No tile is focused.');
+        }
+      } else if (e.shiftKey && e.key === '?') {
         console.log('Ask Questions Activated');
         console.log(`${currentTime}: Ask Questions - Focused Index: ${focusedIndex}`);
         handleAskQuestions();
@@ -1910,7 +1933,7 @@ const startLoadingSound = async (voiceText) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedIndex]);
+  }, [focusedIndex, copiedImage]);
 
   const startListening = () => {
     return new Promise((resolve, reject) => {
@@ -2454,6 +2477,54 @@ const startLoadingSound = async (voiceText) => {
     speakMessage("Canvas has been cleared");
   };
 
+  const copyImage = (gridIndex) => {
+    if (gridIndex !== -1) {
+      const tileX = tiles[gridIndex].x;
+      const tileY = tiles[gridIndex].y;
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
+      
+      if (imageIndex !== -1) {
+        const imageToCopy = savedImages[imageIndex];
+        setCopiedImage(imageToCopy);
+        speakMessage(`Copied image: ${imageToCopy.name}`);
+        console.log(`Copied image: ${imageToCopy.name}`);
+      } else {
+        speakMessage('There is no image on this tile to copy.');
+      }
+    }
+  };
+
+  const pasteImage = (gridIndex) => {
+    if (gridIndex !== -1 && copiedImage) {
+      const tileX = tiles[gridIndex].x;
+      const tileY = tiles[gridIndex].y;
+      
+      // Check if there's already an image at this location
+      const existingImageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
+      
+      if (existingImageIndex !== -1) {
+        speakMessage('There is already an image on this tile. Please delete it first or choose another tile.');
+        return;
+      }
+      
+      // Create a new image object based on the copied one
+      const newImage = {
+        ...copiedImage,
+        name: `${copiedImage.name} (copy)`,
+        coordinate: { x: tileX, y: tileY },
+        canvas: { x: tileX, y: tileY }
+      };
+      
+      // Add the new image to savedImages
+      setSavedImages(prevImages => [...prevImages, newImage]);
+      
+      speakMessage(`Pasted image: ${newImage.name}`);
+      console.log(`Pasted image: ${newImage.name}`);
+    } else if (!copiedImage) {
+      speakMessage('No image has been copied yet.');
+    }
+  };
+
   return (
     <div id='imageGeneration'>
 
@@ -2834,6 +2905,18 @@ const startLoadingSound = async (voiceText) => {
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>Z</kbd>: Clear Canvas - Clear the entire canvas.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>Y</kbd>: Copy Image - Copy the selected image.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>V</kbd>: Paste Image - Paste the copied image.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Ctrl</kbd> + <kbd>C</kbd>: Copy Image - Copy the selected image.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Ctrl</kbd> + <kbd>V</kbd>: Paste Image - Paste the copied image.
                 </li>
               </ul>
               <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
