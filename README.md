@@ -2,7 +2,7 @@
 
 AltCanvas : Speech2AI based Image Editor
 Our system, AltCanvas, features a tile-based interface enabling users to construct visual scenes incrementally, with each tile representing an object within the scene. Users can add, edit, move, and arrange objects while receiving speech and audio feedback. Once completed, the scene can be rendered as a color illustration or as a vector for tactile graphic generation.
-You can read the paper for this code here `https://arxiv.org/abs/2408.10240`
+You can read the paper for this code here `https://arxiv.org/abs/2408.10240` (ASSETS 2024)
 
 ![AltCanvas](AltCanvas.png)
 
