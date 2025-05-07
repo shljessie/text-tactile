@@ -2190,8 +2190,11 @@ const startLoadingSound = async (voiceText) => {
   };
 
   const generateImage = async (index, isRegeneration = false) => {
-    console.log('Generating Image',isGeneratingImage);
-    if (isGeneratingImage) return;
+    console.log('Starting image generation process...', { index, isRegeneration });
+    if (isGeneratingImage) {
+        console.log('Image generation already in progress, returning...');
+        return;
+    }
     setIsGeneratingImage(true);
     setLoading(true);
     setActiveIndex(index);
@@ -2226,9 +2229,10 @@ const startLoadingSound = async (voiceText) => {
     let centerY = tiles[index].y;
   
     try {
+      console.log('Starting voice input capture...');
       voiceInput = await startListening();
       setPromptText(voiceInput);
-      console.log("Voice Input:", voiceInput);
+      console.log("Voice Input received:", voiceInput);
     } catch (error) {
       console.error("Error during voice input:", error);
       setLoading(false);
@@ -2239,6 +2243,7 @@ const startLoadingSound = async (voiceText) => {
     }
   
     if (!voiceInput) {
+      console.log('No voice input detected');
       speakMessage("No voice input detected.");
       setLoading(false);
       setIsGeneratingImage(false);
@@ -2248,8 +2253,10 @@ const startLoadingSound = async (voiceText) => {
     }
   
     // Wait for confirmation
+    console.log('Waiting for user confirmation...');
     isConfirmed = await startLoadingSound(voiceInput);
     if (!isConfirmed) {
+      console.log('User cancelled the generation');
       setLoading(false);
       setIsGeneratingImage(false);
       stopLoadingSound();
@@ -2274,94 +2281,150 @@ const startLoadingSound = async (voiceText) => {
     }
     
     try {
-      console.log("Sending image generation request with prompt:", generationPrompt);
-      const response = await axios.post("/api/openai/generate-image", { prompt: generationPrompt });
-      console.log("Image generation response received:", response);
-      const imageURL = response.data.url;
-      const imageSize = 100;
-  
-      if (!imageURL) {
-        console.error("No valid image URL received.");
+        console.log("Sending image generation request with prompt:", generationPrompt);
+        console.time('Image Generation Request');
+        
+        // Log the request payload
+        const requestPayload = {
+            model: "gpt-image-1",
+            prompt: generationPrompt,
+            size: "1024x1024",
+            quality: "medium",
+            background: graphicsMode === "tactile" ? "transparent" : "opaque",
+            n: 1
+        };
+        console.log("Request payload:", requestPayload);
+        
+        const response = await axios.post("/api/openai/generate-image", requestPayload);
+        
+        console.timeEnd('Image Generation Request');
+        
+        // Log the full response details
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+        console.log("Response data:", response.data);
+
+        // Check if response is HTML instead of JSON
+        if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+            console.error("Received HTML response instead of JSON. This indicates a server-side error.");
+            console.log("Full response:", response);
+            throw new Error("Server returned HTML instead of JSON response");
+        }
+
+        // Validate response structure
+        if (!response.data || typeof response.data !== 'object') {
+            console.error("Invalid response structure:", response.data);
+            throw new Error("Invalid response structure from API");
+        }
+
+        // Handle base64 image data
+        const imageData = response.data.data?.[0]?.b64_json;
+        if (!imageData) {
+            console.error("No image data received from the API. Response data:", response.data);
+            throw new Error("No image data in response");
+        }
+
+        // Convert base64 to URL
+        const imageURL = `data:image/png;base64,${imageData}`;
+        console.log("Generated image URL from base64 data");
+        const imageSize = 100;
+    
+        if (!imageURL) {
+            console.error("No valid image URL received from the API. Response data:", response.data);
+            setLoading(false);
+            setIsGeneratingImage(false);
+            stopLoadingSound();
+            document.removeEventListener("keydown", keydownListener);
+            speakMessage("Error: Could not generate image. Please try again.");
+            return;
+        }
+    
+        console.log('Creating image object with URL:', imageURL);
+        let imageObject = {
+            prompt: voiceInput,
+            name: '',
+            url: imageURL,
+            image_nbg: '',
+            descriptions: '',
+            canvas_descriptions: '',
+            coordinate: { x: centerX, y: centerY },
+            canvas: { x: centerX, y: centerY },
+            sizeParts: { width: imageSize, height: imageSize },
+        };
+    
+        console.log('Fetching image description...');
+        console.time('Image Description Request');
+        imageObject.descriptions = await fetchImageDescription(imageURL);
+        console.timeEnd('Image Description Request');
+        stopLoadingSound();
+    
+        console.log('Fetching image name...');
+        console.time('Image Name Request');
+        imageObject.name = await fetchImageName(imageURL, voiceInput);
+        console.timeEnd('Image Name Request');
+    
+        console.log("Final Image Object:", imageObject);
+    
+        try {
+            if (isRegeneration) {
+                console.log('Updating existing image at index:', index);
+                updateImageAtIndex(index, imageObject);
+            } else {
+                console.log('Adding new image to savedImages');
+                setSavedImages((prevImages) => [...prevImages, imageObject]);
+            }
+            
+            // Ensure the image coordinates match the tile coordinates exactly
+            imageObject.coordinate.x = centerX;
+            imageObject.coordinate.y = centerY;
+            imageObject.canvas.x = centerX;
+            imageObject.canvas.y = centerY;
+            
+            // Set focus to the tile where image was generated and update tile state
+            setFocusedIndex(index);
+            setTiles(prevTiles => {
+                const newTiles = [...prevTiles];
+                newTiles[index] = {
+                    ...newTiles[index],
+                    image: imageObject
+                };
+                return newTiles;
+            });
+
+            // Add surrounding tiles and ensure focus after a brief delay
+            setTimeout(() => {
+                console.log('Adding surrounding tiles and setting focus');
+                const centralTile = tiles[index];
+                addSurroundingTiles(centralTile);
+                
+                if (tileRefs.current[index]) {
+                    tileRefs.current[index].focus();
+                    speakMessage(`Image generated successfully. ${imageObject.descriptions}`);
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error("Error updating saved images:", error);
+        }
+    } catch (error) {
+        console.error("Error generating image from OpenAI:", error);
+        console.error("Error details:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            headers: error.response?.headers
+        });
         setLoading(false);
         setIsGeneratingImage(false);
         stopLoadingSound();
         document.removeEventListener("keydown", keydownListener);
         return;
-      }
-  
-      let imageObject = {
-        prompt: voiceInput,
-        name: '',
-        url: imageURL,
-        image_nbg: '',
-        descriptions: '',
-        canvas_descriptions: '',
-        coordinate: { x: centerX, y: centerY },
-        canvas: { x: centerX, y: centerY },
-        sizeParts: { width: imageSize, height: imageSize },
-      };
-  
-      imageObject.image_nbg = await removeBackground(imageURL, imageObject);
-      imageObject.descriptions = await fetchImageDescription(imageURL);
-      stopLoadingSound();
-      // Remove this line to prevent duplicate description
-      // speakMessage(imageObject.descriptions);
-      // Update the image name using the new API endpoint
-      imageObject.name = await fetchImageName(imageURL, voiceInput);
-  
-      console.log("Final Image Object:", imageObject);
-  
-      try {
-        if (isRegeneration) {
-          updateImageAtIndex(index, imageObject);
-        } else {
-          setSavedImages((prevImages) => [...prevImages, imageObject]);
-        }
-        
-        // Ensure the image coordinates match the tile coordinates exactly
-        imageObject.coordinate.x = centerX;
-        imageObject.coordinate.y = centerY;
-        imageObject.canvas.x = centerX;
-        imageObject.canvas.y = centerY;
-        
-        // Set focus to the tile where image was generated and update tile state
-        setFocusedIndex(index);
-        setTiles(prevTiles => {
-          const newTiles = [...prevTiles];
-          newTiles[index] = {
-            ...newTiles[index],
-            image: imageObject
-          };
-          return newTiles;
-        });
-
-        // Add surrounding tiles and ensure focus after a brief delay
-        setTimeout(() => {
-          const centralTile = tiles[index];
-          addSurroundingTiles(centralTile);
-          
-          if (tileRefs.current[index]) {
-            tileRefs.current[index].focus();
-            speakMessage(`Image generated successfully. ${imageObject.descriptions}`);
-          }
-        }, 100);
-
-      } catch (error) {
-        console.error("Error updating saved images:", error);
-      }
-    } catch (error) {
-      console.error("Error generating image from OpenAI:", error);
-      setLoading(false);
-      setIsGeneratingImage(false);
-      stopLoadingSound();
-      document.removeEventListener("keydown", keydownListener);
-      return;
     }
-  
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
     setIsGeneratingImage(false);
     stopLoadingSound();
+    console.log('Image generation process completed');
   };
   
   const radarScan = (gridIndex) => {

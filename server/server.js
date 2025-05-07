@@ -41,6 +41,7 @@ app.post('/api/sonic', (req, res) => {
     res.status(200).json({ status: 'success', message: 'UUID received successfully', receivedUuid: uuid });
 });
 
+// Mount OpenAI routes BEFORE the static file serving
 app.use("/api/openai", openAIRoutes);
 
 // Use a writable directory on Heroku
@@ -139,13 +140,17 @@ app.post('/remove-background', async (req, res) => {
     });
 });
 
-// Serve the Frontend (React)
-// This assumes your React build output is in the ../build folder
+// Serve static files from the build directory
 const buildPath = path.join(__dirname, '../build');
 app.use(express.static(buildPath));
 
-// Fallback: send index.html for any other routes so React Router can handle them
-app.get('*', (req, res) => {
+// Handle API routes first, then fall back to serving the React app
+app.get('*', (req, res, next) => {
+    // If the request is for an API route, let it pass through
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+    // Otherwise, serve the React app
     res.sendFile(path.join(buildPath, 'index.html'));
 });
 
