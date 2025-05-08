@@ -7,32 +7,27 @@ const openai = new OpenAI({
     apiKey: process.env.REACT_APP_API_KEY, 
 });
 
-// 🎨 **1. Generate Image (DALL-E)**
+// 🎨 **1. Generate Image (GPT Image)**
 router.post("/generate-image", async (req, res) => {
     console.log("=== Image Generation Request Started ===");
-    console.log("Request headers:", req.headers);
     console.log("Request body:", req.body);
     
     try {
-        const { prompt, model, size, quality, background, n } = req.body;
+        const { prompt } = req.body;
 
         if (!prompt) {
             console.error("No prompt provided in request");
             return res.status(400).json({ error: "Prompt is required" });
         }
 
-        const requestParams = {
-            model: model || "gpt-image-1",
-            prompt,
-            size: size || "1024x1024",
-            quality: quality || "medium",
-            background: background || "transparent",
-            n: n || 1
-        };
-        
-        console.log("Sending request to OpenAI with parameters:", requestParams);
-
-        const response = await openai.images.generate(requestParams);
+        const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: prompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "hd",
+            // background: "transparent"
+        });
         
         console.log("OpenAI response received:", {
             status: response.status,
@@ -45,7 +40,7 @@ router.post("/generate-image", async (req, res) => {
         }
 
         console.log("=== Image Generation Request Completed Successfully ===");
-        res.json({ data: response.data });
+        res.json({ url: response.data[0].url });
     } catch (error) {
         console.error("=== Image Generation Request Failed ===");
         console.error("Error details:", {
@@ -131,6 +126,5 @@ router.post("/generate-image-name", async (req, res) => {
         res.status(500).json({ error: "Failed to generate image title" });
     }
 });
-
 
 module.exports = router;

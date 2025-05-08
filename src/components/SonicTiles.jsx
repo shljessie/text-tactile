@@ -658,6 +658,8 @@ export const SonicTiles = () => {
 
   const [isEditingSize, setIsEditingSize] = useState(false);
   const [editingSizeImageIndex, setEditingSizeImageIndex] = useState(null);
+  const [isOverlapMode, setIsOverlapMode] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null); // Add selected image tracking
 
   const [isChangeMode, setIsChangeMode] = useState(false);
   const [changeIndex, setChangeIndex] = useState(null);
@@ -1755,6 +1757,45 @@ const startLoadingSound = async (voiceText) => {
       const currentTime = getFormattedTimestamp();
       console.log('focused Index', focusedIndex)
       
+      if (e.shiftKey && e.key === 'O') {
+        if (focusedIndex !== null) {
+          const tileX = tiles[focusedIndex].x;
+          const tileY = tiles[focusedIndex].y;
+          const imageIndex = savedImages.findIndex(image => 
+            image.coordinate.x === tileX && image.coordinate.y === tileY
+          );
+
+          if (imageIndex !== -1) {
+            setIsOverlapMode(prevMode => {
+              const newMode = !prevMode;
+              if (newMode) {
+                setSelectedImageIndex(imageIndex);
+                console.log('Overlap Mode Enabled');
+                console.log('Selected image:', savedImages[imageIndex].name);
+                console.log('Current z-index:', savedImages[imageIndex].zIndex);
+                speakMessage(`Overlap mode enabled for ${savedImages[imageIndex].name}. Use up and down arrows to change order.`);
+                // Announce initial overlap order
+                setTimeout(() => {
+                  announceOverlapOrder(savedImages[imageIndex]);
+                }, 1000);
+              } else {
+                setSelectedImageIndex(null);
+                speakMessage("Overlap mode disabled.");
+              }
+              return newMode;
+            });
+          } else {
+            speakMessage("No image selected for overlap mode.");
+          }
+        }
+        return;
+      }
+
+      // Handle overlap mode arrow keys
+      if (isOverlapMode) {
+        handleOverlapModeKeyDown(e);
+      }
+
       if (e.shiftKey && e.key === 'R') {
         if (focusedIndex !== null) {
           console.log('Radar Scan Activated');
@@ -1933,7 +1974,7 @@ const startLoadingSound = async (voiceText) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedIndex, copiedImage]);
+  }, [focusedIndex, copiedImage, isOverlapMode, selectedImageIndex, savedImages]);
 
   const startListening = () => {
     return new Promise((resolve, reject) => {
@@ -2189,12 +2230,17 @@ const startLoadingSound = async (voiceText) => {
     }
   };
 
+  const normalizeZIndices = (images) => {
+    // Simply assign sequential indices (0, 1, 2, ...)
+    return images.map((img, index) => ({
+      ...img,
+      zIndex: index
+    }));
+  };
+
   const generateImage = async (index, isRegeneration = false) => {
-    console.log('Starting image generation process...', { index, isRegeneration });
-    if (isGeneratingImage) {
-        console.log('Image generation already in progress, returning...');
-        return;
-    }
+    console.log('Generating Image',isGeneratingImage);
+    if (isGeneratingImage) return;
     setIsGeneratingImage(true);
     setLoading(true);
     setActiveIndex(index);
@@ -2229,10 +2275,9 @@ const startLoadingSound = async (voiceText) => {
     let centerY = tiles[index].y;
   
     try {
-      console.log('Starting voice input capture...');
       voiceInput = await startListening();
       setPromptText(voiceInput);
-      console.log("Voice Input received:", voiceInput);
+      console.log("Voice Input:", voiceInput);
     } catch (error) {
       console.error("Error during voice input:", error);
       setLoading(false);
@@ -2243,7 +2288,6 @@ const startLoadingSound = async (voiceText) => {
     }
   
     if (!voiceInput) {
-      console.log('No voice input detected');
       speakMessage("No voice input detected.");
       setLoading(false);
       setIsGeneratingImage(false);
@@ -2253,10 +2297,8 @@ const startLoadingSound = async (voiceText) => {
     }
   
     // Wait for confirmation
-    console.log('Waiting for user confirmation...');
     isConfirmed = await startLoadingSound(voiceInput);
     if (!isConfirmed) {
-      console.log('User cancelled the generation');
       setLoading(false);
       setIsGeneratingImage(false);
       stopLoadingSound();
@@ -2281,150 +2323,108 @@ const startLoadingSound = async (voiceText) => {
     }
     
     try {
-        console.log("Sending image generation request with prompt:", generationPrompt);
-        console.time('Image Generation Request');
-        
-        // Log the request payload
-        const requestPayload = {
-            model: "gpt-image-1",
-            prompt: generationPrompt,
-            size: "1024x1024",
-            quality: "medium",
-            background: graphicsMode === "tactile" ? "transparent" : "opaque",
-            n: 1
-        };
-        console.log("Request payload:", requestPayload);
-        
-        const response = await axios.post("/api/openai/generate-image", requestPayload);
-        
-        console.timeEnd('Image Generation Request');
-        
-        // Log the full response details
-        console.log("Response status:", response.status);
-        console.log("Response headers:", response.headers);
-        console.log("Response data:", response.data);
-
-        // Check if response is HTML instead of JSON
-        if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
-            console.error("Received HTML response instead of JSON. This indicates a server-side error.");
-            console.log("Full response:", response);
-            throw new Error("Server returned HTML instead of JSON response");
-        }
-
-        // Validate response structure
-        if (!response.data || typeof response.data !== 'object') {
-            console.error("Invalid response structure:", response.data);
-            throw new Error("Invalid response structure from API");
-        }
-
-        // Handle base64 image data
-        const imageData = response.data.data?.[0]?.b64_json;
-        if (!imageData) {
-            console.error("No image data received from the API. Response data:", response.data);
-            throw new Error("No image data in response");
-        }
-
-        // Convert base64 to URL
-        const imageURL = `data:image/png;base64,${imageData}`;
-        console.log("Generated image URL from base64 data");
-        const imageSize = 100;
-    
-        if (!imageURL) {
-            console.error("No valid image URL received from the API. Response data:", response.data);
-            setLoading(false);
-            setIsGeneratingImage(false);
-            stopLoadingSound();
-            document.removeEventListener("keydown", keydownListener);
-            speakMessage("Error: Could not generate image. Please try again.");
-            return;
-        }
-    
-        console.log('Creating image object with URL:', imageURL);
-        let imageObject = {
-            prompt: voiceInput,
-            name: '',
-            url: imageURL,
-            image_nbg: '',
-            descriptions: '',
-            canvas_descriptions: '',
-            coordinate: { x: centerX, y: centerY },
-            canvas: { x: centerX, y: centerY },
-            sizeParts: { width: imageSize, height: imageSize },
-        };
-    
-        console.log('Fetching image description...');
-        console.time('Image Description Request');
-        imageObject.descriptions = await fetchImageDescription(imageURL);
-        console.timeEnd('Image Description Request');
-        stopLoadingSound();
-    
-        console.log('Fetching image name...');
-        console.time('Image Name Request');
-        imageObject.name = await fetchImageName(imageURL, voiceInput);
-        console.timeEnd('Image Name Request');
-    
-        console.log("Final Image Object:", imageObject);
-    
-        try {
-            if (isRegeneration) {
-                console.log('Updating existing image at index:', index);
-                updateImageAtIndex(index, imageObject);
-            } else {
-                console.log('Adding new image to savedImages');
-                setSavedImages((prevImages) => [...prevImages, imageObject]);
-            }
-            
-            // Ensure the image coordinates match the tile coordinates exactly
-            imageObject.coordinate.x = centerX;
-            imageObject.coordinate.y = centerY;
-            imageObject.canvas.x = centerX;
-            imageObject.canvas.y = centerY;
-            
-            // Set focus to the tile where image was generated and update tile state
-            setFocusedIndex(index);
-            setTiles(prevTiles => {
-                const newTiles = [...prevTiles];
-                newTiles[index] = {
-                    ...newTiles[index],
-                    image: imageObject
-                };
-                return newTiles;
-            });
-
-            // Add surrounding tiles and ensure focus after a brief delay
-            setTimeout(() => {
-                console.log('Adding surrounding tiles and setting focus');
-                const centralTile = tiles[index];
-                addSurroundingTiles(centralTile);
-                
-                if (tileRefs.current[index]) {
-                    tileRefs.current[index].focus();
-                    speakMessage(`Image generated successfully. ${imageObject.descriptions}`);
-                }
-            }, 100);
-
-        } catch (error) {
-            console.error("Error updating saved images:", error);
-        }
-    } catch (error) {
-        console.error("Error generating image from OpenAI:", error);
-        console.error("Error details:", {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-            headers: error.response?.headers
-        });
+      console.log("Sending image generation request with prompt:", generationPrompt);
+      const response = await axios.post("/api/openai/generate-image", { prompt: generationPrompt });
+      console.log("Image generation response received:", response);
+      const imageURL = response.data.url;
+      const imageSize = 100;
+  
+      if (!imageURL) {
+        console.error("No valid image URL received.");
         setLoading(false);
         setIsGeneratingImage(false);
         stopLoadingSound();
         document.removeEventListener("keydown", keydownListener);
         return;
+      }
+  
+      let imageObject = {
+        prompt: voiceInput,
+        name: '',
+        url: imageURL,
+        image_nbg: '',
+        descriptions: '',
+        canvas_descriptions: '',
+        coordinate: { x: centerX, y: centerY },
+        canvas: { x: centerX, y: centerY },
+        sizeParts: { width: imageSize, height: imageSize },
+        zIndex: savedImages.length // Simple sequential index
+      };
+  
+      imageObject.image_nbg = await removeBackground(imageURL, imageObject);
+      imageObject.descriptions = await fetchImageDescription(imageURL);
+      stopLoadingSound();
+
+      // Debug log for z-index
+      console.log('Current savedImages length:', savedImages.length);
+      console.log('New image z-index:', imageObject.zIndex);
+      console.log('All images z-indices:', savedImages.map(img => img.zIndex));
+      console.log('Image order (from bottom to top):', 
+        savedImages
+          .concat(imageObject)
+          .sort((a, b) => a.zIndex - b.zIndex)
+          .map(img => `${img.name} (z-index: ${img.zIndex})`)
+      );
+
+      // Update the image name using the new API endpoint
+      imageObject.name = await fetchImageName(imageURL, voiceInput);
+  
+      console.log("Final Image Object:", imageObject);
+  
+      try {
+        if (isRegeneration) {
+          updateImageAtIndex(index, imageObject);
+        } else {
+          // Normalize z-indices when adding new image
+          const updatedImages = [...savedImages, imageObject];
+          const normalizedImages = normalizeZIndices(updatedImages);
+          setSavedImages(normalizedImages);
+        }
+        
+        // Ensure the image coordinates match the tile coordinates exactly
+        imageObject.coordinate.x = centerX;
+        imageObject.coordinate.y = centerY;
+        imageObject.canvas.x = centerX;
+        imageObject.canvas.y = centerY;
+        
+        // Set focus to the tile where image was generated and update tile state
+        setFocusedIndex(index);
+        setTiles(prevTiles => {
+          const newTiles = [...prevTiles];
+          newTiles[index] = {
+            ...newTiles[index],
+            image: imageObject
+          };
+          return newTiles;
+        });
+
+        // Add surrounding tiles and ensure focus after a brief delay
+        setTimeout(() => {
+          const centralTile = tiles[index];
+          addSurroundingTiles(centralTile);
+          
+          if (tileRefs.current[index]) {
+            tileRefs.current[index].focus();
+            speakMessage(`Image generated successfully. ${imageObject.descriptions}`);
+          }
+        }, 100);
+
+      } catch (error) {
+        console.error("Error updating saved images:", error);
+      }
+    } catch (error) {
+      console.error("Error generating image from OpenAI:", error);
+      setLoading(false);
+      setIsGeneratingImage(false);
+      stopLoadingSound();
+      document.removeEventListener("keydown", keydownListener);
+      return;
     }
+  
     document.removeEventListener("keydown", keydownListener);
     setLoading(false);
     setIsGeneratingImage(false);
     stopLoadingSound();
-    console.log('Image generation process completed');
   };
   
   const radarScan = (gridIndex) => {
@@ -2586,6 +2586,107 @@ const startLoadingSound = async (voiceText) => {
     } else if (!copiedImage) {
       speakMessage('No image has been copied yet.');
     }
+  };
+
+  const handleOverlapModeKeyDown = (e) => {
+    if (!isOverlapMode || selectedImageIndex === null) return;
+
+    const currentImage = savedImages[selectedImageIndex];
+    const currentZIndex = currentImage.zIndex;
+    const maxZIndex = savedImages.length - 1;
+
+    // Handle ESC key to exit overlap mode
+    if (e.key === 'Escape') {
+      setIsOverlapMode(false);
+      setSelectedImageIndex(null);
+      speakMessage("Exiting overlap mode");
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowUp':
+        if (currentZIndex < maxZIndex) {
+          // Move image up in stack
+          const newImages = [...savedImages];
+          const targetImage = newImages.find(img => img.zIndex === currentZIndex + 1);
+          if (targetImage) {
+            targetImage.zIndex = currentZIndex;
+            currentImage.zIndex = currentZIndex + 1;
+            setSavedImages(newImages);
+            announceOverlapOrder(currentImage);
+          }
+        } else {
+          speakMessage(`${currentImage.name} is already at the top`);
+        }
+        break;
+
+      case 'ArrowDown':
+        if (currentZIndex > 0) {
+          // Move image down in stack
+          const newImages = [...savedImages];
+          const targetImage = newImages.find(img => img.zIndex === currentZIndex - 1);
+          if (targetImage) {
+            targetImage.zIndex = currentZIndex;
+            currentImage.zIndex = currentZIndex - 1;
+            setSavedImages(newImages);
+            announceOverlapOrder(currentImage);
+          }
+        } else {
+          speakMessage(`${currentImage.name} is already at the bottom`);
+        }
+        break;
+    }
+  };
+
+  // Add function to check for overlapping images
+  const getOverlappingImages = (image) => {
+    const { x: currX, y: currY } = image.canvas;
+    const { width: currWidth, height: currHeight } = image.sizeParts;
+    const tolerance = -(currWidth / 20);
+
+    const currLeft = currX - currWidth / 2 - tolerance;
+    const currRight = currX + currWidth / 2 + tolerance;
+    const currTop = currY - currHeight / 2 - tolerance;
+    const currBottom = currY + currHeight / 2 + tolerance;
+
+    return savedImages.filter(otherImage => {
+      if (otherImage === image) return false;
+
+      const { x: otherX, y: otherY } = otherImage.canvas;
+      const { width: otherWidth, height: otherHeight } = otherImage.sizeParts;
+
+      const otherLeft = otherX - otherWidth / 2 - tolerance;
+      const otherRight = otherX + otherWidth / 2 + tolerance;
+      const otherTop = otherY - otherHeight / 2 - tolerance;
+      const otherBottom = otherY + otherHeight / 2 + tolerance;
+
+      return !(otherRight < currLeft ||
+        otherLeft > currRight ||
+        otherBottom < currTop ||
+        otherTop > currBottom);
+    });
+  };
+
+  // Add function to announce overlap order
+  const announceOverlapOrder = (currentImage) => {
+    const overlappingImages = getOverlappingImages(currentImage);
+    
+    if (overlappingImages.length === 0) {
+      speakImmediate(`${currentImage.name} is not overlapping with any other images`, 1);
+      return;
+    }
+
+    // Sort overlapping images by z-index
+    const sortedOverlaps = overlappingImages.sort((a, b) => a.zIndex - b.zIndex);
+    
+    // Create announcement message
+    let message = `${currentImage.name} is overlapping with: `;
+    sortedOverlaps.forEach((img, index) => {
+      const position = img.zIndex < currentImage.zIndex ? 'below' : 'above';
+      message += `${img.name} is ${position} the ${currentImage.name} `;
+    });
+    
+    speakImmediate(message, 1);
   };
 
   return (
@@ -2856,11 +2957,18 @@ const startLoadingSound = async (voiceText) => {
           >
           <h4>Canvas</h4>
               <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
-              {savedImages.map((image, index) => {
+              {savedImages
+                .sort((a, b) => a.zIndex - b.zIndex) // Sort images by zIndex
+                .map((image, index) => {
                 if (image.image_nbg !== '') { 
                     return (
                         <div key={index} 
-                             style={{ position: 'absolute', left: `${image.canvas.x - ( image.sizeParts.width / 2 ) }px`, top: `${image.canvas.y  - ( image.sizeParts.width / 2 )}px` }} 
+                             style={{ 
+                               position: 'absolute', 
+                               left: `${image.canvas.x - ( image.sizeParts.width / 2 ) }px`, 
+                               top: `${image.canvas.y  - ( image.sizeParts.width / 2 )}px`,
+                               zIndex: image.zIndex // Apply zIndex to the div
+                             }} 
                              tabIndex={0}>
                             <img
                                 src={image.image_nbg}
@@ -2980,6 +3088,12 @@ const startLoadingSound = async (voiceText) => {
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>Ctrl</kbd> + <kbd>V</kbd>: Paste Image - Paste the copied image.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>Shift</kbd> + <kbd>O</kbd>: Overlap Mode - Toggle overlap mode for images.
+                </li>
+                <li style={{marginBottom: '2%'}}>
+                  <kbd>ESC</kbd>: Exit Mode - Exit any of the modes at a given point.
                 </li>
               </ul>
               <p>Note: These shortcuts require a tile to be focused. If no tile is focused, a voice prompt will indicate that no tile is selected.</p>
