@@ -1465,7 +1465,7 @@ const startLoadingSound = async (voiceText) => {
 
     if(!keyOptions){
 
-    const hasImage = savedImages.find(image => image.coordinate.x === tiles[index].x & image.coordinate.y === tiles[index].y)
+    const hasImage = savedImages.find(image => !image.isBackground && image.coordinate.x === tiles[index].x && image.coordinate.y === tiles[index].y)
     if (hasImage) {
       oldImage = hasImage;
     }
@@ -1485,7 +1485,7 @@ const startLoadingSound = async (voiceText) => {
 
           movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newY =  tiles[index].y - tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetTile = savedImages.find(image => !image.isBackground && image.coordinate.x === newX && image.coordinate.y === newY);
           targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           console.log('targetTile',targetTile);
           if(targetTile){
@@ -1494,12 +1494,6 @@ const startLoadingSound = async (voiceText) => {
             console.log('movingIndex up',movingIndex)
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing UP - Moving Index: ${movingIndex}`);
-            
-            // logEvent({
-            //   time: currentTime,
-            //   action: 'pushup',
-            //   focusedIndex: movingIndex,
-            // });
           }
 
           break;
@@ -1510,7 +1504,7 @@ const startLoadingSound = async (voiceText) => {
 
           movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newY =  tiles[index].y + tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetTile = savedImages.find(image => !image.isBackground && image.coordinate.x === newX && image.coordinate.y === newY);
           targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           console.log('targetTile',targetTile);
           if(targetTile){
@@ -1518,12 +1512,6 @@ const startLoadingSound = async (voiceText) => {
           }else{
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing DOwn - Moving Index: ${movingIndex}`);
-            
-            // logEvent({
-            //   time: currentTime,
-            //   action: 'pushdown',
-            //   focusedIndex: movingIndex,
-            // });
           }
 
           break;
@@ -1533,7 +1521,7 @@ const startLoadingSound = async (voiceText) => {
 
           movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newX =  tiles[index].x - tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetTile = savedImages.find(image => !image.isBackground && image.coordinate.x === newX && image.coordinate.y === newY);
           targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the left. Push the Image left first.')
@@ -1541,11 +1529,6 @@ const startLoadingSound = async (voiceText) => {
           else{
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing left - Moving Index: ${movingIndex}`);
-            // logEvent({
-            //   time: currentTime,
-            //   action: 'pushleft',
-            //   focusedIndex: movingIndex,
-            // });
           }
           break;
 
@@ -1554,7 +1537,7 @@ const startLoadingSound = async (voiceText) => {
 
           movingIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           newX =  tiles[index].x + tileSize;
-          targetTile = savedImages.find(image => image.coordinate.x === newX && image.coordinate.y === newY);
+          targetTile = savedImages.find(image => !image.isBackground && image.coordinate.x === newX && image.coordinate.y === newY);
           targetIndex = tiles.findIndex(tile => tile.x === newX && tile.y === newY);
           if(targetTile){
             speakMessage('There is an image in the tile to the right. Push the Image right first.')
@@ -1562,11 +1545,6 @@ const startLoadingSound = async (voiceText) => {
           else{
             pushImage(tiles[movingIndex], newX, newY);
             console.log(`${currentTime}: Pushing Right - Moving Index: ${movingIndex}`);
-            // logEvent({
-            //   time: currentTime,
-            //   action: 'pushright',
-            //   focusedIndex: movingIndex,
-            // });
           }
           break;
 
@@ -1649,13 +1627,12 @@ const startLoadingSound = async (voiceText) => {
 
     console.log('newIndex', newIndex)
 
-    const imageObject = savedImages.findIndex(image => image.coordinate.x === newX && image.coordinate.y === newY);
+    const imageObject = savedImages.findIndex(image => !image.isBackground && image.coordinate.x === newX && image.coordinate.y === newY);
           
 
     if (imageObject !== -1 || tiles.length === 1) {
       if(!savedImages[imageObject] && !keyOptions){
         tileRefs.current[focusedIndex].focus();
-        // speakMessage('You are currently focused on the first tile. Press enter to generate the first image on the canvas')
       }else{
         speakMessage(`${savedImages[imageObject].name}`)
       }
@@ -1669,9 +1646,7 @@ const startLoadingSound = async (voiceText) => {
           playSpatialSound(direction);
       }
     }
-
   }
-
   };
 
   const enterLocationEditMode = (gridIndex) => {
@@ -1870,8 +1845,8 @@ const startLoadingSound = async (voiceText) => {
             tileRefs.current[focusedIndex].focus();
           }
         } 
-      }  else if (e.key === 'Q') {
-        if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y) ) {
+      } else if (e.key === 'Q' && !e.shiftKey) {  // Added handler for Q key
+        if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
           console.log(`${currentTime}: Chat - Focused Index: ${focusedIndex}`);
@@ -1971,18 +1946,12 @@ const startLoadingSound = async (voiceText) => {
   };
 
   const isImageOnTile = (tileX, tileY) => {
-    // First check if there's a background image
-    const hasBackground = savedImages.some(image => image.isBackground);
-    
-    // Then check for regular images at the specific coordinates
-    const hasRegularImage = savedImages.some(image => 
+    // Only check for regular images at the specific coordinates
+    return savedImages.some(image => 
       !image.isBackground && 
       Math.abs(image.coordinate.x - tileX) < 1 && 
       Math.abs(image.coordinate.y - tileY) < 1
     );
-
-    // Return true if there's either a background image or a regular image at the coordinates
-    return hasBackground || hasRegularImage;
   };
 
   const generateDescriptionPrompt = (savedImages) => {
@@ -2090,91 +2059,47 @@ const startLoadingSound = async (voiceText) => {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Create a counter to track loaded images
-    let totalImages = savedImages.length;
-    let loadedImages = 0;
-    
-    // If no images, just return early
+    // If no images, return a blank canvas
     if (savedImages.length === 0) {
       console.log('No images to capture');
-      return null;
+      const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+      const blob = await (await fetch(dataUrl)).blob();
+      return URL.createObjectURL(blob);
     }
     
-    // Load all images manually to avoid CORS issues
-    return new Promise((resolve, reject) => {
-      savedImages.forEach((image, index) => {
-        console.log(`Processing image ${index + 1}/${totalImages}:`, {
-          name: image.name,
-          url: image.image_nbg || image.url,
-          position: image.canvas,
-          size: image.sizeParts
-        });
-        
+    // Load all images and draw them on the canvas
+    const imagePromises = savedImages.map(async (image) => {
+      return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         
-        // When image loads, draw it on canvas
         img.onload = () => {
           const x = (image.canvas.x - (image.sizeParts.width / 2)) * scaleFactor;
           const y = (image.canvas.y - (image.sizeParts.height / 2)) * scaleFactor;
           const width = image.sizeParts.width * scaleFactor;
           const height = image.sizeParts.height * scaleFactor;
           
-          console.log(`Drawing image ${index + 1} at:`, {
+          console.log(`Drawing image:`, {
+            name: image.name,
             x, y, width, height
           });
           
           ctx.drawImage(img, x, y, width, height);
-          
-          loadedImages++;
-          console.log(`Loaded ${loadedImages}/${totalImages} images`);
-          
-          if (loadedImages === totalImages) {
-            // Use JPEG format with reduced quality when there's a background image
-            const quality = hasBackground ? 0.5 : 1.0;
-            console.log('Converting canvas to JPEG with quality:', quality);
-            
-            // Convert to base64 and ensure it's a valid URL
-            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            console.log('Data URL length:', dataUrl.length);
-            
-            // Create a blob from the data URL
-            fetch(dataUrl)
-              .then(res => res.blob())
-              .then(blob => {
-                console.log('Created blob:', {
-                  size: blob.size,
-                  type: blob.type
-                });
-                
-                // Create a URL from the blob
-                const imageUrl = URL.createObjectURL(blob);
-                console.log('Created object URL:', imageUrl);
-                resolve(imageUrl);
-              })
-              .catch(error => {
-                console.error('Error creating image URL:', error);
-                reject(error);
-              });
-          }
+          resolve();
         };
         
-        // If image fails to load, draw a placeholder
         img.onerror = (error) => {
-          console.error(`Failed to load image ${index + 1}:`, {
-            error,
-            url: image.image_nbg || image.url
+          console.error(`Failed to load image:`, {
+            name: image.name,
+            url: image.image_nbg || image.url,
+            error
           });
           
-          // Draw a placeholder rectangle
+          // Draw a placeholder for failed images
           const x = (image.canvas.x - (image.sizeParts.width / 2)) * scaleFactor;
           const y = (image.canvas.y - (image.sizeParts.height / 2)) * scaleFactor;
           const width = image.sizeParts.width * scaleFactor;
           const height = image.sizeParts.height * scaleFactor;
-          
-          console.log(`Drawing placeholder for image ${index + 1} at:`, {
-            x, y, width, height
-          });
           
           ctx.fillStyle = '#f0f0f0';
           ctx.fillRect(x, y, width, height);
@@ -2184,38 +2109,11 @@ const startLoadingSound = async (voiceText) => {
           ctx.font = '14px Arial';
           ctx.fillText(image.name || 'Image', x + 10, y + height / 2);
           
-          loadedImages++;
-          console.log(`Loaded ${loadedImages}/${totalImages} images (with placeholder)`);
-          
-          if (loadedImages === totalImages) {
-            const quality = hasBackground ? 0.5 : 1.0;
-            console.log('Converting canvas to JPEG with quality:', quality);
-            
-            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            console.log('Data URL length:', dataUrl.length);
-            
-            fetch(dataUrl)
-              .then(res => res.blob())
-              .then(blob => {
-                console.log('Created blob:', {
-                  size: blob.size,
-                  type: blob.type
-                });
-                
-                const imageUrl = URL.createObjectURL(blob);
-                console.log('Created object URL:', imageUrl);
-                resolve(imageUrl);
-              })
-              .catch(error => {
-                console.error('Error creating image URL:', error);
-                reject(error);
-              });
-          }
+          resolve();
         };
         
-        // Always use proxied images to avoid CORS issues
+        // Get the appropriate image source
         let imgSrc = image.image_nbg || image.url;
-        console.log(`Loading image ${index + 1} from:`, imgSrc);
         
         // Use our proxy for any external images to avoid CORS issues
         if (imgSrc.includes('oaidalleapiprodscus.blob.core.windows.net') || 
@@ -2224,14 +2122,36 @@ const startLoadingSound = async (voiceText) => {
           // Proxy the image through our server
           const encodedUrl = encodeURIComponent(imgSrc);
           img.src = `/proxy-image?url=${encodedUrl}`;
-          console.log(`Using proxied URL for image ${index + 1}:`, img.src);
         } else {
           // For data URLs or relative paths, use directly
           img.src = imgSrc;
-          console.log(`Using direct URL for image ${index + 1}:`, img.src);
         }
       });
     });
+    
+    try {
+      // Wait for all images to load and be drawn
+      await Promise.all(imagePromises);
+      
+      // Convert canvas to blob
+      const quality = hasBackground ? 0.5 : 1.0;
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const blob = await (await fetch(dataUrl)).blob();
+      
+      console.log('Created blob:', {
+        size: blob.size,
+        type: blob.type
+      });
+      
+      // Create and return the blob URL
+      const imageUrl = URL.createObjectURL(blob);
+      console.log('Created object URL:', imageUrl);
+      return imageUrl;
+      
+    } catch (error) {
+      console.error('Error creating canvas image:', error);
+      throw error;
+    }
   };
 
 
@@ -2332,6 +2252,21 @@ const startLoadingSound = async (voiceText) => {
   
       speakMessage(`You have asked: ${voiceInput}.`);
   
+      // Convert blob URL to base64 if it's a blob URL
+      let base64Image;
+      if (imageURL.startsWith('blob:')) {
+        const response = await fetch(imageURL);
+        const blob = await response.blob();
+        base64Image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } else {
+        base64Image = imageURL;
+      }
+  
       let customPrompt = `
         You are describing an image to a Blind and Visually Impaired Person.
         Keep the description brief and straightforward.
@@ -2340,10 +2275,13 @@ const startLoadingSound = async (voiceText) => {
         ${voiceInput}
       `;
   
-      const response = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt});  
+      const response = await axios.post("/api/openai/description", { 
+        prompt: customPrompt,
+        canvasImage: base64Image
+      });  
       console.log('Image Chat Response:', response);
   
-      if (response) {
+      if (response.data && response.data.description) {
         const description = response.data.description;
         console.log('Generated Description:', description);
         speakMessage(description);
@@ -2380,14 +2318,23 @@ const startLoadingSound = async (voiceText) => {
   };
 
   const updateImageAtIndex = (gridIndex, newImageObject) => {
-
     let updatedSavedImages = [...savedImages];
 
     const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
+    const tileY = tiles[gridIndex].y;
+    // Exclude background images when finding an image to replace
+    const imageIndex = savedImages.findIndex(image => 
+      !image.isBackground && 
+      image.coordinate.x === tileX && 
+      image.coordinate.y === tileY
+    );
     
-    updatedSavedImages[imageIndex] = newImageObject;
+    if (imageIndex !== -1) {
+      updatedSavedImages[imageIndex] = newImageObject;
+    } else {
+      // If no existing image found, append the new one
+      updatedSavedImages.push(newImageObject);
+    }
     
     setSavedImages(updatedSavedImages);
   };
@@ -2908,6 +2855,22 @@ const startLoadingSound = async (voiceText) => {
 
       // Capture the canvas image
       const canvasImage = await captureCanvasImage(savedImages, canvasSize);
+      if (!canvasImage) {
+        speakMessage("Error capturing canvas image.");
+        setCanvasQuestionActive(false);
+        return;
+      }
+
+      // Convert blob URL to base64
+      const imageResponse = await fetch(canvasImage);
+      const blob = await imageResponse.blob();
+      const reader = new FileReader();
+      
+      const base64Image = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
       
       const customPrompt = `
         You are describing a canvas to a Blind and Visually Impaired Person.
@@ -2927,7 +2890,7 @@ const startLoadingSound = async (voiceText) => {
 
       const response = await axios.post("/api/openai/description", { 
         prompt: customPrompt,
-        canvasImage: canvasImage
+        canvasImage: base64Image
       });
 
       if (response.data && response.data.description) {
