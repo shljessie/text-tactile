@@ -30,8 +30,11 @@ export const SonicTiles = () => {
   const [settingsOpen, setOpenSettings] = useState(false);
   const [graphicsMode, setGraphicsMode] = useState(initialGraphicsMode);
   const [speechSpeed, setSpeechSpeed] = useState(initialSpeechSpeed);
+  const [backgroundImage, setBackgroundImage] = useState(null);
   const [isRendering, setIsRendering] = useState(false);
   const [copiedImage, setCopiedImage] = useState(null);
+  const [canvasQuestionActive, setCanvasQuestionActive] = useState(false);
+  const [canvasDescriptionActive, setCanvasDescriptionActive] = useState(false);
 
 
   // Update localStorage when settings change
@@ -325,13 +328,13 @@ export const SonicTiles = () => {
 
   const commands = [
     "Command One,  Enter: Generate/regenerate image on a tile",
-    "Command Two, Shift + G as in Global: Hear the global description of the canvas with all the images on it",
-    "Command Three, Shift + I as in Information: Hear the local information about selected item on the tile",
-    "Command Four, Shift + C as in Chat: Ask a question about the image on the tile",
+    "Command Two, Shift + D as in Description: Hear the description of the entire canvas",
+    "Command Three, D as in Description: Hear the image information about selected item on the tile",
+    "Command Four, Q as in Question: Ask a question about the image on the tile",
     "Command Five, Shift + L as in Location: Enter Location Edit Mode",
     "Command Six, Shift + S as in Size: Enter Size Edit Mode",
     "Command Seven,  Shift + R as in Radar: Radar scan for nearby objects",
-    "Command Eight, Shift + D as in Dog: Render Final Canvas",
+    "Command Eight, Shift + T as in Type: Render Final Canvas",
     "Command Nine, Shift + K as in Keyboard: Hear Keyboard Instructions",  
     "Command Ten, Shift + X as Xylophone: Delete Image",
     "Command Eleven, Shift + ? as Question: Ask a question about how to use AltCanvas",
@@ -346,29 +349,27 @@ export const SonicTiles = () => {
   // Add action-oriented command descriptions
   const actionCommands = [
     "Generate Image: Press Enter on a tile to generate an image",
-    "Global Description: Press Shift+G to hear a description of the entire canvas",
-    "Image Information: Press Shift+I to hear details about the selected image",
-    "Image Chat: Press Shift+C to ask questions about the selected image",
+    "Exit Mode: Press Escape to exit any mode or to stop the AI from speaking",
+    "Canvas Description: Press Shift+D to hear a description of the entire canvas",
+    "Canvas Question: Press Shift+Q to ask questions about the entire canvas",
+    "Image Description: Press D to hear details about the selected image",
+    "Image Chat: Press Q to ask questions about the selected image",
     "Location Edit: Press Shift+L, then use arrow keys to move the image",
     "Size Edit: Press Shift+S, then use up/down arrow keys to change size",
     "Radar Scan: Press Shift+R to hear about nearby objects",
-    "Render Canvas: Press Shift+D to render the final canvas",
+    "Render Canvas: Press Shift+T to render the final canvas",
     "Keyboard Commands: Press Shift+K to hear these instructions",
     "Delete Image: Press Shift+X to delete the selected image",
-    "Ask Questions: Press Shift+? to ask questions about how to use AltCanvas",
-    "Instructions: Press Shift+H to open the instructions dialog",
-    "Settings: Press Shift+P to open the settings dialog",
     "Clear Canvas: Press Shift+Z to clear the entire canvas",
     "Copy Image: Press Ctrl+C to copy the selected image",
     "Paste Image: Press Ctrl+V to paste the copied image",
-    "Exit Mode: Press Escape to exit any mode"
   ];
 
   // Command titles for quick navigation
   const commandTitles = [
     "Generate Image",
-    "Global Description of Canvas",
-    "Image Information on a Single Tile",
+    "Canvas Description",
+    "Image Description",
     "Image Chat",
     "Location Edit",
     "Size Edit",
@@ -387,10 +388,6 @@ export const SonicTiles = () => {
 
   let currentCommandIndex = 0;
   let keyOptions;
-
-  function displayCurrentCommand() {
-    console.log(`Current Command: ${actionCommands[currentCommandIndex]}`);
-  }
   
   function defaultKeyOptions(event) {
 
@@ -405,8 +402,8 @@ export const SonicTiles = () => {
       setTimeout(() => {
         speakImmediate('The current command is: ' + commandTitles[currentCommandIndex], speechSpeed);
       }, 3000); // 3 second delay to allow instructions to be read first
-    } else if (event.shiftKey && event.key === 'D') {
-      console.log('Shift+S pressed');
+    } else if (event.shiftKey && event.key === 'T') {
+      console.log('Shift+T pressed');
       renderCanvas(savedImages);
     } else if (event.shiftKey && event.key === 'H') {
       console.log('Shift+H pressed');
@@ -435,7 +432,7 @@ export const SonicTiles = () => {
             speakImmediate("Selected: Generate Image. Press Enter on a tile to generate an image.", speechSpeed);
             break;
           case 1: // Global Description
-            speakImmediate("Selected: Global Description. Press Shift+G to hear a description of the entire canvas.", speechSpeed);
+            speakImmediate("Selected: Canvas Description. Press Shift+D to hear a description of the entire canvas.", speechSpeed);
             break;
           case 2: // Image Information
             speakImmediate("Selected: Image Information. Press Shift+I to hear details about the selected image.", speechSpeed);
@@ -630,7 +627,7 @@ export const SonicTiles = () => {
     console.log('SAVED IMAGES', savedImages);
   }, [savedImages]);
 
-  let [globalDescriptionPrompt, setglobalDescriptionPrompt ] = useState('')
+  let [canvasDescriptionPrompt, setcanvasDescriptionPrompt ] = useState('')
   const [showInstructions, setShowInstructions] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -753,17 +750,21 @@ export const SonicTiles = () => {
   useEffect(() => {
         if (savedImages.length > 0) {
           const latestImage = savedImages[savedImages.length - 1];
+          
+          // Skip if the latest image is a background image
+          if (latestImage.isBackground) {
+            return;
+          }
+          
           setFocusedIndex(savedImages.length - 1);
-    
           const existingTileIndex = focusedIndex;
 
-          console.log('existingTileInex', existingTileIndex)
           if (existingTileIndex === -1) {
-            return
+            return;
           } else if (isEditingLocation) {
             console.log('Editing Image', savedImages[editingImageIndex])
             const newTile = tiles.findIndex(tile => tile.x === savedImages[editingImageIndex].coordinate.x && tile.y === savedImages[editingImageIndex].coordinate.y);
-            console.log('New tile the iamge has moved to ', newTile)
+            console.log('New tile the image has moved to ', newTile)
             const centralTile = tiles[newTile];
             console.log('centralTile', centralTile);
             addSurroundingTiles(centralTile);
@@ -1233,7 +1234,7 @@ const startLoadingSound = async (voiceText) => {
             setIsGeneratingImage(true);
             setTimeout(() => {
               playNotes();
-            }, 50); // small delay to ensure state is updated
+            }, 500); // small delay to ensure state is updated
             resolve(true);
           } else if (event.key === "Escape") {
             resolve(false);
@@ -1393,10 +1394,6 @@ const startLoadingSound = async (voiceText) => {
   
     // Update state with new tiles, if any
     setTiles(tiles => [...tiles, ...newTiles]);
-  }
-
-  const getSurroundingPositions = (index) => {
-    console.log('tiles', tiles[index])
   }
 
   const playSpatialSound = (direction) => {
@@ -1751,13 +1748,18 @@ const startLoadingSound = async (voiceText) => {
   
 
   useEffect(() => {
-    
-
     const handleKeyDown = (e) => {
       const currentTime = getFormattedTimestamp();
       console.log('focused Index', focusedIndex)
-      
-      if (e.shiftKey && e.key === 'O') {
+      if (e.shiftKey && e.key === 'Q') {
+        console.log('Canvas Question Mode Activated');
+        console.log(`${currentTime}: Canvas Question - Focused Index: ${focusedIndex}`);
+        handleCanvasQuestion();
+      } else if (e.shiftKey && e.key === 'D') {
+        console.log('Canvas Description Mode Activated');
+        speakMessage('Describing Canvas. Press the Escape Key to stop me.')
+        canvasDescription();
+      } else if (e.shiftKey && e.key === 'O') {
         if (focusedIndex !== null) {
           const tileX = tiles[focusedIndex].x;
           const tileY = tiles[focusedIndex].y;
@@ -1803,12 +1805,6 @@ const startLoadingSound = async (voiceText) => {
           setRadarActive(true);
           console.log(`${currentTime}: Radar Scan - Focused Index: ${focusedIndex}`);
           
-          // logEvent({
-          //   time: currentTime,
-          //   action: 'radar_scan_start',
-          //   focusedIndex: focusedIndex,
-          // });
-
           playModeNotification("Radar Scan Activated. You will hear relative location of other objects on the canvas.", () => {
             radarScan(focusedIndex); 
           });
@@ -1829,12 +1825,6 @@ const startLoadingSound = async (voiceText) => {
             console.log('Focused Index', focusedIndex);
             console.log(`${currentTime}: Location Edit - Focused Index: ${focusedIndex}`);
 
-            // logEvent({
-            //   time: currentTime,
-            //   action: 'location_edit_start',
-            //   focusedIndex: focusedIndex,
-            // });
-
             setlocationEditActive(true); 
             const imageIndex = savedImages.findIndex(image => image.coordinate.x === tiles[focusedIndex].x && image.coordinate.y === tiles[focusedIndex].y)
             playModeNotification(`Location Edit. Use the Arrow keys to edit the location by 20.  Press Shift to hear the coordinates.`);
@@ -1853,12 +1843,6 @@ const startLoadingSound = async (voiceText) => {
           console.log('Size Edit Activated');
           console.log('Focused Index', focusedIndex);
           console.log(`${currentTime}: Size Edit - Focused Index: ${focusedIndex}`);
-
-          // logEvent({
-          //   time: currentTime,
-          //   action: 'size_edit_start',
-          //   focusedIndex: focusedIndex,
-          // });
           
           setsizeEditActive(true); 
           playModeNotification("Size Edit. Use up down arrow keys to edit the size by 10 each. Press Shift to hear size Info.");
@@ -1872,35 +1856,21 @@ const startLoadingSound = async (voiceText) => {
           speakMessage('There is no image on this tile.');
           console.log("No tile is focused.");
         }
-      } else if (e.shiftKey && e.key === 'I') {
+      } else if (e.key === 'D' && !e.shiftKey) {  // Added !e.shiftKey check
         if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y)) {
           setinfoActive(true); 
-          console.log(`${currentTime}: Local Information - Focused Index: ${focusedIndex}`);
+          console.log(`${currentTime}: Image Description - Focused Index: ${focusedIndex}`);
 
-          // logEvent({
-          //   time: currentTime,
-          //   action: 'localInfo_start',
-          //   focusedIndex: focusedIndex,
-          // });
-
-          playModeNotification("Describing Image on Tile. Press the Escape Key to stop me.", () => {
-            setFocusedIndex(focusedIndex)
-            readInfo(focusedIndex);
-            setFocusedIndex(focusedIndex)
+          playModeNotification("Describing Image on Tile.", () => {
+            setFocusedIndex(focusedIndex);
+            fetchImageDescription(focusedIndex);
           });
-          setFocusedIndex(focusedIndex)
+          
           if (tileRefs.current[focusedIndex]) {
             tileRefs.current[focusedIndex].focus();
           }
-
-          setTimeout(() => {
-            setinfoActive(false);
-          }, 3000); 
-        } else {
-          speakMessage('There is no image on this tile.');
-          console.log("There is no image on this tile.");
-        }
-      }  else if (e.shiftKey && e.key === 'C') {
+        } 
+      }  else if (e.key === 'Q') {
         if (focusedIndex !== null && isImageOnTile(tiles[focusedIndex].x, tiles[focusedIndex].y) ) {
           console.log('Focused Index', focusedIndex);
           setchatActive(true); 
@@ -1922,26 +1892,9 @@ const startLoadingSound = async (voiceText) => {
           speakMessage('There is no image on this tile.');
           console.log("No tile is focused.");
         }
-      } else if (e.shiftKey && e.key === 'G') {
-        speakMessage('Describing Canvas. Press the Escape Key to stop me.')
-        fetchGlobalDescription();
-
-        // logEvent({
-        //   time: currentTime,
-        //   action: 'globalInfo_start',
-        //   focusedIndex: focusedIndex,
-        // });
-        console.log(`${currentTime}: Global Information - Focused Index: ${focusedIndex}`);
-      }
-      else if (e.shiftKey && e.key === 'X') {
+      } else if (e.shiftKey && e.key === 'X') {
         speakMessage('Deleted Image on Tile.')
         deleteImage(focusedIndex)
-
-        // logEvent({
-        //   time: currentTime,
-        //   action: 'delete_image',
-        //   focusedIndex: focusedIndex,
-        // });
         
         console.log(`${currentTime}: Deleted Image- Focused Index: ${focusedIndex}`);
       }
@@ -2017,81 +1970,343 @@ const startLoadingSound = async (voiceText) => {
     });
   };
 
-  const readInfo = (gridIndex) => {
-    const tileX = tiles[gridIndex].x;
-    const tileY= tiles[gridIndex].y
-    const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY)
-    
-    const image = savedImages[imageIndex];
-
-    console.log('image.coordinate.x / canvasSize.width', image.coordinate.x / canvasSize.width)
-
-    const script = `
-      The image is called ${image.name}.
-      It is located x coordinate ${image.coordinate.x} and y coordinate ${image.coordinate.y} 
-      The size of the image is ${image.sizeParts.width} in width and  ${image.sizeParts.height} in height
-      ${image.descriptions}
-    `
-
-    console.log('Read Info Script:', script)
-    speakMessage(script);
-
-  };
-
   const isImageOnTile = (tileX, tileY) => {
-    const imageExists = savedImages.some(image => 
+    // First check if there's a background image
+    const hasBackground = savedImages.some(image => image.isBackground);
+    
+    // Then check for regular images at the specific coordinates
+    const hasRegularImage = savedImages.some(image => 
+      !image.isBackground && 
       Math.abs(image.coordinate.x - tileX) < 1 && 
       Math.abs(image.coordinate.y - tileY) < 1
     );
-    console.log('Checking image on tile:', { tileX, tileY, imageExists });
-    return imageExists;
+
+    // Return true if there's either a background image or a regular image at the coordinates
+    return hasBackground || hasRegularImage;
   };
 
   const generateDescriptionPrompt = (savedImages) => {
     if (!savedImages || savedImages.length === 0) {
       return "There are no images on the canvas.";
     }
-  
-    let descriptions = savedImages.map((img, index) => {
-      return `Image ${index + 1} named "${img.name}" with prompt "${img.prompt}" is positioned at coordinates (${img.canvas.x}, ${img.canvas.y}) on the canvas, measuring ${img.sizeParts.width} pixels wide by ${img.sizeParts.height} pixels high.`;
-    }).join(" ");
-  
+
+    // Find background image if it exists
+    const backgroundImage = savedImages.find(img => img.isBackground);
+    
+    // Create a detailed description of each image
+    let imageDetails = savedImages.map((img, index) => {
+      if (img.isBackground) {
+        return `
+          Background Image:
+          - Size: ${img.sizeParts.width}px × ${img.sizeParts.height}px
+        `;
+      }
+      return `
+        Image ${index + 1}:
+        - Name: "${img.name}"
+        - Description: "${img.descriptions}"
+        - Position: (${img.canvas.x}, ${img.canvas.y})
+        - Size: ${img.sizeParts.width}px × ${img.sizeParts.height}px
+        - Z-Index: ${img.zIndex} (higher numbers are on top)
+      `;
+    }).join("\n");
+
+    // Calculate relative positions and overlaps
+    let spatialRelations = [];
+    for (let i = 0; i < savedImages.length; i++) {
+      for (let j = i + 1; j < savedImages.length; j++) {
+        const img1 = savedImages[i];
+        const img2 = savedImages[j];
+        
+        // Calculate center points
+        const center1 = { x: img1.canvas.x, y: img1.canvas.y };
+        const center2 = { x: img2.canvas.x, y: img2.canvas.y };
+        
+        // Calculate distance between centers
+        const distance = Math.sqrt(
+          Math.pow(center2.x - center1.x, 2) + 
+          Math.pow(center2.y - center1.y, 2)
+        );
+        
+        // Determine relative position
+        let position = "";
+        if (Math.abs(center2.x - center1.x) > Math.abs(center2.y - center1.y)) {
+          position = center2.x > center1.x ? "to the right of" : "to the left of";
+        } else {
+          position = center2.y > center1.y ? "below" : "above";
+        }
+        
+        spatialRelations.push(
+          `${img2.name} is ${position} ${img1.name} at a distance of ${Math.round(distance)} pixels`
+        );
+      }
+    }
+
     return `
       You are describing an image to a Visually Impaired User.
-      Give a one-line brief description of what the image looks like.
-      Describe the layout of the following images on a canvas based on their coordinates and sizes in a verbal way without 
-      using exact numbers: ${descriptions}.
-      DO NOT say that it is a square shape. Keep the description short within a paragraph.
-      Describe the relative locations of the images and their sizes.
-      Considering that there are spaces above and below the image, describe whether or not one image looks like it is placed on top of the other.
+      Give a clear, concise description of the canvas layout and the relationships between images.
+      
+      Here are the images on the canvas:
+      ${imageDetails}
+      
+      Spatial relationships:
+      ${spatialRelations.join("\n")}
+      
+      Please provide a natural, flowing description that:
+      1. Describes the overall layout of the canvas
+      2. Mentions the relative positions of images
+      3. Notes any overlapping images and which is on top
+      4. Keeps the description brief and easy to understand
+      5. Avoids using exact pixel measurements
+      6. Uses natural language to describe positions (e.g., "top left", "center", "bottom right")
+      
+      Start by describing the canvas as a whole from the background.
+      Focus on creating a mental picture of how the images are arranged on the canvas.
     `;
   };
   
-  const fetchGlobalDescription = async () => {
+  const captureCanvasImage = async (savedImages, canvasSize) => {
+    console.log('Starting canvas capture with', savedImages.length, 'images');
+    
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    
+    // Apply size reduction if there's a background image, regardless of other images
+    const hasBackground = savedImages.some(img => img.isBackground);
+    const scaleFactor = hasBackground ? 0.5 : 1;
+    canvas.width = canvasSize.width * scaleFactor;
+    canvas.height = canvasSize.height * scaleFactor;
+    
+    console.log('Canvas dimensions:', {
+      width: canvas.width,
+      height: canvas.height,
+      scaleFactor,
+      hasBackground
+    });
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Fill with white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Create a counter to track loaded images
+    let totalImages = savedImages.length;
+    let loadedImages = 0;
+    
+    // If no images, just return early
+    if (savedImages.length === 0) {
+      console.log('No images to capture');
+      return null;
+    }
+    
+    // Load all images manually to avoid CORS issues
+    return new Promise((resolve, reject) => {
+      savedImages.forEach((image, index) => {
+        console.log(`Processing image ${index + 1}/${totalImages}:`, {
+          name: image.name,
+          url: image.image_nbg || image.url,
+          position: image.canvas,
+          size: image.sizeParts
+        });
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        // When image loads, draw it on canvas
+        img.onload = () => {
+          const x = (image.canvas.x - (image.sizeParts.width / 2)) * scaleFactor;
+          const y = (image.canvas.y - (image.sizeParts.height / 2)) * scaleFactor;
+          const width = image.sizeParts.width * scaleFactor;
+          const height = image.sizeParts.height * scaleFactor;
+          
+          console.log(`Drawing image ${index + 1} at:`, {
+            x, y, width, height
+          });
+          
+          ctx.drawImage(img, x, y, width, height);
+          
+          loadedImages++;
+          console.log(`Loaded ${loadedImages}/${totalImages} images`);
+          
+          if (loadedImages === totalImages) {
+            // Use JPEG format with reduced quality when there's a background image
+            const quality = hasBackground ? 0.5 : 1.0;
+            console.log('Converting canvas to JPEG with quality:', quality);
+            
+            // Convert to base64 and ensure it's a valid URL
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            console.log('Data URL length:', dataUrl.length);
+            
+            // Create a blob from the data URL
+            fetch(dataUrl)
+              .then(res => res.blob())
+              .then(blob => {
+                console.log('Created blob:', {
+                  size: blob.size,
+                  type: blob.type
+                });
+                
+                // Create a URL from the blob
+                const imageUrl = URL.createObjectURL(blob);
+                console.log('Created object URL:', imageUrl);
+                resolve(imageUrl);
+              })
+              .catch(error => {
+                console.error('Error creating image URL:', error);
+                reject(error);
+              });
+          }
+        };
+        
+        // If image fails to load, draw a placeholder
+        img.onerror = (error) => {
+          console.error(`Failed to load image ${index + 1}:`, {
+            error,
+            url: image.image_nbg || image.url
+          });
+          
+          // Draw a placeholder rectangle
+          const x = (image.canvas.x - (image.sizeParts.width / 2)) * scaleFactor;
+          const y = (image.canvas.y - (image.sizeParts.height / 2)) * scaleFactor;
+          const width = image.sizeParts.width * scaleFactor;
+          const height = image.sizeParts.height * scaleFactor;
+          
+          console.log(`Drawing placeholder for image ${index + 1} at:`, {
+            x, y, width, height
+          });
+          
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(x, y, width, height);
+          ctx.strokeStyle = '#999';
+          ctx.strokeRect(x, y, width, height);
+          ctx.fillStyle = '#999';
+          ctx.font = '14px Arial';
+          ctx.fillText(image.name || 'Image', x + 10, y + height / 2);
+          
+          loadedImages++;
+          console.log(`Loaded ${loadedImages}/${totalImages} images (with placeholder)`);
+          
+          if (loadedImages === totalImages) {
+            const quality = hasBackground ? 0.5 : 1.0;
+            console.log('Converting canvas to JPEG with quality:', quality);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            console.log('Data URL length:', dataUrl.length);
+            
+            fetch(dataUrl)
+              .then(res => res.blob())
+              .then(blob => {
+                console.log('Created blob:', {
+                  size: blob.size,
+                  type: blob.type
+                });
+                
+                const imageUrl = URL.createObjectURL(blob);
+                console.log('Created object URL:', imageUrl);
+                resolve(imageUrl);
+              })
+              .catch(error => {
+                console.error('Error creating image URL:', error);
+                reject(error);
+              });
+          }
+        };
+        
+        // Always use proxied images to avoid CORS issues
+        let imgSrc = image.image_nbg || image.url;
+        console.log(`Loading image ${index + 1} from:`, imgSrc);
+        
+        // Use our proxy for any external images to avoid CORS issues
+        if (imgSrc.includes('oaidalleapiprodscus.blob.core.windows.net') || 
+            imgSrc.includes('localhost:3001/images/') ||
+            imgSrc.startsWith('https://')) {
+          // Proxy the image through our server
+          const encodedUrl = encodeURIComponent(imgSrc);
+          img.src = `/proxy-image?url=${encodedUrl}`;
+          console.log(`Using proxied URL for image ${index + 1}:`, img.src);
+        } else {
+          // For data URLs or relative paths, use directly
+          img.src = imgSrc;
+          console.log(`Using direct URL for image ${index + 1}:`, img.src);
+        }
+      });
+    });
+  };
+
+
+  // SHIFT + D - Entire Canvas Description
+  const canvasDescription = async () => {
+    if (canvasDescriptionActive) {
+      console.log("Canvas description already in progress, skipping...");
+      return;
+    }
+    
+    setCanvasDescriptionActive(true);
     try {
-      console.log("Fetching global description...");
-  
-      const globalDescriptionPrompt = generateDescriptionPrompt(savedImages);
-      console.log("Generated Prompt:", globalDescriptionPrompt);
-  
-      const response = await axios.post("/api/openai/global-description", { prompt: globalDescriptionPrompt });
-  
-      console.log("Global description response received:", response);
-  
-      if (response.choices && response.choices.length > 0) {
-        const globalDescription = response.data.description;
-        console.log("Global Description:", globalDescription);
-        speakMessage(globalDescription);
-        return globalDescription;
+      console.log("[SHIFT + D - Entire Canvas Description]");
+
+      // If no images, just return early
+      if (savedImages.length === 0) {
+        speakMessage("There are no images on the canvas.");
+        setCanvasDescriptionActive(false);
+        return;
+      }
+
+      // Capture the canvas image
+      const canvasImage = await captureCanvasImage(savedImages, canvasSize);
+      if (!canvasImage) {
+        speakMessage("Error capturing canvas image.");
+        setCanvasDescriptionActive(false);
+        return;
+      }
+
+      console.log("Canvas image captured, sending to OpenAI...");
+      console.log("Image URL:", canvasImage);
+
+      // Convert blob URL to base64
+      const imageResponse = await fetch(canvasImage);
+      const blob = await imageResponse.blob();
+      const reader = new FileReader();
+      
+      const base64Image = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const customPrompt = `
+        You are describing a canvas to a Visually Impaired User.
+        Keep the description brief and straightforward.
+        Focus on describing the overall layout and arrangement of images.
+        Describe the spatial relationships between images.
+        If there's a background image, describe it first.
+      `;
+
+      console.log("Sending request to OpenAI with prompt:", customPrompt);
+
+      const response = await axios.post("/api/openai/description", { 
+        prompt: customPrompt,
+        canvasImage: base64Image
+      });
+
+      console.log("OpenAI response received:", response.data);
+
+      if (response.data && response.data.description) {
+        console.log("Speaking description:", response.data.description);
+        speakMessage(response.data.description);
       } else {
-        console.warn("No valid global description received.");
-        return "No global description available.";
+        console.warn("No description in response:", response.data);
+        speakMessage("Sorry, I couldn't generate a description for the canvas.");
       }
     } catch (error) {
-      console.error("Error fetching global description:", error);
-      return "Error fetching global description.";
+      console.error("Error in canvas description:", error);
+      console.error("Error details:", error.response ? error.response.data : error.message);
+      speakMessage("Error generating canvas description. Please try again.");
+    } finally {
+      setCanvasDescriptionActive(false);
     }
-  };  
+  };
   
   const imageChat = async (gridIndex) => {
     try {
@@ -2104,6 +2319,7 @@ const startLoadingSound = async (voiceText) => {
       if (imageIndex === -1) {
         console.error('No image found at the specified coordinates.');
         speakMessage('Sorry, no image found.');
+        setchatActive(false); // Exit chat mode if no image found
         return 'No image available';
       }
   
@@ -2137,13 +2353,16 @@ const startLoadingSound = async (voiceText) => {
           tileRefs.current[gridIndex].focus();
         }
   
+        setchatActive(false); // Automatically exit chat mode after getting response
         return description;
       } else {
+        setchatActive(false); // Exit chat mode if no response
         return 'No description available';
       }
     } catch (error) {
       console.error('Error fetching image description:', error);
       speakMessage('Sorry, could you ask the question again?');
+      setchatActive(false); // Exit chat mode on error
       return 'Error fetching description';
     }
   };
@@ -2158,37 +2377,6 @@ const startLoadingSound = async (voiceText) => {
       console.error('Error fetching image name:', error);
       return 'Error fetching name';
     }
-  };
-
-  const fetchImageDescription = async (imageURL) => {
-
-    try{
-      console.log('fetching image description for', imageURL);
-
-      let customPrompt = `
-          You are describing an image to a Blind or Visually Impaired Person.
-          Generate the given image description according to the following criteria:
-          Briefly describe the primary subject or focus of the image in one sentence.
-        `;
-  
-        const descriptionResponse = await axios.post("/api/openai/describe-image", { imageURL, question: customPrompt });
-
-        console.log("Image description response received:", descriptionResponse);
-
-        if (descriptionResponse.data && descriptionResponse.data.description) {
-          console.log("Generated image description:", descriptionResponse.data.description);
-          return descriptionResponse.data.description;
-        } else {
-          console.warn("No valid description received.");
-          return "No description available.";
-        }
-  
-    }
-    catch (error) { 
-      console.error('Error fetching image description:', error);
-      return 'Error fetching description';
-    }
-  
   };
 
   const updateImageAtIndex = (gridIndex, newImageObject) => {
@@ -2507,7 +2695,7 @@ const startLoadingSound = async (voiceText) => {
         `;
 
         try {
-          const response = await axios.post("/api/openai/global-description", { 
+          const response = await axios.post("/api/openai/description", { 
             prompt: context
           });
 
@@ -2689,10 +2877,216 @@ const startLoadingSound = async (voiceText) => {
     speakImmediate(message, 1);
   };
 
+  const handleChat = async () => {
+    if (focusedIndex === null) {
+      speakMessage('Please select a tile first.');
+      return;
+    }
+
+    const tile = tiles[focusedIndex];
+    const image = savedImages.find(img => img.coordinate.x === tile.x && img.coordinate.y === tile.y);
+    
+    if (!image) {
+      speakMessage('There is no image on this tile.');
+      return;
+    }
+
+    speakImmediate("Selected: Image Chat. Press Q to ask questions about the selected image.", speechSpeed);
+    imageChat(focusedIndex);
+  };
+
+  const handleCanvasQuestion = async () => {
+    if (canvasQuestionActive) return;
+    setCanvasQuestionActive(true);
+    
+    try {
+      speakMessage("Ask a question about the entire canvas.");
+      const voiceInput = await startListening();
+      setPromptText(voiceInput);
+
+      speakMessage(`You have asked: ${voiceInput}.`);
+
+      // Capture the canvas image
+      const canvasImage = await captureCanvasImage(savedImages, canvasSize);
+      
+      const customPrompt = `
+        You are describing a canvas to a Blind and Visually Impaired Person.
+        Keep the description brief and straightforward.
+        Answer the question the user is asking first.
+        Question: ${voiceInput}
+        
+        Here are the images on the canvas:
+        ${savedImages.map((img, index) => `
+          Image ${index + 1}:
+          - Name: "${img.name}"
+          - Description: "${img.descriptions}"
+          - Position: (${img.canvas.x}, ${img.canvas.y})
+          - Size: ${img.sizeParts.width}px × ${img.sizeParts.height}px
+        `).join("\n")}
+      `;
+
+      const response = await axios.post("/api/openai/description", { 
+        prompt: customPrompt,
+        canvasImage: canvasImage
+      });
+
+      if (response.data && response.data.description) {
+        speakMessage(response.data.description);
+      } else {
+        speakMessage("Sorry, I couldn't process your question. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error handling canvas question:", error);
+      speakMessage("Sorry, there was an error processing your question. Please try again.");
+    } finally {
+      setCanvasQuestionActive(false); // Automatically exit canvas question mode
+    }
+  };
+
+  const fetchImageDescription = async (gridIndex) => {
+    try {
+      const tileX = tiles[gridIndex].x;
+      const tileY = tiles[gridIndex].y;
+      const imageIndex = savedImages.findIndex(image => image.coordinate.x === tileX && image.coordinate.y === tileY);
+      
+      if (imageIndex === -1) {
+        speakMessage("No image found on this tile.");
+        setinfoActive(false);
+        return;
+      }
+
+      const image = savedImages[imageIndex];
+      const imageURL = image.image_nbg || image.url;
+
+      // Convert blob URL to base64 if it's a blob URL
+      let base64Image;
+      if (imageURL.startsWith('blob:')) {
+        const response = await fetch(imageURL);
+        const blob = await response.blob();
+        base64Image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } else {
+        base64Image = imageURL;
+      }
+
+      const customPrompt = `
+        You are describing an image to a Blind and Visually Impaired Person.
+        Keep the description brief and straightforward.
+        
+        Here is the image information:
+        - Name: "${image.name}"
+        - Current Description: "${image.descriptions}"
+        - Position: (${image.canvas.x}, ${image.canvas.y})
+        - Size: ${image.sizeParts.width}px × ${image.sizeParts.height}px
+        
+        Please provide a natural, flowing description that:
+        1. Describes the main subject of the image
+        2. Mentions any notable details or features
+        3. Keeps the description brief and easy to understand
+        4. Uses natural language to describe the image
+        
+        Focus on creating a clear mental picture of the image.
+      `;
+
+      const response = await axios.post("/api/openai/description", { 
+        prompt: customPrompt,
+        canvasImage: base64Image
+      });
+
+      if (response.data && response.data.description) {
+        speakMessage(response.data.description);
+      } else {
+        speakMessage("Sorry, I couldn't generate a description for this image.");
+      }
+    } catch (error) {
+      console.error("Error fetching image description:", error);
+      speakMessage("Sorry, there was an error generating the description. Please try again.");
+    } finally {
+      setinfoActive(false); // Always exit info mode after completion
+    }
+  };
+
+  // Add function to handle background image upload
+  const handleBackgroundUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageUrl = e.target.result;
+        setBackgroundImage(imageUrl);
+        speakMessage("Background image uploaded successfully.");
+
+        try {
+          // Create background image object
+          const backgroundImageObject = {
+            name: 'Background Image',
+            url: imageUrl,
+            image_nbg: imageUrl,
+            canvas_descriptions: '',
+            coordinate: { x: Math.round(canvasSize.width / 2), y: Math.round(canvasSize.height / 2) },
+            canvas: { x: Math.round(canvasSize.width / 2), y: Math.round(canvasSize.height / 2) },
+            sizeParts: { width: canvasSize.width, height: canvasSize.height },
+            zIndex: -1,
+            isBackground: true
+          };
+          
+          // Update savedImages with the new background image
+          setSavedImages(prevImages => {
+            // Remove any existing background image
+            const filteredImages = prevImages.filter(img => !img.isBackground);
+            // Add the new background image at the beginning
+            return [backgroundImageObject, ...filteredImages];
+          });
+
+          console.log("Background image uploaded successfully. Getting description...");
+          
+          // Get description of the background image
+          const customPrompt = `
+            You are describing a background image to a Blind and Visually Impaired Person.
+            Keep the description brief and straightforward.
+            Focus on describing the overall scene, colors, and any notable elements.
+            This is a background image that will be used as a canvas backdrop.
+          `;
+
+          const response = await axios.post("/api/openai/description", { 
+            prompt: customPrompt,
+            canvasImage: imageUrl
+          });
+
+          if (response.data && response.data.description) {
+            speakMessage(response.data.description);
+            // Update the background image object with the description
+            backgroundImageObject.canvas_descriptions = response.data.description;
+            setSavedImages(prevImages => {
+              const filteredImages = prevImages.filter(img => !img.isBackground);
+              return [backgroundImageObject, ...filteredImages];
+            });
+          } else {
+            speakMessage("Background image uploaded, but couldn't get its description.");
+          }
+        } catch (error) {
+          console.error('Error fetching background description:', error);
+          speakMessage("Background image uploaded, but couldn't get its description.");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Add function to remove background
+  const removeBackgroundImage = () => {
+    setBackgroundImage(null);
+    speakMessage("Background image removed");
+    // Remove background image from savedImages array
+    setSavedImages(prevImages => prevImages.filter(img => !img.isBackground));
+  };
+
   return (
     <div id='imageGeneration'>
-
-
     <Dialog open={settingsOpen} onClose={handleSettingsClose} aria-labelledby="welcome-dialog-title">
     <div style={{ flexGrow: 1, margin: '6%' }}>
       <h1 id="mainHeader"  aria-label="Alt-Canvas, the image editor for blind users" style={{ fontSize: '1rem', marginTop: '0', color: '#1E90FF'}}>System Settings</h1>
@@ -2719,6 +3113,50 @@ const startLoadingSound = async (voiceText) => {
                   - Decrease Speed
                 </button>
               </div>
+            <br/>
+            <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+              <h4 style={{ marginBottom: '0.5rem' }}>Canvas Background:</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBackgroundUpload}
+                  style={{ display: 'none' }}
+                  id="background-upload"
+                />
+                <label htmlFor="background-upload" style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#1E90FF',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  fontSize: '1rem',
+                  margin: 0
+                }}>
+                  Upload Background
+                </label>
+                {backgroundImage && (
+                  <button
+                    onClick={removeBackgroundImage}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      fontSize: '1rem',
+                      margin: 0
+                    }}
+                  >
+                    Remove Background
+                  </button>
+                )}
+              </div>
+            </div>
         </DialogContent>
         <DialogActions>
             <Button onClick={handleSettingsClose} color="primary">Close</Button>
@@ -2907,9 +3345,10 @@ const startLoadingSound = async (voiceText) => {
                   setFocusedIndex(index);
                   if(tiles>1){
                     const currImage = isImageOnTile(tile.x, tile.y)
-                    // const currImage = savedImages.find(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y)
                     console.log('image on TILE', currImage)
-                    speakMessage(`${currImage.name}`);
+                    if (currImage && !currImage.isBackground) {
+                      speakMessage(`${currImage.name}`);
+                    }
                   }
                   tileNavigation(event, index, savedImages.some(image => image.coordinate.x === tile.x && image.coordinate.y === tile.y));
                 }}
@@ -2934,16 +3373,19 @@ const startLoadingSound = async (voiceText) => {
                 {loading && activeIndex === index ? (
                   <MoonLoader size={30}/>
                 ) : (
-                  savedImages.filter(savedImage => 
-                    savedImage.coordinate.x === tile.x && savedImage.coordinate.y === tile.y
-                  ).map((image, imageIndex) => (
-                    <img
-                      key={imageIndex}
-                      src={image.image_nbg || image.url}
-                      alt=""
-                      style={{ width: '100%', height: '100%', position: 'absolute' }}
-                    />
-                  ))
+                  savedImages
+                    .filter(savedImage => 
+                      savedImage.coordinate.x === tile.x && 
+                      savedImage.coordinate.y === tile.y &&
+                      !savedImage.isBackground
+                    ).map((image, imageIndex) => (
+                      <img
+                        key={imageIndex}
+                        src={image.image_nbg || image.url}
+                        alt=""
+                        style={{ width: '100%', height: '100%', position: 'absolute' }}
+                      />
+                    ))
                 )}
               </div>
             ))}
@@ -2956,8 +3398,26 @@ const startLoadingSound = async (voiceText) => {
           aria-label="Right Portion of the Screen"
           >
           <h4>Canvas</h4>
-              <div id="canvas"  aria-label="Canvas"  ref={canvasRef} style={{ position: 'relative', ...canvasSize, boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }} tabIndex={0}>
+            <div id="canvas" aria-label="Canvas" ref={canvasRef} style={{ 
+              position: 'relative', 
+              ...canvasSize, 
+              boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
+            }} tabIndex={0}>
+              {backgroundImage && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundImage: `url(${backgroundImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  zIndex: -1
+                }} />
+              )}
               {savedImages
+                .filter(image => !image.isBackground)
                 .sort((a, b) => a.zIndex - b.zIndex) // Sort images by zIndex
                 .map((image, index) => {
                 if (image.image_nbg !== '') { 
@@ -3006,7 +3466,7 @@ const startLoadingSound = async (voiceText) => {
               <ol style={{marginLeft: '1rem'}}>
                 <li style={{marginBottom: '0.5rem'}}>Press <kbd>Enter</kbd> on the first tile to generate your first image using voice commands</li>
                 <li style={{marginBottom: '0.5rem'}}>Use arrow keys to navigate between tiles (with directional sound feedback)</li>
-                <li style={{marginBottom: '0.5rem'}}>Press <kbd>Shift + G</kbd> anytime to hear a description of your canvas</li>
+                <li style={{marginBottom: '0.5rem'}}>Press <kbd>Shift + D</kbd> anytime to hear a description of your canvas</li>
                 <li style={{marginBottom: '0.5rem'}}>Use <kbd>Shift + L</kbd> to move images and <kbd>Shift + S</kbd> to resize them</li>
               </ol>
               <p>For more detailed instructions, visit our <a href="https://arxiv.org/pdf/2408.10240" target="_blank" rel="noopener noreferrer">documentation</a> or watch our <a href="https://www.youtube.com/watch?v=tJUqjjwSxPs" target="_blank" rel="noopener noreferrer">video tutorial</a>.</p>
@@ -3036,10 +3496,10 @@ const startLoadingSound = async (voiceText) => {
                   <kbd>Enter</kbd> : To generate or regenerate an image on a tile.
                 </li>
                 <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>G</kbd>: Global - Descriptions about what the canvas currently looks like.
+                  <kbd>Shift</kbd> + <kbd>D</kbd>: Description - Descriptions about what the canvas currently looks like.
                 </li>
                 <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>I</kbd>: Info - Descriptions about the currently selected item on the tile.
+                  <kbd>D</kbd>: Info - Descriptions about the currently selected item on the tile.
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>C</kbd>: Chat - Opens a chat window related to the currently selected item.
@@ -3054,7 +3514,7 @@ const startLoadingSound = async (voiceText) => {
                   <kbd>Shift</kbd> + <kbd>R</kbd>: Radar Scan - Gives a Description about the nearby objects.
                 </li>
                 <li style={{marginBottom: '2%'}}>
-                  <kbd>Shift</kbd> + <kbd>D</kbd>: Render Canvas - Render the final canvas.
+                  <kbd>Shift</kbd> + <kbd>T</kbd>: Render Canvas - Render the final canvas.
                 </li>
                 <li style={{marginBottom: '2%'}}>
                   <kbd>Shift</kbd> + <kbd>K</kbd>: Keyboard Commands - Hear these instructions.

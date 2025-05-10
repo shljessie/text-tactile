@@ -58,44 +58,48 @@ router.post("/generate-image", async (req, res) => {
     }
 });
 
-// 📝 **2. Describe Image**
-router.post("/describe-image", async (req, res) => {
+// 📝 **2. Describe/AskQuestions Image or Canvas same endpoint**
+router.post("/description", async (req, res) => {
     try {
-        const { imageURL, question } = req.body;
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        { type: "text", text: question },
-                        { type: "image_url", image_url: { url: imageURL } }
-                    ]
-                }
-            ],
-            max_tokens: 300
-        });
+        const { prompt, canvasImage } = req.body;
+        
+        console.log("=== Description Request Started ===");
+        console.log("Request body:", { prompt, hasImage: !!canvasImage });
+        
+        // If we have a canvas image and prompt, use GPT-4 Vision
+        if (canvasImage && prompt) {
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: prompt },
+                            { type: "image_url", image_url: { url: canvasImage } }
+                        ]
+                    }
+                ],
+                max_tokens: 500
+            });
 
-        res.json({ description: response.choices[0].message.content });
+            console.log("=== Description Request Completed Successfully ===");
+            res.json({ description: response.choices[0].message.content });
+        } else {
+            console.error("Missing required parameters");
+            res.status(400).json({ error: "Both prompt and canvasImage are required" });
+        }
     } catch (error) {
-        console.error("[API] Error describing image:", error);
-        res.status(500).json({ error: "Failed to describe image" });
-    }
-});
-
-// 🌍 **3. Global Canvas Description**
-router.post("/global-description", async (req, res) => {
-    try {
-        const { prompt } = req.body;
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: prompt }],
+        console.error("=== Description Request Failed ===");
+        console.error("Error details:", {
+            message: error.message,
+            status: error.status,
+            response: error.response?.data,
+            stack: error.stack
         });
-
-        res.json({ description: response.choices[0].message.content });
-    } catch (error) {
-        console.error("[API] Error generating global description:", error);
-        res.status(500).json({ error: "Failed to generate description" });
+        res.status(500).json({ 
+            error: "Failed to generate description",
+            details: error.message
+        });
     }
 });
 
