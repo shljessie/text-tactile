@@ -2487,7 +2487,21 @@ const startLoadingSound = async (voiceText) => {
       };
   
       imageObject.image_nbg = await removeBackground(imageURL, imageObject);
-      imageObject.descriptions = await fetchImageDescription(imageURL);
+      
+      // Get image description
+      const customPrompt = `
+        You are describing an image to a Blind and Visually Impaired Person.
+        Keep the description brief and straightforward.
+        Focus on describing the main subject and any notable details.
+        Use natural language that creates a clear mental picture.
+      `;
+
+      const descriptionResponse = await axios.post("/api/openai/description", { 
+        prompt: customPrompt,
+        canvasImage: imageURL
+      });
+
+      imageObject.descriptions = descriptionResponse.data.description || 'No description available';
       stopLoadingSound();
 
       // Debug log for z-index
