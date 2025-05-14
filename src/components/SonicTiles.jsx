@@ -884,7 +884,7 @@ export const SonicTiles = () => {
     const currTop = currY - currHeight / 2 - tolerance ;
     const currBottom = currY + currHeight / 2 + tolerance;
 
-    const otherImages = savedImages.filter((_, index) => index !== editingImageIndex);
+    const otherImages = savedImages.filter((_, index) => index !== editingImageIndex && !_.isBackground);
     for (let otherImage of otherImages) {
         const { x: otherX, y: otherY } = otherImage.canvas;
         const { width: otherWidth, height: otherHeight } = otherImage.sizeParts;
